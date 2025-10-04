@@ -1,103 +1,121 @@
-import Image from "next/image";
+import { notionClient } from "../lib/notion";
+import { PostCard } from "../components/PostCard";
+import { ClientPagination } from "../components/ClientPagination";
+// import type { BlogPost } from '../types/notion';
 
-export default function Home() {
+interface HomeProps {
+  searchParams: {
+    page?: string;
+  };
+}
+
+export default async function Home({ searchParams }: HomeProps) {
+  const resolvedSearchParams = await searchParams;
+  const currentPage = parseInt(resolvedSearchParams.page || "1", 10);
+  const postsPerPage = 6;
+
+  // Notion에서 모든 포스트 가져오기
+  const allPosts = await notionClient.getAllPosts();
+
+  // 페이지네이션 계산
+  const totalPages = Math.ceil(allPosts.length / postsPerPage);
+  const startIndex = (currentPage - 1) * postsPerPage;
+  const endIndex = startIndex + postsPerPage;
+  const posts = allPosts.slice(startIndex, endIndex);
+
+  // 포스트 대화형 페이지 (클라이언트 컴포넌트로 이동)
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* 헤더 */}
+      <header className="bg-white dark:bg-gray-800 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">개발 기술 블로그</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">개발과 기술에 관한 다양한 이야기들을 공유합니다</p>
         </div>
+      </header>
+
+      {/* 메인 콘텐츠 */}
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* 포스트 목록 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {posts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={
+                // NotionPost를 BlogPost로 변환
+                {
+                  id: post.id,
+                  title: post.title,
+                  slug: post.slug,
+                  content: "", // 상세 페이지에서 구현
+                  excerpt: post.excerpt || "",
+                  publishedAt: new Date(post.createdAt),
+                  updatedAt: new Date(post.updatedAt),
+                  category: {
+                    name: post.category,
+                    slug: post.category.toLowerCase().replace(/\s+/g, "-"),
+                    postCount: 0,
+                  },
+                  tags: post.tags.map((tag) => ({
+                    name: tag,
+                    slug: tag.toLowerCase().replace(/\s+/g, "-"),
+                    postCount: 0,
+                  })),
+                  coverImage: post.coverImage,
+                  readingTime: post.readingTime || 0,
+                  toc: [],
+                }
+              }
+            />
+          ))}
+        </div>
+
+        {/* 포스트가 없는 경우 */}
+        {posts.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500 dark:text-gray-400 text-lg">아직 포스트가 없습니다.</p>
+          </div>
+        )}
+
+        {/* API 상태 표시 (개발 모드) */}
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-8">
+          <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-2">📊 API 상태</h3>
+          <p className="text-blue-700 dark:text-blue-300">{notionClient.getApiStatus().message}</p>
+          {!notionClient.getApiStatus().useRealAPI && (
+            <div className="mt-2 text-sm text-blue-600 dark:text-blue-400">
+              실제 Notion 데이터를 사용하려면{" "}
+              <code className="bg-blue-200 dark:bg-blue-800 px-1 rounded">NOTION_SETUP.md</code> 파일을 참고하여 환경
+              변수를 설정하세요.
+            </div>
+          )}
+        </div>
+
+        {/* 페이지네이션 */}
+        {totalPages > 1 && <ClientPagination currentPage={currentPage} totalPages={totalPages} />}
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* 푸터 */}
+      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center text-gray-600 dark:text-gray-400">
+            <p>&copy; 2025 개발 기술 블로그. All rights reserved.</p>
+          </div>
+        </div>
       </footer>
     </div>
   );
+}
+
+// SSG를 위한 메타데이터 생성
+export async function generateMetadata() {
+  return {
+    title: "개발 기술 블로그",
+    description: "개발과 기술에 관한 다양한 이야기들을 공유하는 블로그입니다.",
+    openGraph: {
+      title: "개발 기술 블로그",
+      description: "개발과 기술에 관한 다양한 이야기들을 공유하는 블로그입니다.",
+      type: "website",
+    },
+  };
 }
