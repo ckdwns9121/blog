@@ -1,4 +1,4 @@
-import type { NotionBlock, TableOfContentsItem } from "../types/notion";
+import type { NotionBlock, TableOfContentsItem, TextContent } from "../types/notion";
 
 /**
  * Notion 블록에서 목차(TOC)를 생성하는 유틸리티 함수
@@ -54,8 +54,8 @@ function getHeadingLevel(blockType: string): number {
  */
 function extractHeadingText(block: NotionBlock): string {
   if (typeof block.content === "object" && block.content !== null) {
-    const content = block.content as any;
-    if (content.text) {
+    const content = block.content as TextContent;
+    if ("text" in content && content.text) {
       return content.text;
     }
   }
