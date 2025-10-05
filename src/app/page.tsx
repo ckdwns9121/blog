@@ -38,7 +38,7 @@ export default async function Home({ searchParams }: HomeProps) {
       {/* 메인 콘텐츠 */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 포스트 목록 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="space-y-0 mb-8">
           {posts.map((post) => (
             <PostCard
               key={post.id}
