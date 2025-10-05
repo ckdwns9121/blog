@@ -4,9 +4,9 @@ import { ClientPagination } from "../components/ClientPagination";
 // import type { BlogPost } from '../types/notion';
 
 interface HomeProps {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
-  };
+  }>;
 }
 
 export default async function Home({ searchParams }: HomeProps) {
