@@ -37,8 +37,10 @@ export class NotionClient {
     if (this.useRealAPI) {
       this.client = new Client({
         auth: apiKey,
+        // Notion 클라이언트 로깅 비활성화
+        logLevel: process.env.NODE_ENV === "production" ? undefined : undefined,
       });
-      console.log("✓ Real Notions API client initialized");
+      console.log("✓ Notion API connected");
     } else {
       console.log("⚠ Using Mock data mode. Set NOTION_API_KEY in .env.local for real Notion API integration.");
     }
@@ -85,13 +87,6 @@ export class NotionClient {
             const publishedProperty = properties.published as NotionCheckboxProperty | undefined;
             const titleProperty = this.getPlainText(properties.title);
 
-            // 디버깅 정보 추가
-            console.log(`Page ${page.id}:`, {
-              published: publishedProperty,
-              title: titleProperty,
-              properties: Object.keys(properties || {}),
-            });
-
             if (publishedProperty?.checkbox && titleProperty) {
               const originalSlug = this.getPlainText(properties.slug);
               const generatedSlug = this.slugify(titleProperty);
@@ -99,14 +94,6 @@ export class NotionClient {
 
               // slug가 비어있으면 기본값 사용
               const validSlug = finalSlug || `post-${notionPage.id.slice(-8)}`;
-
-              console.log("🔧 Creating post:", {
-                title: titleProperty,
-                originalSlug,
-                generatedSlug,
-                finalSlug,
-                validSlug,
-              });
 
               const readingTimeProperty = properties.readingTime as NotionNumberProperty | undefined;
 
@@ -126,7 +113,14 @@ export class NotionClient {
             }
           }
         } catch (pageError) {
-          console.warn(`Failed to process page ${page.id}:`, pageError);
+          // 권한 없는 페이지나 삭제된 페이지는 조용히 건너뛰기
+          const error = pageError as Error & { code?: string };
+          if (error.code === "object_not_found") {
+            // 프로덕션에서는 간단한 로그만
+            console.log(`⚠ Skipping inaccessible page: ${page.id}`);
+          } else {
+            console.warn(`Failed to process page ${page.id}:`, error.message);
+          }
         }
       }
 
@@ -157,11 +151,6 @@ export class NotionClient {
 
       const posts = await this.getAllPosts();
       const decodedSlug = decodeURIComponent(slug);
-      console.log(
-        "🔍 Available posts:",
-        posts.map((p) => ({ title: p.title, slug: p.slug }))
-      );
-      console.log("🔍 Searching for:", { originalSlug: slug, decodedSlug });
       const post = posts.find((p) => p.slug === decodedSlug || p.slug === slug);
 
       if (!post) {
@@ -314,39 +303,39 @@ export class NotionClient {
   // Helper methods
   private getPlainText(property: NotionPropertyValue | undefined): string {
     if (!property) return "";
-    
+
     if (property.type === "title") {
       const titleProp = property as NotionTitleProperty;
       return titleProp.title.length > 0 ? titleProp.title[0].plain_text : "";
     }
-    
+
     if (property.type === "rich_text") {
       const richTextProp = property as NotionRichTextProperty;
       return richTextProp.rich_text.length > 0 ? richTextProp.rich_text[0].plain_text : "";
     }
-    
+
     return "";
   }
 
   private getMultiSelect(property: NotionPropertyValue | undefined): string[] {
     if (!property) return [];
-    
+
     if (property.type === "multi_select") {
       const multiSelectProp = property as NotionMultiSelectProperty;
       return multiSelectProp.multi_select.map((item) => item.name);
     }
-    
+
     return [];
   }
 
   private getUrl(property: NotionPropertyValue | undefined): string | undefined {
     if (!property) return undefined;
-    
+
     if (property.type === "url") {
       const urlProp = property as NotionUrlProperty;
       return urlProp.url || undefined;
     }
-    
+
     return undefined;
   }
 
