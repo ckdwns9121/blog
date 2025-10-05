@@ -11,6 +11,15 @@ interface PostPageProps {
   params: Promise<{ slug: string }>;
 }
 
+// SSG를 위한 정적 경로 생성
+export async function generateStaticParams() {
+  const allPosts = await notionClient.getAllPosts();
+
+  return allPosts.map((post) => ({
+    slug: post.slug,
+  }));
+}
+
 export async function generateMetadata({ params }: PostPageProps): Promise<Metadata> {
   const resolvedParams = await params;
   const { slug } = resolvedParams;
@@ -50,8 +59,6 @@ export default async function PostPage({ params }: PostPageProps) {
 
   try {
     const post = await notionClient.getPostBySlug(slug);
-    console.log("----------post----------");
-    console.log(post);
     const toc = generateTableOfContents(post.content);
 
     // 이전/다음 포스트 조회
