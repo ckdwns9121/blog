@@ -39,9 +39,10 @@ export default function PostContent({ blocks, className = "" }: PostContentProps
 
       case "code":
         const codeContent = extractText(content);
-        const language = typeof content === "object" && content !== null && "language" in content
-          ? (content as CodeContent).language || "text"
-          : "text";
+        const language =
+          typeof content === "object" && content !== null && "language" in content
+            ? (content as CodeContent).language || "text"
+            : "text";
         return (
           <div className="mb-6 overflow-hidden rounded-lg">
             <SyntaxHighlighter
@@ -67,9 +68,8 @@ export default function PostContent({ blocks, className = "" }: PostContentProps
         return <hr className="my-8 border-gray-300 dark:border-gray-600" />;
 
       case "image":
-        const imageContent = typeof content === "object" && content !== null && "url" in content
-          ? content as ImageContent
-          : null;
+        const imageContent =
+          typeof content === "object" && content !== null && "url" in content ? (content as ImageContent) : null;
         const imageUrl = imageContent?.url;
         const imageCaption = imageContent?.caption;
         return (
