@@ -26,7 +26,7 @@ export default async function Home({ searchParams }: HomeProps) {
   // 포스트 대화형 페이지 (클라이언트 컴포넌트로 이동)
 
   return (
-    <div className="bg-white dark:bg-black text-gray-900 dark:text-white">
+    <div className="bg-white dark:bg-black text-gray-900 dark:text-white min-h-screen">
       {/* 메인 콘텐츠 */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 포스트 목록 */}
