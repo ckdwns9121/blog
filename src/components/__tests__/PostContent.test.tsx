@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import PostContent from "../PostContent";
+import PostContent from "../../entities/post/PostContent";
 import type { NotionBlock } from "../../types/notion";
 
 // next-themes 모킹

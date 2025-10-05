@@ -1,10 +1,10 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { notionClient } from "@/lib/notion";
+import { notionClient } from "@/service/notion";
 import { generateTableOfContents } from "@/lib/toc";
-import PostContent from "@/components/PostContent";
+import PostContent from "@/entities/post/PostContent";
 import TableOfContents from "@/components/TableOfContents";
-import PostNavigation from "@/components/PostNavigation";
+import PostNavigation from "@/entities/post/PostNavigation";
 import type { Metadata } from "next";
 
 interface PostPageProps {

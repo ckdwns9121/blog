@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { BlogPost } from "../types/notion";
+import type { BlogPost } from "../../types/notion";
 
 interface PostCardProps {
   post: BlogPost;

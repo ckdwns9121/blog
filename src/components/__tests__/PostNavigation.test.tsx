@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import PostNavigation from "../PostNavigation";
+import PostNavigation from "../../entities/post/PostNavigation";
 import type { BlogPost } from "../../types/notion";
 
 // next/link 모킹

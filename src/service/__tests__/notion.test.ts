@@ -1,5 +1,5 @@
 // NotionClient API 테스트
-import { NotionClient } from "../lib/notion";
+import { NotionClient } from "../notion";
 
 describe("NotionClient", () => {
   let notionClient: NotionClient;

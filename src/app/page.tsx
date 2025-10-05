@@ -1,7 +1,7 @@
-import { notionClient } from "../lib/notion";
-import { PostCard } from "../components/PostCard";
+import { notionClient } from "../service/notion";
+import { PostCard } from "../entities/post/PostCard";
 import { ClientPagination } from "../components/ClientPagination";
-import { Header } from "../components/Header";
+import { Header } from "../shared/Header";
 // import type { BlogPost } from '../types/notion';
 
 interface HomeProps {
