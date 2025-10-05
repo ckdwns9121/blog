@@ -13,10 +13,33 @@ export interface NotionPost {
   readingTime?: number;
 }
 
+// Notion 블록의 content 타입들
+export interface RichTextItem {
+  plain_text: string;
+  href?: string;
+}
+
+export interface TextContent {
+  text?: string;
+  rich_text?: RichTextItem[];
+  title?: RichTextItem[];
+}
+
+export interface CodeContent extends TextContent {
+  language?: string;
+}
+
+export interface ImageContent {
+  url: string;
+  caption?: string;
+}
+
+export type BlockContent = string | TextContent | CodeContent | ImageContent;
+
 export interface NotionBlock {
   id: string;
   type: string;
-  content: unknown;
+  content: BlockContent;
   children?: NotionBlock[];
 }
 

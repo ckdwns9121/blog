@@ -4,7 +4,7 @@ import React from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight, oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useTheme } from "next-themes";
-import type { NotionBlock } from "../../types/notion";
+import type { NotionBlock, CodeContent, ImageContent, TextContent, RichTextItem } from "../../types/notion";
 
 interface PostContentProps {
   blocks: NotionBlock[];
@@ -39,7 +39,9 @@ export default function PostContent({ blocks, className = "" }: PostContentProps
 
       case "code":
         const codeContent = extractText(content);
-        const language = (content as any)?.language || "text";
+        const language = typeof content === "object" && content !== null && "language" in content
+          ? (content as CodeContent).language || "text"
+          : "text";
         return (
           <div className="mb-6 overflow-hidden rounded-lg">
             <SyntaxHighlighter
@@ -65,11 +67,14 @@ export default function PostContent({ blocks, className = "" }: PostContentProps
         return <hr className="my-8 border-gray-300 dark:border-gray-600" />;
 
       case "image":
-        const imageUrl = (content as any)?.url;
-        const imageCaption = (content as any)?.caption;
+        const imageContent = typeof content === "object" && content !== null && "url" in content
+          ? content as ImageContent
+          : null;
+        const imageUrl = imageContent?.url;
+        const imageCaption = imageContent?.caption;
         return (
           <figure className="mb-6">
-            <img src={imageUrl} alt={imageCaption || ""} className="w-full rounded-lg" />
+            {imageUrl && <img src={imageUrl} alt={imageCaption || ""} className="w-full rounded-lg" />}
             {imageCaption && (
               <figcaption className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
                 {imageCaption}
@@ -83,20 +88,20 @@ export default function PostContent({ blocks, className = "" }: PostContentProps
     }
   };
 
-  const extractText = (content: unknown): string => {
+  const extractText = (content: NotionBlock["content"]): string => {
     if (typeof content === "string") {
       return content;
     }
     if (typeof content === "object" && content !== null) {
-      const obj = content as any;
-      if (obj.text) {
-        return obj.text;
+      const textContent = content as TextContent;
+      if ("text" in textContent && textContent.text) {
+        return textContent.text;
       }
-      if (obj.rich_text) {
-        return obj.rich_text.map((item: any) => item.plain_text || "").join("");
+      if ("rich_text" in textContent && textContent.rich_text) {
+        return textContent.rich_text.map((item: RichTextItem) => item.plain_text || "").join("");
       }
-      if (obj.title) {
-        return obj.title.map((item: any) => item.plain_text || "").join("");
+      if ("title" in textContent && textContent.title) {
+        return textContent.title.map((item: RichTextItem) => item.plain_text || "").join("");
       }
     }
     return "";
