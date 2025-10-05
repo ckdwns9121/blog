@@ -48,7 +48,7 @@ export default async function Home({ searchParams }: HomeProps) {
                   id: post.id,
                   title: post.title,
                   slug: post.slug,
-                  content: "", // 상세 페이지에서 구현
+                  content: [], // 상세 페이지에서 구현
                   excerpt: post.excerpt || "",
                   publishedAt: new Date(post.createdAt),
                   updatedAt: new Date(post.updatedAt),
@@ -77,19 +77,6 @@ export default async function Home({ searchParams }: HomeProps) {
             <p className="text-gray-500 dark:text-gray-400 text-lg">아직 포스트가 없습니다.</p>
           </div>
         )}
-
-        {/* API 상태 표시 (개발 모드) */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-8">
-          <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-2">📊 API 상태</h3>
-          <p className="text-blue-700 dark:text-blue-300">{notionClient.getApiStatus().message}</p>
-          {!notionClient.getApiStatus().useRealAPI && (
-            <div className="mt-2 text-sm text-blue-600 dark:text-blue-400">
-              실제 Notion 데이터를 사용하려면{" "}
-              <code className="bg-blue-200 dark:bg-blue-800 px-1 rounded">NOTION_SETUP.md</code> 파일을 참고하여 환경
-              변수를 설정하세요.
-            </div>
-          )}
-        </div>
 
         {/* 페이지네이션 */}
         {totalPages > 1 && <ClientPagination currentPage={currentPage} totalPages={totalPages} />}

@@ -8,7 +8,7 @@ export async function GET() {
       id: post.id,
       title: post.title,
       slug: post.slug,
-      category: post.category?.name || "기타",
+      category: post.category || "기타",
       published: post.published,
     }));
 

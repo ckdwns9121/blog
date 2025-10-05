@@ -63,11 +63,11 @@ export class NotionClient {
 
           // 페이지 데이터 처리
           if (pageData.object === "page") {
-            const properties = (pageData as any).properties;
+            const properties = (pageData as { properties: Record<string, unknown> }).properties;
 
             // 발행된 포스트만 필터링
-            const publishedProperty = properties?.published?.checkbox;
-            const titleProperty = this.getPlainText(properties?.title);
+            const publishedProperty = (properties as Record<string, unknown>)?.published as { checkbox?: boolean };
+            const titleProperty = this.getPlainText((properties as Record<string, unknown>)?.title);
 
             // 디버깅 정보 추가
             console.log(`Page ${page.id}:`, {
@@ -76,8 +76,8 @@ export class NotionClient {
               properties: Object.keys(properties || {}),
             });
 
-            if (publishedProperty && titleProperty) {
-              const originalSlug = this.getPlainText(properties?.slug);
+            if (publishedProperty?.checkbox && titleProperty) {
+              const originalSlug = this.getPlainText((properties as Record<string, unknown>)?.slug);
               const generatedSlug = this.slugify(titleProperty);
               const finalSlug = originalSlug || generatedSlug;
 
@@ -95,15 +95,18 @@ export class NotionClient {
                 id: pageData.id,
                 title: titleProperty,
                 slug: validSlug,
-                published: publishedProperty,
-                createdAt: properties?.createdAt?.date?.start || (page as any).created_time || new Date().toISOString(),
+                published: publishedProperty.checkbox,
+                createdAt:
+                  (properties as any)?.createdAt?.date?.start || (page as any).created_time || new Date().toISOString(),
                 updatedAt:
-                  properties?.updatedAt?.date?.start || (page as any).last_edited_time || new Date().toISOString(),
-                category: this.getPlainText(properties?.category) || "기타",
-                tags: this.getMultiSelect(properties?.tags) || [],
-                excerpt: this.getPlainText(properties?.excerpt),
-                coverImage: this.getUrl(properties?.coverImage),
-                readingTime: properties?.readingTime?.number || 0,
+                  (properties as any)?.updatedAt?.date?.start ||
+                  (page as any).last_edited_time ||
+                  new Date().toISOString(),
+                category: this.getPlainText((properties as Record<string, unknown>)?.category) || "기타",
+                tags: this.getMultiSelect((properties as Record<string, unknown>)?.tags) || [],
+                excerpt: this.getPlainText((properties as Record<string, unknown>)?.excerpt),
+                coverImage: this.getUrl((properties as Record<string, unknown>)?.coverImage),
+                readingTime: (properties as any)?.readingTime?.number || 0,
               });
             }
           }
@@ -157,7 +160,7 @@ export class NotionClient {
         id: post.id,
         title: post.title,
         slug: post.slug,
-        content: blocks, // 블록 형태로 변경
+        content: blocks as any[], // 블록 형태로 변경
         excerpt: post.excerpt || "",
         publishedAt: new Date(post.createdAt),
         updatedAt: new Date(post.updatedAt),
@@ -291,35 +294,40 @@ export class NotionClient {
   }
 
   // Helper methods
-  private getPlainText(property: any): string {
+  private getPlainText(property: unknown): string {
     if (!property) return "";
-    if (property.rich_text && property.rich_text.length > 0) {
-      return property.rich_text[0].plain_text;
+    const prop = property as Record<string, unknown>;
+    if (prop.rich_text && Array.isArray(prop.rich_text) && prop.rich_text.length > 0) {
+      return (prop.rich_text[0] as { plain_text?: string }).plain_text || "";
     }
-    if (property.title && property.title.length > 0) {
-      return property.title[0].plain_text;
+    if (prop.title && Array.isArray(prop.title) && prop.title.length > 0) {
+      return (prop.title[0] as { plain_text?: string }).plain_text || "";
     }
     return "";
   }
 
-  private getMultiSelect(property: any): string[] {
+  private getMultiSelect(property: unknown): string[] {
     if (!property) return [];
-    if (property.multi_select) {
-      return property.multi_select.map((item: any) => item.name);
+    const prop = property as Record<string, unknown>;
+    if (prop.multi_select && Array.isArray(prop.multi_select)) {
+      return prop.multi_select.map((item: { name: string }) => item.name);
     }
     return [];
   }
 
-  private getUrl(property: any): string | undefined {
+  private getUrl(property: unknown): string | undefined {
     if (!property) return undefined;
-    if (property.url) {
-      return property.url;
+    const prop = property as Record<string, unknown>;
+    if (prop.url) {
+      return prop.url as string;
     }
-    if (property.external && property.external.url) {
-      return property.external.url;
+    if (prop.external && typeof prop.external === "object") {
+      const external = prop.external as Record<string, unknown>;
+      if (external.url) return external.url as string;
     }
-    if (property.file && property.file.url) {
-      return property.file.url;
+    if (prop.file && typeof prop.file === "object") {
+      const file = prop.file as Record<string, unknown>;
+      if (file.url) return file.url as string;
     }
     return undefined;
   }
@@ -381,7 +389,7 @@ export class NotionClient {
 
   private extractText(richText: any[]): string {
     if (!richText || !Array.isArray(richText)) return "";
-    return richText.map((text) => text.plain_text || "").join("");
+    return richText.map((text) => (text as { plain_text?: string }).plain_text || "").join("");
   }
 
   private extractBlockContent(block: any): any {

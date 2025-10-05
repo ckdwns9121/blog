@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
         publishedTime: post.publishedAt.toISOString(),
         modifiedTime: post.updatedAt.toISOString(),
         authors: ["블로그 작성자"],
-        tags: post.tags.map((tag: any) => tag.name),
+        tags: post.tags.map((tag) => tag.name),
       },
       twitter: {
         card: "summary_large_image",
@@ -50,11 +50,13 @@ export default async function PostPage({ params }: PostPageProps) {
 
   try {
     const post = await notionClient.getPostBySlug(slug);
+    console.log("----------post----------");
+    console.log(post);
     const toc = generateTableOfContents(post.content);
 
     // 이전/다음 포스트 조회
     const allPosts = await notionClient.getAllPosts();
-    const currentIndex = allPosts.findIndex((p: any) => p.slug === slug);
+    const currentIndex = allPosts.findIndex((p) => p.slug === slug);
 
     const previousPost =
       currentIndex > 0 ? await notionClient.getPostBySlug(allPosts[currentIndex - 1].slug) : undefined;
@@ -87,7 +89,7 @@ export default async function PostPage({ params }: PostPageProps) {
                       <>
                         <span>•</span>
                         <div className="flex gap-2">
-                          {post.tags.map((tag: any) => (
+                          {post.tags.map((tag) => (
                             <span
                               key={tag.slug}
                               className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full text-xs"
