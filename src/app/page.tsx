@@ -27,7 +27,7 @@ export default async function Home({ searchParams }: HomeProps) {
   // 포스트 대화형 페이지 (클라이언트 컴포넌트로 이동)
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white">
       <Header />
 
       {/* 메인 콘텐츠 */}

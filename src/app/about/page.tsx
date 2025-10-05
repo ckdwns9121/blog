@@ -2,11 +2,11 @@ import { Header } from "../../components/Header";
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white">
       <Header />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8">
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm p-8 border border-gray-200 dark:border-gray-800">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">About</h1>
 
           <div className="prose prose-lg max-w-none dark:prose-invert">
