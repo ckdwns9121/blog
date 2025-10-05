@@ -1,6 +1,7 @@
 import { notionClient } from "../lib/notion";
 import { PostCard } from "../components/PostCard";
 import { ClientPagination } from "../components/ClientPagination";
+import { Header } from "../components/Header";
 // import type { BlogPost } from '../types/notion';
 
 interface HomeProps {
@@ -27,13 +28,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* 헤더 */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">개발 기술 블로그</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">개발과 기술에 관한 다양한 이야기들을 공유합니다</p>
-        </div>
-      </header>
+      <Header />
 
       {/* 메인 콘텐츠 */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
