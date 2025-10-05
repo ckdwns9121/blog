@@ -1,7 +1,6 @@
 import { notionClient } from "../service/notion";
 import { PostCard } from "../entities/post/PostCard";
 import { ClientPagination } from "../components/ClientPagination";
-import { Header } from "../shared/Header";
 // import type { BlogPost } from '../types/notion';
 
 interface HomeProps {
@@ -27,9 +26,7 @@ export default async function Home({ searchParams }: HomeProps) {
   // 포스트 대화형 페이지 (클라이언트 컴포넌트로 이동)
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white">
-      <Header />
-
+    <div className="bg-white dark:bg-black text-gray-900 dark:text-white">
       {/* 메인 콘텐츠 */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 포스트 목록 */}
@@ -76,15 +73,6 @@ export default async function Home({ searchParams }: HomeProps) {
         {/* 페이지네이션 */}
         {totalPages > 1 && <ClientPagination currentPage={currentPage} totalPages={totalPages} />}
       </main>
-
-      {/* 푸터 */}
-      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-gray-600 dark:text-gray-400">
-            <p>&copy; 2025 개발 기술 블로그. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

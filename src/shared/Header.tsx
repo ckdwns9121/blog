@@ -27,10 +27,7 @@ export function Header() {
           <div className="flex items-center justify-between h-16">
             <div className="flex-shrink-0">
               <div className="flex items-center">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                  <span className="text-white font-bold text-sm">B</span>
-                </div>
-                <span className="text-xl font-bold text-gray-900 dark:text-white">Blog</span>
+                <span className="text-xl font-bold text-gray-900 dark:text-white">Changjun.blog</span>
               </div>
             </div>
             <div className="flex items-center">
@@ -51,10 +48,7 @@ export function Header() {
           {/* 로고 */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-sm">B</span>
-              </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">Blog</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">Changjun.blog</span>
             </Link>
           </div>
 

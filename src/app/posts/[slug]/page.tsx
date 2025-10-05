@@ -67,8 +67,8 @@ export default async function PostPage({ params }: PostPageProps) {
         : undefined;
 
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="bg-white dark:bg-black">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* 메인 콘텐츠 */}
             <div className="lg:col-span-3">
