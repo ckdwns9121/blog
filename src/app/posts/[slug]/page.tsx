@@ -127,7 +127,7 @@ export default async function PostPage({ params }: PostPageProps) {
                 <PostContent blocks={post.content} />
 
                 {/* 포스트 푸터 */}
-                <footer className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+                <footer className="mt-12 pt-8">
                   <PostNavigation previousPost={previousPost} nextPost={nextPost} />
 
                   {/* 댓글 섹션 */}
