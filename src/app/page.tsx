@@ -1,5 +1,5 @@
 import { notionClient } from "../service/notion";
-import { PostList } from "../components/PostList";
+import { PostList } from "../entities/post/PostList";
 
 // 이 페이지를 정적으로 생성하도록 강제
 export const dynamic = "force-static";

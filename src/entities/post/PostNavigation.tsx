@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
-import type { BlogPost } from "../../types/notion";
+import type { BlogPost } from "../../shared/types/notion";
 
 interface PostNavigationProps {
   previousPost?: BlogPost;

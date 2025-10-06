@@ -1,20 +1,5 @@
 import { Client } from "@notionhq/client";
-import type {
-  NotionPost,
-  BlogPost,
-  NotionBlock,
-  NotionPage,
-  NotionBlockType,
-  NotionRichText,
-  NotionPropertyValue,
-  NotionCheckboxProperty,
-  NotionTitleProperty,
-  NotionRichTextProperty,
-  NotionMultiSelectProperty,
-  NotionUrlProperty,
-  NotionNumberProperty,
-  BlockContent,
-} from "../shared/types/notion";
+import type { NotionPost, BlogPost, NotionBlock, BlockContent } from "../shared/types/notion";
 
 export class NotionClient {
   private client?: Client;
@@ -37,45 +22,21 @@ export class NotionClient {
     if (this.useRealAPI) {
       this.client = new Client({
         auth: apiKey,
-        // Notion 클라이언트 로깅 비활성화
-        logLevel: process.env.NODE_ENV === "production" ? undefined : undefined,
       });
-      console.log("✓ Notion API connected");
+      console.log("✓ Real Notions API client initialized");
     } else {
       console.log("⚠ Using Mock data mode. Set NOTION_API_KEY in .env.local for real Notion API integration.");
     }
   }
 
-  // Rate limiting 구현 (빌드 타임에만 필요하므로 제거 고려)
+  // Rate limiting 구현
   private async rateLimitCheck() {
-    // 빌드 타임에는 rate limiting이 덜 중요하지만, API 안정성을 위해 유지
-    // 프로덕션에서는 SSG로 빌드되므로 런타임에는 호출되지 않음
-    if (process.env.NODE_ENV === "production") {
-      return; // 프로덕션에서는 빌드 타임에만 실행되므로 스킵
-    }
+    // 초당 3 requests 제한 준수
     await new Promise((resolve) => setTimeout(resolve, 334));
   }
 
   // 포스트 메타데이터 조회
   async getAllPosts(): Promise<NotionPost[]> {
-    if (!this.useRealAPI || !this.client) {
-      return this.getFallbackPosts();
-    }
-
-    try {
-      // Next.js fetch 캐싱을 사용하여 빌드 타임에 데이터 고정
-      // Notion API는 fetch를 사용하지 않으므로, unstable_cache 사용
-      return await this.getAllPostsCached();
-    } catch (error) {
-      console.error("Error fetching posts from Notion:", error);
-      console.log("Fallback to Mock data due to API error");
-
-      return this.getFallbackPosts();
-    }
-  }
-
-  // 캐시된 포스트 조회 (내부 메서드)
-  private async getAllPostsCached(): Promise<NotionPost[]> {
     if (!this.useRealAPI || !this.client) {
       return this.getFallbackPosts();
     }
@@ -102,54 +63,65 @@ export class NotionClient {
 
           // 페이지 데이터 처리
           if (pageData.object === "page") {
-            const notionPage = pageData as NotionPage;
-            const properties = notionPage.properties;
+            const properties = (pageData as { properties: Record<string, unknown> }).properties;
 
             // 발행된 포스트만 필터링
-            const publishedProperty = properties.published as NotionCheckboxProperty | undefined;
-            const titleProperty = this.getPlainText(properties.title);
+            const publishedProperty = (properties as Record<string, unknown>)?.published as { checkbox?: boolean };
+            const titleProperty = this.getPlainText((properties as Record<string, unknown>)?.title);
+
+            // 디버깅 정보 추가
+            console.log(`Page ${page.id}:`, {
+              published: publishedProperty,
+              title: titleProperty,
+              properties: Object.keys(properties || {}),
+            });
 
             if (publishedProperty?.checkbox && titleProperty) {
-              const originalSlug = this.getPlainText(properties.slug);
+              const originalSlug = this.getPlainText((properties as Record<string, unknown>)?.slug);
               const generatedSlug = this.slugify(titleProperty);
               const finalSlug = originalSlug || generatedSlug;
 
               // slug가 비어있으면 기본값 사용
-              const validSlug = finalSlug || `post-${notionPage.id.slice(-8)}`;
+              const validSlug = finalSlug || `post-${pageData.id.slice(-8)}`;
 
-              const readingTimeProperty = properties.readingTime as NotionNumberProperty | undefined;
+              console.log("🔧 Creating post:", {
+                title: titleProperty,
+                originalSlug,
+                generatedSlug,
+                finalSlug,
+                validSlug,
+              });
+              const pageWithTime = page as { created_time?: string; last_edited_time?: string };
+              const createdAtProp = properties.createdAt as { date?: { start?: string } } | undefined;
+              const updatedAtProp = properties.updatedAt as { date?: { start?: string } } | undefined;
+              const readingTimeProp = properties.readingTime as { number?: number } | undefined;
 
               posts.push({
-                id: notionPage.id,
+                id: pageData.id,
                 title: titleProperty,
                 slug: validSlug,
                 published: publishedProperty.checkbox,
-                createdAt: notionPage.created_time || new Date().toISOString(),
-                updatedAt: notionPage.last_edited_time || new Date().toISOString(),
-                category: this.getPlainText(properties.category) || "기타",
-                tags: this.getMultiSelect(properties.tags) || [],
-                excerpt: this.getPlainText(properties.excerpt),
-                coverImage: this.getUrl(properties.coverImage),
-                readingTime: readingTimeProperty?.number || 0,
+                createdAt: createdAtProp?.date?.start || pageWithTime.created_time || new Date().toISOString(),
+                updatedAt: updatedAtProp?.date?.start || pageWithTime.last_edited_time || new Date().toISOString(),
+                category: this.getPlainText((properties as Record<string, unknown>)?.category) || "기타",
+                tags: this.getMultiSelect((properties as Record<string, unknown>)?.tags) || [],
+                excerpt: this.getPlainText((properties as Record<string, unknown>)?.excerpt),
+                coverImage: this.getUrl((properties as Record<string, unknown>)?.coverImage),
+                readingTime: readingTimeProp?.number || 0,
               });
             }
           }
         } catch (pageError) {
-          // 권한 없는 페이지나 삭제된 페이지는 조용히 건너뛰기
-          const error = pageError as Error & { code?: string };
-          if (error.code === "object_not_found") {
-            // 프로덕션에서는 간단한 로그만
-            console.log(`⚠ Skipping inaccessible page: ${page.id}`);
-          } else {
-            console.warn(`Failed to process page ${page.id}:`, error.message);
-          }
+          console.warn(`Failed to process page ${page.id}:`, pageError);
         }
       }
 
       return posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } catch (error) {
-      console.error("Error in getAllPostsCached:", error);
-      throw error; // 상위 메서드에서 폴백 처리
+      console.error("Error fetching posts from Notion:", error);
+      console.log("Fallback to Mock data due to API error");
+
+      return this.getFallbackPosts();
     }
   }
 
@@ -167,8 +139,15 @@ export class NotionClient {
     }
 
     try {
+      await this.rateLimitCheck();
+
       const posts = await this.getAllPosts();
       const decodedSlug = decodeURIComponent(slug);
+      console.log(
+        "🔍 Available posts:",
+        posts.map((p) => ({ title: p.title, slug: p.slug }))
+      );
+      console.log("🔍 Searching for:", { originalSlug: slug, decodedSlug });
       const post = posts.find((p) => p.slug === decodedSlug || p.slug === slug);
 
       if (!post) {
@@ -233,18 +212,25 @@ export class NotionClient {
     }
 
     try {
+      await this.rateLimitCheck();
+
       const response = await this.client.blocks.children.list({
         block_id: pageId,
         page_size: 100,
       });
 
       return response.results.map((block) => {
-        const notionBlock = block as NotionBlockType;
+        const notionBlock = block as {
+          id: string;
+          type: string;
+          has_children?: boolean;
+          [key: string]: unknown;
+        };
         return {
           id: notionBlock.id,
           type: notionBlock.type,
-          content: this.extractBlockContent(notionBlock),
-          children: notionBlock.has_children ? [] : undefined, // TODO: Implement nested blocks
+          content: this.extractBlockContent(notionBlock) as BlockContent,
+          children: notionBlock.has_children ? [] : undefined,
         };
       });
     } catch (error) {
@@ -271,12 +257,14 @@ export class NotionClient {
     }
 
     try {
+      await this.rateLimitCheck();
+
       const response = await this.client.blocks.children.list({
         block_id: pageId,
         page_size: 100,
       });
 
-      const blocks = response.results as NotionBlockType[];
+      const blocks = response.results;
       return this.convertBlocksToMarkdown(blocks);
     } catch (error) {
       console.error("Error fetching post content:", error);
@@ -315,41 +303,41 @@ export class NotionClient {
   }
 
   // Helper methods
-  private getPlainText(property: NotionPropertyValue | undefined): string {
+  private getPlainText(property: unknown): string {
     if (!property) return "";
-
-    if (property.type === "title") {
-      const titleProp = property as NotionTitleProperty;
-      return titleProp.title.length > 0 ? titleProp.title[0].plain_text : "";
+    const prop = property as Record<string, unknown>;
+    if (prop.rich_text && Array.isArray(prop.rich_text) && prop.rich_text.length > 0) {
+      return (prop.rich_text[0] as { plain_text?: string }).plain_text || "";
     }
-
-    if (property.type === "rich_text") {
-      const richTextProp = property as NotionRichTextProperty;
-      return richTextProp.rich_text.length > 0 ? richTextProp.rich_text[0].plain_text : "";
+    if (prop.title && Array.isArray(prop.title) && prop.title.length > 0) {
+      return (prop.title[0] as { plain_text?: string }).plain_text || "";
     }
-
     return "";
   }
 
-  private getMultiSelect(property: NotionPropertyValue | undefined): string[] {
+  private getMultiSelect(property: unknown): string[] {
     if (!property) return [];
-
-    if (property.type === "multi_select") {
-      const multiSelectProp = property as NotionMultiSelectProperty;
-      return multiSelectProp.multi_select.map((item) => item.name);
+    const prop = property as Record<string, unknown>;
+    if (prop.multi_select && Array.isArray(prop.multi_select)) {
+      return prop.multi_select.map((item: { name: string }) => item.name);
     }
-
     return [];
   }
 
-  private getUrl(property: NotionPropertyValue | undefined): string | undefined {
+  private getUrl(property: unknown): string | undefined {
     if (!property) return undefined;
-
-    if (property.type === "url") {
-      const urlProp = property as NotionUrlProperty;
-      return urlProp.url || undefined;
+    const prop = property as Record<string, unknown>;
+    if (prop.url) {
+      return prop.url as string;
     }
-
+    if (prop.external && typeof prop.external === "object") {
+      const external = prop.external as Record<string, unknown>;
+      if (external.url) return external.url as string;
+    }
+    if (prop.file && typeof prop.file === "object") {
+      const file = prop.file as Record<string, unknown>;
+      if (file.url) return file.url as string;
+    }
     return undefined;
   }
 
@@ -362,142 +350,127 @@ export class NotionClient {
   }
 
   // Notion 블록을 마크다운으로 변환
-  private convertBlocksToMarkdown(blocks: NotionBlockType[]): string {
+  private convertBlocksToMarkdown(blocks: Array<Record<string, unknown>>): string {
     let markdown = "";
 
     for (const block of blocks) {
-      switch (block.type) {
+      const blockType = block.type as string;
+      const getBlockData = (type: string) => {
+        const data = block[type] as { rich_text?: Array<{ plain_text?: string }> } | undefined;
+        return data;
+      };
+
+      switch (blockType) {
         case "heading_1":
-          markdown += `# ${this.extractText(block.heading_1.rich_text)}\n\n`;
+          markdown += `# ${this.extractText(getBlockData("heading_1")?.rich_text || [])}\n\n`;
           break;
         case "heading_2":
-          markdown += `## ${this.extractText(block.heading_2.rich_text)}\n\n`;
+          markdown += `## ${this.extractText(getBlockData("heading_2")?.rich_text || [])}\n\n`;
           break;
         case "heading_3":
-          markdown += `### ${this.extractText(block.heading_3.rich_text)}\n\n`;
+          markdown += `### ${this.extractText(getBlockData("heading_3")?.rich_text || [])}\n\n`;
           break;
         case "paragraph":
-          markdown += `${this.extractText(block.paragraph.rich_text)}\n\n`;
+          markdown += `${this.extractText(getBlockData("paragraph")?.rich_text || [])}\n\n`;
           break;
         case "bulleted_list_item":
-          markdown += `- ${this.extractText(block.bulleted_list_item.rich_text)}\n`;
+          markdown += `- ${this.extractText(getBlockData("bulleted_list_item")?.rich_text || [])}\n`;
           break;
         case "numbered_list_item":
-          markdown += `1. ${this.extractText(block.numbered_list_item.rich_text)}\n`;
+          markdown += `1. ${this.extractText(getBlockData("numbered_list_item")?.rich_text || [])}\n`;
           break;
-        case "code":
-          markdown += `\`\`\`${block.code.language}\n${this.extractText(block.code.rich_text)}\n\`\`\`\n\n`;
+        case "code": {
+          const codeData = block.code as
+            | {
+                rich_text?: Array<{ plain_text?: string }>;
+                language?: string;
+              }
+            | undefined;
+          markdown += `\`\`\`${codeData?.language || ""}\n${this.extractText(codeData?.rich_text || [])}\n\`\`\`\n\n`;
           break;
+        }
         case "quote":
-          markdown += `> ${this.extractText(block.quote.rich_text)}\n\n`;
+          markdown += `> ${this.extractText(getBlockData("quote")?.rich_text || [])}\n\n`;
           break;
-        case "image":
-          markdown += `![${this.extractText(block.image.caption || [])}](${
-            block.image.external?.url || block.image.file?.url || ""
+        case "image": {
+          const imageData = block.image as
+            | {
+                external?: { url?: string };
+                file?: { url?: string };
+                caption?: Array<{ plain_text?: string }>;
+              }
+            | undefined;
+          markdown += `![${this.extractText(imageData?.caption || [])}](${
+            imageData?.external?.url || imageData?.file?.url || ""
           })\n\n`;
           break;
-        case "divider":
-          markdown += `---\n\n`;
-          break;
+        }
+        // 추가 블록 타입들은 필요에 따라 구현
         default:
-          // TypeScript exhaustiveness check - 이 코드는 실행되지 않아야 함
-          const _exhaustiveCheck: never = block;
-          console.log(`Unknown block type:`, _exhaustiveCheck);
+          // 알 수 없는 블록 타입에 대해서는 무시하거나 로그 출력
+          console.log(`Unknown block type: ${blockType}`);
       }
     }
 
     return markdown.trim();
   }
 
-  private extractText(richText: NotionRichText[]): string {
+  private extractText(richText: Array<{ plain_text?: string }>): string {
     if (!richText || !Array.isArray(richText)) return "";
-    return richText.map((text) => text.plain_text).join("");
+    return richText.map((text) => text.plain_text || "").join("");
   }
 
-  private extractBlockContent(block: NotionBlockType): BlockContent {
-    switch (block.type) {
+  private extractBlockContent(block: Record<string, unknown>): BlockContent {
+    const blockType = block.type as string;
+    const getBlockData = (type: string) => {
+      const data = block[type] as { rich_text?: Array<{ plain_text?: string }> } | undefined;
+      return data;
+    };
+
+    switch (blockType) {
       case "heading_1":
-        return {
-          type: "rich_text" as const,
-          rich_text: block.heading_1.rich_text.map((rt) => ({
-            plain_text: rt.plain_text,
-            href: rt.href,
-            annotations: rt.annotations,
-          })),
-        };
       case "heading_2":
-        return {
-          type: "rich_text" as const,
-          rich_text: block.heading_2.rich_text.map((rt) => ({
-            plain_text: rt.plain_text,
-            href: rt.href,
-            annotations: rt.annotations,
-          })),
-        };
       case "heading_3":
-        return {
-          type: "rich_text" as const,
-          rich_text: block.heading_3.rich_text.map((rt) => ({
-            plain_text: rt.plain_text,
-            href: rt.href,
-            annotations: rt.annotations,
-          })),
-        };
       case "paragraph":
-        return {
-          type: "rich_text" as const,
-          rich_text: block.paragraph.rich_text.map((rt) => ({
-            plain_text: rt.plain_text,
-            href: rt.href,
-            annotations: rt.annotations,
-          })),
-        };
       case "bulleted_list_item":
-        return {
-          type: "rich_text" as const,
-          rich_text: block.bulleted_list_item.rich_text.map((rt) => ({
-            plain_text: rt.plain_text,
-            href: rt.href,
-            annotations: rt.annotations,
-          })),
-        };
       case "numbered_list_item":
-        return {
-          type: "rich_text" as const,
-          rich_text: block.numbered_list_item.rich_text.map((rt) => ({
-            plain_text: rt.plain_text,
-            href: rt.href,
-            annotations: rt.annotations,
-          })),
-        };
-      case "code":
-        return {
-          type: "code" as const,
-          text: this.extractText(block.code.rich_text),
-          language: block.code.language,
-        };
       case "quote":
+        return { text: this.extractText(getBlockData(blockType)?.rich_text || []) };
+
+      case "code": {
+        const codeData = block.code as
+          | {
+              rich_text?: Array<{ plain_text?: string }>;
+              language?: string;
+            }
+          | undefined;
         return {
-          type: "rich_text" as const,
-          rich_text: block.quote.rich_text.map((rt) => ({
-            plain_text: rt.plain_text,
-            href: rt.href,
-            annotations: rt.annotations,
-          })),
+          type: "code",
+          text: this.extractText(codeData?.rich_text || []),
+          language: codeData?.language || "text",
         };
-      case "image":
+      }
+
+      case "image": {
+        const imageData = block.image as
+          | {
+              external?: { url?: string };
+              file?: { url?: string };
+              caption?: Array<{ plain_text?: string }>;
+            }
+          | undefined;
         return {
-          type: "image" as const,
-          url: block.image.external?.url || block.image.file?.url || "",
-          caption: this.extractText(block.image.caption || []),
+          type: "image",
+          url: imageData?.external?.url || imageData?.file?.url || "",
+          caption: this.extractText(imageData?.caption || []),
         };
+      }
+
       case "divider":
-        return { type: "plain_text" as const, text: "" };
+        return "";
+
       default:
-        // TypeScript exhaustiveness check - 모든 블록 타입이 처리됨
-        const _exhaustiveCheck: never = block;
-        console.log(`Unknown block type:`, _exhaustiveCheck);
-        return { type: "plain_text" as const, text: "" };
+        return { text: this.extractText(getBlockData(blockType)?.rich_text || []) };
     }
   }
 
