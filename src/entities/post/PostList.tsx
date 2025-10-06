@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { PostCard } from "../entities/post/PostCard";
+import { PostCard } from "./PostCard";
 import { ClientPagination } from "./ClientPagination";
-import type { NotionPost } from "../types/notion";
+import type { NotionPost } from "../../shared/types/notion";
 
 interface PostListProps {
   posts: NotionPost[];

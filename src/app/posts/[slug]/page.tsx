@@ -1,9 +1,15 @@
 import React from "react";
 import { notFound } from "next/navigation";
+
+// service
 import { notionClient } from "@/service/notion";
-import { generateTableOfContents } from "@/lib/toc";
+
+// shared
+import { generateTableOfContents } from "@/shared/libs/toc";
+
+// entities
 import PostContent from "@/entities/post/PostContent";
-import TableOfContents from "@/components/TableOfContents";
+import TableOfContents from "@/entities/post/TableOfContents";
 import PostNavigation from "@/entities/post/PostNavigation";
 import type { Metadata } from "next";
 

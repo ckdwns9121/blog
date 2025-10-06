@@ -14,7 +14,7 @@ import type {
   NotionUrlProperty,
   NotionNumberProperty,
   BlockContent,
-} from "../types/notion";
+} from "../shared/types/notion";
 
 export class NotionClient {
   private client?: Client;
