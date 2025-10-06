@@ -1,1 +1,1 @@
-console.log("comment");
+export { default as Comment } from "./Comment";
