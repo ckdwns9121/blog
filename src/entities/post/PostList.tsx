@@ -48,7 +48,7 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
               slug: post.slug,
               content: [],
               excerpt: post.excerpt || "",
-              publishedAt: new Date(post.createdAt),
+              publishedAt: new Date(post.publishedAt),
               updatedAt: new Date(post.updatedAt),
               category: {
                 name: post.category,

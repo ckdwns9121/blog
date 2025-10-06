@@ -5,6 +5,7 @@ export interface NotionPost {
   slug: string;
   published: boolean;
   createdAt: string;
+  publishedAt: string;
   updatedAt: string;
   category: string;
   tags: string[];
