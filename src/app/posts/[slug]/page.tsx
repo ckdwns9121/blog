@@ -11,6 +11,7 @@ import { generateTableOfContents } from "@/shared/libs/toc";
 import PostContent from "@/entities/post/PostContent";
 import TableOfContents from "@/entities/post/TableOfContents";
 import PostNavigation from "@/entities/post/PostNavigation";
+import { Comment } from "@/entities/comment";
 import type { Metadata } from "next";
 
 interface PostPageProps {
@@ -128,6 +129,12 @@ export default async function PostPage({ params }: PostPageProps) {
                 {/* 포스트 푸터 */}
                 <footer className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
                   <PostNavigation previousPost={previousPost} nextPost={nextPost} />
+
+                  {/* 댓글 섹션 */}
+                  <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">댓글</h2>
+                    <Comment repo="ckdwns9121/blog-comment" issueTerm="pathname" label="Comment" />
+                  </div>
                 </footer>
               </article>
             </div>
