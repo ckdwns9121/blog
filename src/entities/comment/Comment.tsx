@@ -7,7 +7,6 @@ interface CommentProps {
   repo: string;
   issueTerm?: "pathname" | "url" | "title" | "og:title";
   label?: string;
-  theme?: string;
 }
 
 export default function Comment({ repo, issueTerm = "pathname", label = "Comment" }: CommentProps) {
