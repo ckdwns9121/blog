@@ -16,14 +16,17 @@ export default function Comment({ repo, issueTerm = "pathname", label = "Comment
   useEffect(() => {
     if (!commentRef.current) return;
 
-    // 기존 utterances 요소 모두 제거 (script + iframe)
-    commentRef.current.innerHTML = "";
-
-    // utterances 테마 결정
     const currentTheme = theme === "system" ? resolvedTheme : theme;
     const utterancesTheme = currentTheme === "dark" ? "github-dark" : "github-light";
 
-    // 새 스크립트 생성
+    // iframe이 이미 있으면 테마만 변경
+    const iframe = document.querySelector<HTMLIFrameElement>(".utterances-frame");
+    if (iframe?.contentWindow) {
+      iframe.contentWindow.postMessage({ type: "set-theme", theme: utterancesTheme }, "https://utteranc.es");
+      return;
+    }
+
+    // iframe이 없으면 초기 로드
     const script = document.createElement("script");
     script.src = "https://utteranc.es/client.js";
     script.setAttribute("repo", repo);
