@@ -14,7 +14,7 @@ export function ImageBlock({ url, caption }: ImageBlockProps) {
 
   return (
     <figure className="mb-6">
-      <Image src={url} alt={caption || ""} className="w-full rounded-lg" />
+<Image src={url} alt={caption || ""} className="w-full rounded-lg" width={0} height={0} sizes="100vw" style={{ height: "auto" }} />
       {caption && (
         <figcaption className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">{caption}</figcaption>
       )}
