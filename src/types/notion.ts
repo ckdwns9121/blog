@@ -216,17 +216,23 @@ export interface RichTextItem {
   };
 }
 
-export interface TextContent {
+// Discriminated Union으로 타입 안정성 강화
+export type TextContent =
+  | { type: "rich_text"; rich_text: RichTextItem[] }
+  | { type: "plain_text"; text: string }
+  | { type: "title"; title: RichTextItem[] }
+  // 레거시 지원 (타입 필드 없는 경우)
+  | { text?: string; rich_text?: RichTextItem[]; title?: RichTextItem[] };
+
+export interface CodeContent {
+  type: "code";
   text?: string;
   rich_text?: RichTextItem[];
-  title?: RichTextItem[];
-}
-
-export interface CodeContent extends TextContent {
   language?: string;
 }
 
 export interface ImageContent {
+  type: "image";
   url: string;
   caption?: string;
 }

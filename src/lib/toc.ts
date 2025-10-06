@@ -1,4 +1,4 @@
-import type { NotionBlock, TableOfContentsItem, TextContent } from "../types/notion";
+import type { NotionBlock, TableOfContentsItem } from "../types/notion";
 
 /**
  * Notion 블록에서 목차(TOC)를 생성하는 유틸리티 함수
@@ -50,25 +50,50 @@ function getHeadingLevel(blockType: string): number {
 }
 
 /**
- * 헤딩 블록에서 텍스트 추출
+ * 헤딩 블록에서 텍스트 추출 (타입 가드 사용)
  */
 function extractHeadingText(block: NotionBlock): string {
-  if (typeof block.content === "string") {
-    return block.content;
+  const content = block.content;
+
+  // 문자열 타입
+  if (typeof content === "string") {
+    return content;
   }
 
-  if (typeof block.content === "object" && block.content !== null) {
-    const content = block.content as TextContent;
+  // 객체가 아니면 빈 문자열
+  if (typeof content !== "object" || content === null) {
+    return "";
+  }
 
-    // rich_text 배열에서 텍스트 추출 (새 구조)
-    if ("rich_text" in content && content.rich_text && Array.isArray(content.rich_text)) {
-      return content.rich_text.map((item) => item.plain_text || "").join("");
+  // Discriminated union 타입 체크
+  if ("type" in content) {
+    switch (content.type) {
+      case "rich_text":
+        return content.rich_text.map((item) => item.plain_text).join("");
+      case "plain_text":
+        return content.text;
+      case "title":
+        return content.title.map((item) => item.plain_text).join("");
+      case "code":
+        return content.text || "";
+      case "image":
+        return ""; // 이미지는 텍스트 없음
+      default:
+        return "";
     }
+  }
 
-    // 이전 구조 호환성 유지
-    if ("text" in content && content.text) {
-      return content.text;
-    }
+  // 레거시 구조 (type 필드 없음)
+  if ("rich_text" in content && content.rich_text && Array.isArray(content.rich_text)) {
+    return content.rich_text.map((item) => item.plain_text || "").join("");
+  }
+
+  if ("text" in content && typeof content.text === "string") {
+    return content.text;
+  }
+
+  if ("title" in content && content.title && Array.isArray(content.title)) {
+    return content.title.map((item) => item.plain_text || "").join("");
   }
 
   return "";

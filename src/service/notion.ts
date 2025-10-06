@@ -418,6 +418,7 @@ export class NotionClient {
     switch (block.type) {
       case "heading_1":
         return {
+          type: "rich_text" as const,
           rich_text: block.heading_1.rich_text.map((rt) => ({
             plain_text: rt.plain_text,
             href: rt.href,
@@ -426,6 +427,7 @@ export class NotionClient {
         };
       case "heading_2":
         return {
+          type: "rich_text" as const,
           rich_text: block.heading_2.rich_text.map((rt) => ({
             plain_text: rt.plain_text,
             href: rt.href,
@@ -434,6 +436,7 @@ export class NotionClient {
         };
       case "heading_3":
         return {
+          type: "rich_text" as const,
           rich_text: block.heading_3.rich_text.map((rt) => ({
             plain_text: rt.plain_text,
             href: rt.href,
@@ -442,6 +445,7 @@ export class NotionClient {
         };
       case "paragraph":
         return {
+          type: "rich_text" as const,
           rich_text: block.paragraph.rich_text.map((rt) => ({
             plain_text: rt.plain_text,
             href: rt.href,
@@ -450,6 +454,7 @@ export class NotionClient {
         };
       case "bulleted_list_item":
         return {
+          type: "rich_text" as const,
           rich_text: block.bulleted_list_item.rich_text.map((rt) => ({
             plain_text: rt.plain_text,
             href: rt.href,
@@ -458,6 +463,7 @@ export class NotionClient {
         };
       case "numbered_list_item":
         return {
+          type: "rich_text" as const,
           rich_text: block.numbered_list_item.rich_text.map((rt) => ({
             plain_text: rt.plain_text,
             href: rt.href,
@@ -466,11 +472,13 @@ export class NotionClient {
         };
       case "code":
         return {
+          type: "code" as const,
           text: this.extractText(block.code.rich_text),
           language: block.code.language,
         };
       case "quote":
         return {
+          type: "rich_text" as const,
           rich_text: block.quote.rich_text.map((rt) => ({
             plain_text: rt.plain_text,
             href: rt.href,
@@ -479,16 +487,17 @@ export class NotionClient {
         };
       case "image":
         return {
+          type: "image" as const,
           url: block.image.external?.url || block.image.file?.url || "",
           caption: this.extractText(block.image.caption || []),
         };
       case "divider":
-        return {};
+        return { type: "plain_text" as const, text: "" };
       default:
         // TypeScript exhaustiveness check - 모든 블록 타입이 처리됨
         const _exhaustiveCheck: never = block;
         console.log(`Unknown block type:`, _exhaustiveCheck);
-        return { text: "" };
+        return { type: "plain_text" as const, text: "" };
     }
   }
 
