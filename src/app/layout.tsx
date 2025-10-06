@@ -15,6 +15,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
   title: {
     default: "프론트엔드 개발자 박창준",
@@ -25,7 +27,14 @@ export const metadata: Metadata = {
   keywords: ["프론트엔드", "개발자", "박창준", "React", "Next.js", "TypeScript", "JavaScript", "웹 개발"],
   authors: [{ name: "박창준" }],
   creator: "박창준",
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  metadataBase: new URL(baseUrl),
+  alternates: {
+    types: {
+      "application/rss+xml": `${baseUrl}/feed.xml`,
+      "application/feed+json": `${baseUrl}/feed.json`,
+      "application/atom+xml": `${baseUrl}/atom.xml`,
+    },
+  },
   openGraph: {
     type: "website",
     locale: "ko_KR",

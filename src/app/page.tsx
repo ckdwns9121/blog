@@ -7,13 +7,14 @@ export const revalidate = 3600; // 1시간마다 재검증
 
 export default async function Home() {
   const allPosts = await notionClient.getAllPosts();
+
   const sortedPosts = allPosts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 
   return (
     <div className="bg-white dark:bg-black text-gray-900 dark:text-white min-h-screen">
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 클라이언트 컴포넌트로 전체 포스트 전달 */}
-        <PostList posts={sortedPosts} postsPerPage={6} />
+        <PostList posts={sortedPosts} postsPerPage={10} />
       </main>
     </div>
   );
