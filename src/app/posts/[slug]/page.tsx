@@ -1,7 +1,7 @@
 import React from "react";
 import { notFound } from "next/navigation";
 import { notionClient } from "@/service/notion";
-import { generateTableOfContents } from "@/lib/toc";
+import { generateTableOfContents } from "@/shared/libs/toc";
 import PostContent from "@/entities/post/PostContent";
 import TableOfContents from "@/components/TableOfContents";
 import PostNavigation from "@/entities/post/PostNavigation";

@@ -6,7 +6,6 @@ export const dynamic = "force-static";
 export const revalidate = 3600; // 1시간마다 재검증
 
 export default async function Home() {
-  // 빌드 타임에 한 번만 실행 ✅
   const allPosts = await notionClient.getAllPosts();
 
   return (
