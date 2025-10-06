@@ -15,9 +15,6 @@ export function Footer() {
             <p className="text-sm text-gray-600 dark:text-gray-400">
               © {currentYear} <span className="font-semibold">changjun</span>. All rights reserved.
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-              Built with Next.js, Tailwind CSS, and Notion API
-            </p>
           </div>
 
           {/* 소셜 링크 */}

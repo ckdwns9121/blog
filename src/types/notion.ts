@@ -205,7 +205,15 @@ export type NotionBlockType =
 // Notion 블록의 content 타입들
 export interface RichTextItem {
   plain_text: string;
-  href?: string;
+  href?: string | null;
+  annotations?: {
+    bold?: boolean;
+    italic?: boolean;
+    strikethrough?: boolean;
+    underline?: boolean;
+    code?: boolean;
+    color?: string;
+  };
 }
 
 export interface TextContent {

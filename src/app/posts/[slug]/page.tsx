@@ -121,10 +121,6 @@ export default async function PostPage({ params }: PostPageProps) {
 
                 {/* 포스트 푸터 */}
                 <footer className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-                    <p>최종 수정: {post.updatedAt.toLocaleDateString("ko-KR")}</p>
-                  </div>
-
                   <PostNavigation previousPost={previousPost} nextPost={nextPost} />
                 </footer>
               </article>

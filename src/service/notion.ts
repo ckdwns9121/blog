@@ -417,24 +417,66 @@ export class NotionClient {
   private extractBlockContent(block: NotionBlockType): BlockContent {
     switch (block.type) {
       case "heading_1":
-        return { text: this.extractText(block.heading_1.rich_text) };
+        return {
+          rich_text: block.heading_1.rich_text.map((rt) => ({
+            plain_text: rt.plain_text,
+            href: rt.href,
+            annotations: rt.annotations,
+          })),
+        };
       case "heading_2":
-        return { text: this.extractText(block.heading_2.rich_text) };
+        return {
+          rich_text: block.heading_2.rich_text.map((rt) => ({
+            plain_text: rt.plain_text,
+            href: rt.href,
+            annotations: rt.annotations,
+          })),
+        };
       case "heading_3":
-        return { text: this.extractText(block.heading_3.rich_text) };
+        return {
+          rich_text: block.heading_3.rich_text.map((rt) => ({
+            plain_text: rt.plain_text,
+            href: rt.href,
+            annotations: rt.annotations,
+          })),
+        };
       case "paragraph":
-        return { text: this.extractText(block.paragraph.rich_text) };
+        return {
+          rich_text: block.paragraph.rich_text.map((rt) => ({
+            plain_text: rt.plain_text,
+            href: rt.href,
+            annotations: rt.annotations,
+          })),
+        };
       case "bulleted_list_item":
-        return { text: this.extractText(block.bulleted_list_item.rich_text) };
+        return {
+          rich_text: block.bulleted_list_item.rich_text.map((rt) => ({
+            plain_text: rt.plain_text,
+            href: rt.href,
+            annotations: rt.annotations,
+          })),
+        };
       case "numbered_list_item":
-        return { text: this.extractText(block.numbered_list_item.rich_text) };
+        return {
+          rich_text: block.numbered_list_item.rich_text.map((rt) => ({
+            plain_text: rt.plain_text,
+            href: rt.href,
+            annotations: rt.annotations,
+          })),
+        };
       case "code":
         return {
           text: this.extractText(block.code.rich_text),
           language: block.code.language,
         };
       case "quote":
-        return { text: this.extractText(block.quote.rich_text) };
+        return {
+          rich_text: block.quote.rich_text.map((rt) => ({
+            plain_text: rt.plain_text,
+            href: rt.href,
+            annotations: rt.annotations,
+          })),
+        };
       case "image":
         return {
           url: block.image.external?.url || block.image.file?.url || "",

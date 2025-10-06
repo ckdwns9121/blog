@@ -6,13 +6,10 @@ export default function About() {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">About</h1>
 
           <div className="prose prose-lg max-w-none dark:prose-invert">
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
-              안녕하세요! 개발과 기술에 관한 다양한 이야기들을 공유하는 블로그입니다.
-            </p>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">안녕하세요 프론트엔드 엔지니어 박창준입니다.</p>
 
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              이 블로그에서는 웹 개발, 프로그래밍, 기술 트렌드, 그리고 개발자로서의 경험과 생각들을 정리하고 공유하고
-              있습니다.
+              기술 블로그를 운영하며 개발 경험과 기술 트렌드를 공유하고 있습니다.
             </p>
 
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">주요 관심사</h2>

@@ -20,22 +20,22 @@ export default function PostContent({ blocks, className = "" }: PostContentProps
 
     switch (type) {
       case "paragraph":
-        return <p className="mb-4 leading-relaxed text-gray-700 dark:text-gray-300">{extractText(content)}</p>;
+        return <p className="mb-4 leading-relaxed text-gray-700 dark:text-gray-300">{renderRichText(content)}</p>;
 
       case "heading_1":
-        return <h1 className="mb-6 text-3xl font-bold text-gray-900 dark:text-white">{extractText(content)}</h1>;
+        return <h1 className="mb-6 text-3xl font-bold text-gray-900 dark:text-white">{renderRichText(content)}</h1>;
 
       case "heading_2":
-        return <h2 className="mb-5 text-2xl font-semibold text-gray-900 dark:text-white">{extractText(content)}</h2>;
+        return <h2 className="mb-5 text-2xl font-semibold text-gray-900 dark:text-white">{renderRichText(content)}</h2>;
 
       case "heading_3":
-        return <h3 className="mb-4 text-xl font-medium text-gray-900 dark:text-white">{extractText(content)}</h3>;
+        return <h3 className="mb-4 text-xl font-medium text-gray-900 dark:text-white">{renderRichText(content)}</h3>;
 
       case "bulleted_list_item":
-        return <li className="mb-2 ml-4 list-disc text-gray-700 dark:text-gray-300">{extractText(content)}</li>;
+        return <li className="mb-2 ml-4 list-disc text-gray-700 dark:text-gray-300">{renderRichText(content)}</li>;
 
       case "numbered_list_item":
-        return <li className="mb-2 ml-4 list-decimal text-gray-700 dark:text-gray-300">{extractText(content)}</li>;
+        return <li className="mb-2 ml-4 list-decimal text-gray-700 dark:text-gray-300">{renderRichText(content)}</li>;
 
       case "code":
         const codeContent = extractText(content);
@@ -60,7 +60,7 @@ export default function PostContent({ blocks, className = "" }: PostContentProps
       case "quote":
         return (
           <blockquote className="mb-4 border-l-4 border-blue-500 pl-4 italic text-gray-600 dark:text-gray-400">
-            {extractText(content)}
+            {renderRichText(content)}
           </blockquote>
         );
 
@@ -84,7 +84,7 @@ export default function PostContent({ blocks, className = "" }: PostContentProps
         );
 
       default:
-        return <div className="mb-4 text-gray-700 dark:text-gray-300">{extractText(content)}</div>;
+        return <div className="mb-4 text-gray-700 dark:text-gray-300">{renderRichText(content)}</div>;
     }
   };
 
@@ -105,6 +105,80 @@ export default function PostContent({ blocks, className = "" }: PostContentProps
       }
     }
     return "";
+  };
+
+  // Rich text를 React 요소로 렌더링 (링크, 볼드, 이탤릭 등 지원)
+  const renderRichText = (content: NotionBlock["content"]): React.ReactNode => {
+    if (typeof content === "string") {
+      return content;
+    }
+
+    if (typeof content === "object" && content !== null) {
+      const textContent = content as TextContent;
+
+      // rich_text 배열 처리
+      if ("rich_text" in textContent && textContent.rich_text) {
+        return textContent.rich_text.map((item: RichTextItem, index: number) => renderRichTextItem(item, index));
+      }
+
+      // title 배열 처리
+      if ("title" in textContent && textContent.title) {
+        return textContent.title.map((item: RichTextItem, index: number) => renderRichTextItem(item, index));
+      }
+
+      // 단순 text 필드
+      if ("text" in textContent && textContent.text) {
+        return textContent.text;
+      }
+    }
+
+    return "";
+  };
+
+  // RichTextItem을 스타일이 적용된 React 요소로 렌더링
+  const renderRichTextItem = (item: RichTextItem, index: number): React.ReactNode => {
+    let text: React.ReactNode = item.plain_text || "";
+    const annotations = item.annotations;
+
+    // 텍스트 스타일 적용
+    if (annotations) {
+      if (annotations.bold) {
+        text = <strong>{text}</strong>;
+      }
+      if (annotations.italic) {
+        text = <em>{text}</em>;
+      }
+      if (annotations.strikethrough) {
+        text = <s>{text}</s>;
+      }
+      if (annotations.underline) {
+        text = <u>{text}</u>;
+      }
+      if (annotations.code) {
+        text = (
+          <code className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono text-red-600 dark:text-red-400">
+            {text}
+          </code>
+        );
+      }
+    }
+
+    // 하이퍼링크가 있는 경우
+    if (item.href) {
+      return (
+        <a
+          key={index}
+          href={item.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 dark:text-blue-400 hover:underline transition-colors"
+        >
+          {text}
+        </a>
+      );
+    }
+
+    return <span key={index}>{text}</span>;
   };
 
   return (
