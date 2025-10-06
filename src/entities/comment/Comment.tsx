@@ -16,11 +16,8 @@ export default function Comment({ repo, issueTerm = "pathname", label = "Comment
   useEffect(() => {
     if (!commentRef.current) return;
 
-    // 기존 스크립트 제거
-    const existingScript = commentRef.current.querySelector("script");
-    if (existingScript) {
-      commentRef.current.removeChild(existingScript);
-    }
+    // 기존 utterances 요소 모두 제거 (script + iframe)
+    commentRef.current.innerHTML = "";
 
     // utterances 테마 결정
     const currentTheme = theme === "system" ? resolvedTheme : theme;
