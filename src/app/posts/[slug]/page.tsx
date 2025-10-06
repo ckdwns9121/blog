@@ -132,7 +132,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
             {/* 사이드바 - 목차 */}
             <div className="lg:col-span-1">
-              <div className="sticky top-8">
+              <div className="sticky top-16">
                 <TableOfContents items={toc} />
               </div>
             </div>
