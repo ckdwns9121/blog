@@ -16,8 +16,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Changjun.blog - 개발 기술 블로그",
-  description: "개발과 기술에 관한 다양한 이야기들을 공유하는 블로그입니다.",
+  title: {
+    default: "프론트엔드 개발자 박창준",
+    template: "%s | 박창준 블로그",
+  },
+  description:
+    "프론트엔드 개발자 박창준의 블로그입니다. React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
+  keywords: ["프론트엔드", "개발자", "박창준", "React", "Next.js", "TypeScript", "JavaScript", "웹 개발"],
+  authors: [{ name: "박창준" }],
+  creator: "박창준",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    siteName: "박창준 블로그",
+  },
 };
 
 export default function RootLayout({

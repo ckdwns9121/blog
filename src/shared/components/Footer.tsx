@@ -20,7 +20,7 @@ export function Footer() {
           {/* 소셜 링크 */}
           <div className="flex items-center space-x-4">
             <Link
-              href="https://github.com/changjun"
+              href="https://github.com/ckdwns9121"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
@@ -30,7 +30,7 @@ export function Footer() {
               <span className="text-sm font-medium">GitHub</span>
             </Link>
             <Link
-              href="https://linkedin.com/in/changjun"
+              href="https://linkedin.com/in/devchangjun"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
