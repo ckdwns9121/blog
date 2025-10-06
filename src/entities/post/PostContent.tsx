@@ -15,21 +15,43 @@ export default function PostContent({ blocks, className = "" }: PostContentProps
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
+  // 헤딩 카운터 (목차 ID 생성용)
+  let headingCounter = 0;
+
   const renderBlock = (block: NotionBlock): React.ReactNode => {
     const { type, content } = block;
+
+    // 헤딩 블록인 경우 ID 생성
+    let headingId: string | undefined;
+    if (["heading_1", "heading_2", "heading_3"].includes(type)) {
+      headingCounter++;
+      headingId = `heading-${headingCounter}`;
+    }
 
     switch (type) {
       case "paragraph":
         return <p className="mb-4 leading-relaxed text-gray-700 dark:text-gray-300">{renderRichText(content)}</p>;
 
       case "heading_1":
-        return <h1 className="mb-6 text-3xl font-bold text-gray-900 dark:text-white">{renderRichText(content)}</h1>;
+        return (
+          <h1 id={headingId} className="mb-6 text-3xl font-bold text-gray-900 dark:text-white scroll-mt-20">
+            {renderRichText(content)}
+          </h1>
+        );
 
       case "heading_2":
-        return <h2 className="mb-5 text-2xl font-semibold text-gray-900 dark:text-white">{renderRichText(content)}</h2>;
+        return (
+          <h2 id={headingId} className="mb-5 text-2xl font-semibold text-gray-900 dark:text-white scroll-mt-20">
+            {renderRichText(content)}
+          </h2>
+        );
 
       case "heading_3":
-        return <h3 className="mb-4 text-xl font-medium text-gray-900 dark:text-white">{renderRichText(content)}</h3>;
+        return (
+          <h3 id={headingId} className="mb-4 text-xl font-medium text-gray-900 dark:text-white scroll-mt-20">
+            {renderRichText(content)}
+          </h3>
+        );
 
       case "bulleted_list_item":
         return <li className="mb-2 ml-4 list-disc text-gray-700 dark:text-gray-300">{renderRichText(content)}</li>;

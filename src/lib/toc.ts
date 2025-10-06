@@ -53,12 +53,24 @@ function getHeadingLevel(blockType: string): number {
  * 헤딩 블록에서 텍스트 추출
  */
 function extractHeadingText(block: NotionBlock): string {
+  if (typeof block.content === "string") {
+    return block.content;
+  }
+
   if (typeof block.content === "object" && block.content !== null) {
     const content = block.content as TextContent;
+
+    // rich_text 배열에서 텍스트 추출 (새 구조)
+    if ("rich_text" in content && content.rich_text && Array.isArray(content.rich_text)) {
+      return content.rich_text.map((item) => item.plain_text || "").join("");
+    }
+
+    // 이전 구조 호환성 유지
     if ("text" in content && content.text) {
       return content.text;
     }
   }
+
   return "";
 }
 
