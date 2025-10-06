@@ -1,83 +1,24 @@
 import { notionClient } from "../service/notion";
-import { PostCard } from "../entities/post/PostCard";
-import { ClientPagination } from "../components/ClientPagination";
-// import type { BlogPost } from '../types/notion';
+import { PostList } from "../components/PostList";
 
-interface HomeProps {
-  searchParams: Promise<{
-    page?: string;
-  }>;
-}
+// 이 페이지를 정적으로 생성하도록 강제
+export const dynamic = "force-static";
+export const revalidate = 3600; // 1시간마다 재검증
 
-export default async function Home({ searchParams }: HomeProps) {
-  const resolvedSearchParams = await searchParams;
-  const currentPage = parseInt(resolvedSearchParams.page || "1", 10);
-  const postsPerPage = 6;
-
-  // Notion에서 모든 포스트 가져오기
+export default async function Home() {
+  // 빌드 타임에 한 번만 실행 ✅
   const allPosts = await notionClient.getAllPosts();
-
-  // 페이지네이션 계산
-  const totalPages = Math.ceil(allPosts.length / postsPerPage);
-  const startIndex = (currentPage - 1) * postsPerPage;
-  const endIndex = startIndex + postsPerPage;
-  const posts = allPosts.slice(startIndex, endIndex);
-
-  // 포스트 대화형 페이지 (클라이언트 컴포넌트로 이동)
 
   return (
     <div className="bg-white dark:bg-black text-gray-900 dark:text-white min-h-screen">
-      {/* 메인 콘텐츠 */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* 포스트 목록 */}
-        <div className="space-y-0 mb-8">
-          {posts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={
-                // NotionPost를 BlogPost로 변환
-                {
-                  id: post.id,
-                  title: post.title,
-                  slug: post.slug,
-                  content: [], // 상세 페이지에서 구현
-                  excerpt: post.excerpt || "",
-                  publishedAt: new Date(post.createdAt),
-                  updatedAt: new Date(post.updatedAt),
-                  category: {
-                    name: post.category,
-                    slug: post.category.toLowerCase().replace(/\s+/g, "-"),
-                    postCount: 0,
-                  },
-                  tags: post.tags.map((tag) => ({
-                    name: tag,
-                    slug: tag.toLowerCase().replace(/\s+/g, "-"),
-                    postCount: 0,
-                  })),
-                  coverImage: post.coverImage,
-                  readingTime: post.readingTime || 0,
-                  toc: [],
-                }
-              }
-            />
-          ))}
-        </div>
-
-        {/* 포스트가 없는 경우 */}
-        {posts.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400 text-lg">아직 포스트가 없습니다.</p>
-          </div>
-        )}
-
-        {/* 페이지네이션 */}
-        {totalPages > 1 && <ClientPagination currentPage={currentPage} totalPages={totalPages} />}
+        {/* 클라이언트 컴포넌트로 전체 포스트 전달 */}
+        <PostList posts={allPosts} postsPerPage={6} />
       </main>
     </div>
   );
 }
 
-// SSG를 위한 메타데이터 생성
 export async function generateMetadata() {
   return {
     title: "개발 기술 블로그",

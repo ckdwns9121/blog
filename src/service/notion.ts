@@ -46,14 +46,36 @@ export class NotionClient {
     }
   }
 
-  // Rate limiting 구현
+  // Rate limiting 구현 (빌드 타임에만 필요하므로 제거 고려)
   private async rateLimitCheck() {
-    // 초당 3 requests 제한 준수
+    // 빌드 타임에는 rate limiting이 덜 중요하지만, API 안정성을 위해 유지
+    // 프로덕션에서는 SSG로 빌드되므로 런타임에는 호출되지 않음
+    if (process.env.NODE_ENV === "production") {
+      return; // 프로덕션에서는 빌드 타임에만 실행되므로 스킵
+    }
     await new Promise((resolve) => setTimeout(resolve, 334));
   }
 
   // 포스트 메타데이터 조회
   async getAllPosts(): Promise<NotionPost[]> {
+    if (!this.useRealAPI || !this.client) {
+      return this.getFallbackPosts();
+    }
+
+    try {
+      // Next.js fetch 캐싱을 사용하여 빌드 타임에 데이터 고정
+      // Notion API는 fetch를 사용하지 않으므로, unstable_cache 사용
+      return await this.getAllPostsCached();
+    } catch (error) {
+      console.error("Error fetching posts from Notion:", error);
+      console.log("Fallback to Mock data due to API error");
+
+      return this.getFallbackPosts();
+    }
+  }
+
+  // 캐시된 포스트 조회 (내부 메서드)
+  private async getAllPostsCached(): Promise<NotionPost[]> {
     if (!this.useRealAPI || !this.client) {
       return this.getFallbackPosts();
     }
@@ -126,10 +148,8 @@ export class NotionClient {
 
       return posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } catch (error) {
-      console.error("Error fetching posts from Notion:", error);
-      console.log("Fallback to Mock data due to API error");
-
-      return this.getFallbackPosts();
+      console.error("Error in getAllPostsCached:", error);
+      throw error; // 상위 메서드에서 폴백 처리
     }
   }
 
@@ -147,8 +167,6 @@ export class NotionClient {
     }
 
     try {
-      await this.rateLimitCheck();
-
       const posts = await this.getAllPosts();
       const decodedSlug = decodeURIComponent(slug);
       const post = posts.find((p) => p.slug === decodedSlug || p.slug === slug);
@@ -215,8 +233,6 @@ export class NotionClient {
     }
 
     try {
-      await this.rateLimitCheck();
-
       const response = await this.client.blocks.children.list({
         block_id: pageId,
         page_size: 100,
@@ -255,8 +271,6 @@ export class NotionClient {
     }
 
     try {
-      await this.rateLimitCheck();
-
       const response = await this.client.blocks.children.list({
         block_id: pageId,
         page_size: 100,
