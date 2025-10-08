@@ -23,13 +23,25 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
-  // URL에서 페이지 번호와 태그 읽기
+  // URL에서 페이지 번호와 태그 읽기 (브라우저 네비게이션 지원)
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const page = parseInt(params.get("page") || "1", 10);
-    const tag = params.get("tag");
-    setCurrentPage(page);
-    setSelectedTag(tag);
+    const syncStateWithUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const page = parseInt(params.get("page") || "1", 10);
+      const tag = params.get("tag");
+      setCurrentPage(page);
+      setSelectedTag(tag);
+    };
+
+    // 브라우저 뒤로/앞으로 가기 감지
+    window.addEventListener("popstate", syncStateWithUrl);
+
+    // 초기 로드 시 실행
+    syncStateWithUrl();
+
+    return () => {
+      window.removeEventListener("popstate", syncStateWithUrl);
+    };
   }, []);
 
   // 페이지 또는 태그 변경 시 URL 업데이트
@@ -51,22 +63,16 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
     window.history.replaceState({}, "", url);
   }, [currentPage, selectedTag]);
 
-  const tagCounts = useMemo(() => {
+  // 태그 카운트와 태그 목록을 한 번에 계산 (성능 최적화)
+  const { tagCounts, allTags } = useMemo(() => {
     const counts = new Map<string, number>();
     posts.forEach((post) => {
       post.tags.forEach((tag) => {
         counts.set(tag, (counts.get(tag) || 0) + 1);
       });
     });
-    return counts;
-  }, [posts]);
-  // 모든 태그 추출 및 정렬
-  const allTags = useMemo(() => {
-    const tagSet = new Set<string>();
-    posts.forEach((post) => {
-      post.tags.forEach((tag) => tagSet.add(tag));
-    });
-    return Array.from(tagSet).sort();
+    const sortedTags = Array.from(counts.keys()).sort();
+    return { tagCounts: counts, allTags: sortedTags };
   }, [posts]);
 
   // 태그로 필터링된 포스트
