@@ -1,4 +1,4 @@
-import type { NotionBlock, TableOfContentsItem } from "../types/notion";
+import type { NotionBlock, TableOfContentsItem } from "../types";
 
 /**
  * Notion 블록에서 목차(TOC)를 생성하는 유틸리티 함수

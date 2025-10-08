@@ -1,5 +1,5 @@
 import { MetadataRoute } from "next";
-import { notionClient } from "@/service/notion";
+import { notionClient } from "@/features/notion";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";

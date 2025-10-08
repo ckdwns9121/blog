@@ -1,8 +1,8 @@
 "use client";
 
 import { Fragment } from "react";
-import type { NotionBlock } from "../../shared/types/notion";
-import { NotionBlockRenderer } from "./NotionBlockRenderer";
+import type { NotionBlock } from "@/features/notion";
+import { NotionBlockRenderer } from "@/features/notion";
 
 interface PostContentProps {
   blocks: NotionBlock[];

@@ -15,7 +15,7 @@ import type {
   NotionNumberProperty,
   NotionDateProperty,
   BlockContent,
-} from "../shared/types/notion";
+} from "../types";
 
 export class NotionClient {
   private client: Client;
@@ -68,14 +68,19 @@ export class NotionClient {
             const readingTimeProperty = properties.readingTime as NotionNumberProperty | undefined;
             const publishedAtDate = this.getDate(properties.publishedAt);
 
+            // 날짜 유효성 재검증
+            const createdAt = notionPage.created_time || new Date().toISOString();
+            const updatedAt = notionPage.last_edited_time || new Date().toISOString();
+            const publishedAt = publishedAtDate || createdAt;
+
             posts.push({
               id: notionPage.id,
               title: titleProperty,
               slug: validSlug,
               published: publishedProperty.checkbox,
-              createdAt: notionPage.created_time || new Date().toISOString(),
-              publishedAt: publishedAtDate,
-              updatedAt: notionPage.last_edited_time || new Date().toISOString(),
+              createdAt,
+              publishedAt,
+              updatedAt,
               category: this.getPlainText(properties.category) || "기타",
               tags: this.getMultiSelect(properties.tags) || [],
               excerpt: this.getPlainText(properties.excerpt),
@@ -219,14 +224,25 @@ export class NotionClient {
   }
 
   private getDate(property: NotionPropertyValue | undefined): string {
-    if (!property) return "";
+    if (!property) return new Date().toISOString();
 
     if (property.type === "date") {
       const dateProp = property as NotionDateProperty;
-      return dateProp.date?.start || "";
+      const dateStr = dateProp.date?.start;
+
+      // 날짜가 없거나 유효하지 않으면 현재 시간 반환
+      if (!dateStr) return new Date().toISOString();
+
+      // 날짜 유효성 검증
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) {
+        return new Date().toISOString();
+      }
+
+      return dateStr;
     }
 
-    return "";
+    return new Date().toISOString();
   }
 
   private slugify(text: string): string {

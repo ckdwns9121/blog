@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import type { TableOfContentsItem } from "@/shared/types/notion";
+import type { TableOfContentsItem } from "@/features/notion";
 
 interface TableOfContentsProps {
   items: TableOfContentsItem[];

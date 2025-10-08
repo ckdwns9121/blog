@@ -1,6 +1,6 @@
 import React from "react";
-import type { NotionBlock } from "@/shared/types/notion";
-import { parseNotionBlock } from "@/shared/utils/notionBlockMapper";
+import type { NotionBlock } from "../types";
+import { parseNotionBlock } from "../utils/blockMapper";
 import { RichTextRenderer } from "./RichTextRenderer";
 import { CodeBlock, ImageBlock, VideoBlock } from "./blocks";
 
