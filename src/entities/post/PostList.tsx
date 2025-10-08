@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { PostCard } from "./PostCard";
 import { ClientPagination } from "./ClientPagination";
 import type { NotionPost } from "../../shared/types/notion";
@@ -12,32 +12,105 @@ interface PostListProps {
 
 export function PostList({ posts, postsPerPage }: PostListProps) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
-  // URL에서 페이지 번호 읽기
+  // URL에서 페이지 번호와 태그 읽기
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const page = parseInt(params.get("page") || "1", 10);
+    const tag = params.get("tag");
     setCurrentPage(page);
+    setSelectedTag(tag);
   }, []);
 
-  // 페이지 변경 시 URL 업데이트
+  // 페이지 또는 태그 변경 시 URL 업데이트
   useEffect(() => {
     const url = new URL(window.location.href);
+
     if (currentPage > 1) {
       url.searchParams.set("page", currentPage.toString());
     } else {
       url.searchParams.delete("page");
     }
-    window.history.replaceState({}, "", url);
-  }, [currentPage]);
 
-  const totalPages = Math.ceil(posts.length / postsPerPage);
+    if (selectedTag) {
+      url.searchParams.set("tag", selectedTag);
+    } else {
+      url.searchParams.delete("tag");
+    }
+
+    window.history.replaceState({}, "", url);
+  }, [currentPage, selectedTag]);
+
+  // 모든 태그 추출 및 정렬
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    posts.forEach((post) => {
+      post.tags.forEach((tag) => tagSet.add(tag));
+    });
+    return Array.from(tagSet).sort();
+  }, [posts]);
+
+  // 태그로 필터링된 포스트
+  const filteredPosts = useMemo(() => {
+    if (!selectedTag) return posts;
+    return posts.filter((post) => post.tags.includes(selectedTag));
+  }, [posts, selectedTag]);
+
+  // 페이지네이션
+  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
   const startIndex = (currentPage - 1) * postsPerPage;
   const endIndex = startIndex + postsPerPage;
-  const currentPosts = posts.slice(startIndex, endIndex);
+  const currentPosts = filteredPosts.slice(startIndex, endIndex);
+
+  // 태그 변경 핸들러
+  const handleTagClick = (tag: string | null) => {
+    setSelectedTag(tag);
+    setCurrentPage(1); // 태그 변경 시 첫 페이지로
+  };
 
   return (
     <>
+      {/* 태그 필터 */}
+      <div className="mb-8">
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => handleTagClick(null)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              selectedTag === null
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+            }`}
+          >
+            전체 ({posts.length})
+          </button>
+          {allTags.map((tag) => {
+            const count = posts.filter((p) => p.tags.includes(tag)).length;
+            return (
+              <button
+                key={tag}
+                onClick={() => handleTagClick(tag)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  selectedTag === tag
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                }`}
+              >
+                {tag} ({count})
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 필터 결과 표시 */}
+      {selectedTag && (
+        <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+          <span className="font-medium text-gray-900 dark:text-white">{selectedTag}</span> 태그로 필터링된 포스트{" "}
+          {filteredPosts.length}개
+        </div>
+      )}
+
       <div className="space-y-0 mb-8">
         {currentPosts.map((post) => (
           <PostCard
