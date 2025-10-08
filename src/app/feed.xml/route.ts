@@ -1,5 +1,5 @@
 import { Feed } from "feed";
-import { notionClient } from "@/service/notion";
+import { notionClient } from "@/features/notion";
 
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";

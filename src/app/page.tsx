@@ -1,4 +1,4 @@
-import { notionClient } from "../service/notion";
+import { notionClient } from "@/features/notion";
 import { PostList } from "../entities/post/PostList";
 
 // 이 페이지를 정적으로 생성하도록 강제

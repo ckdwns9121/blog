@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { PostCard } from "./PostCard";
 import { ClientPagination } from "./ClientPagination";
-import type { NotionPost } from "../../shared/types/notion";
+import type { NotionPost } from "@/features/notion";
 
 interface PostListProps {
   posts: NotionPost[];

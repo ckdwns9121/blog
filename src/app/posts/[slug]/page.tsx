@@ -1,11 +1,8 @@
 import React from "react";
 import { notFound } from "next/navigation";
 
-// service
-import { notionClient } from "@/service/notion";
-
-// shared
-import { generateTableOfContents } from "@/shared/libs/toc";
+// Notion feature
+import { notionClient, generateTableOfContents } from "@/features/notion";
 
 // entities
 import PostContent from "@/entities/post/PostContent";

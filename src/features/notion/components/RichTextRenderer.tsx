@@ -1,5 +1,5 @@
 import React from "react";
-import type { RichTextItem } from "../../shared/types/notion";
+import type { RichTextItem } from "../types";
 
 interface RichTextRendererProps {
   items: RichTextItem[];

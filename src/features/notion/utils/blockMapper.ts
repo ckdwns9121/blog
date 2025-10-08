@@ -1,5 +1,5 @@
-import type { NotionBlock, RichTextItem } from "../types/notion";
-import { extractText, extractLanguage, extractImageData, extractRichTextArray } from "./notionBlockParser";
+import type { NotionBlock, RichTextItem } from "../types";
+import { extractText, extractLanguage, extractImageData, extractRichTextArray } from "./blockParser";
 
 /**
  * Notion 블록을 렌더링에 필요한 Props로 매핑

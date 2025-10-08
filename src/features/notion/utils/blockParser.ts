@@ -1,4 +1,4 @@
-import type { NotionBlock, CodeContent, ImageContent, TextContent, RichTextItem } from "../types/notion";
+import type { NotionBlock, CodeContent, TextContent, RichTextItem } from "../types";
 
 /**
  * Notion 블록의 content에서 순수 텍스트를 추출
