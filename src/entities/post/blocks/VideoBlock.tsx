@@ -4,19 +4,50 @@ interface VideoBlockProps {
 }
 
 /**
- * YouTube URL을 임베드 URL로 변환
+ * 동영상 URL을 임베드 URL로 변환
  */
-function getYouTubeEmbedUrl(url: string): string | null {
-  const patterns = [
+function getVideoEmbedUrl(url: string): { embedUrl: string; platform: string } | null {
+  // YouTube
+  const youtubePatterns = [
     /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([^&]+)/,
     /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([^?]+)/,
+    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([^?]+)/,
   ];
 
-  for (const pattern of patterns) {
+  for (const pattern of youtubePatterns) {
     const match = url.match(pattern);
     if (match) {
-      return `https://www.youtube.com/embed/${match[1]}`;
+      return {
+        embedUrl: `https://www.youtube.com/embed/${match[1]}`,
+        platform: "youtube",
+      };
     }
+  }
+
+  // Vimeo
+  const vimeoPatterns = [
+    /(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(\d+)/,
+    /(?:https?:\/\/)?player\.vimeo\.com\/video\/(\d+)/,
+  ];
+
+  for (const pattern of vimeoPatterns) {
+    const match = url.match(pattern);
+    if (match) {
+      return {
+        embedUrl: `https://player.vimeo.com/video/${match[1]}`,
+        platform: "vimeo",
+      };
+    }
+  }
+
+  // Loom
+  const loomPattern = /(?:https?:\/\/)?(?:www\.)?loom\.com\/share\/([^?]+)/;
+  const loomMatch = url.match(loomPattern);
+  if (loomMatch) {
+    return {
+      embedUrl: `https://www.loom.com/embed/${loomMatch[1]}`,
+      platform: "loom",
+    };
   }
 
   return null;
@@ -25,19 +56,20 @@ function getYouTubeEmbedUrl(url: string): string | null {
 export function VideoBlock({ url, caption }: VideoBlockProps) {
   if (!url) return null;
 
-  // YouTube URL 확인
-  const embedUrl = getYouTubeEmbedUrl(url);
+  // 임베드 URL 확인
+  const videoData = getVideoEmbedUrl(url);
 
-  if (embedUrl) {
-    // YouTube 임베드
+  if (videoData) {
+    // YouTube, Vimeo, Loom 등 임베드
     return (
       <figure className="my-8">
         <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
           <iframe
-            src={embedUrl}
+            src={videoData.embedUrl}
             className="absolute top-0 left-0 w-full h-full rounded-lg"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             allowFullScreen
+            title={caption || "Video"}
           />
         </div>
         {caption && (
@@ -47,10 +79,10 @@ export function VideoBlock({ url, caption }: VideoBlockProps) {
     );
   }
 
-  // 일반 비디오 파일
+  // 일반 비디오 파일 (.mp4, .webm, .ogg 등)
   return (
     <figure className="my-8">
-      <video src={url} controls className="w-full h-auto rounded-lg">
+      <video src={url} controls className="w-full h-auto rounded-lg shadow-lg">
         Your browser does not support the video tag.
       </video>
       {caption && (
