@@ -18,10 +18,12 @@ import type {
 } from "../types";
 
 export class NotionClient {
-  private client: Client;
-  private databaseId: string;
+  private client: Client | null = null;
+  private databaseId: string | null = null;
 
-  constructor() {
+  private initialize() {
+    if (this.client) return; // 이미 초기화됨
+
     const apiKey = process.env.NOTION_API_KEY;
     const dbId = process.env.NOTION_DATABASE_ID;
 
@@ -37,9 +39,19 @@ export class NotionClient {
     this.client = new Client({ auth: apiKey });
   }
 
+  private getClient(): Client {
+    this.initialize();
+    return this.client!;
+  }
+
+  private getDatabaseId(): string {
+    this.initialize();
+    return this.databaseId!;
+  }
+
   // 포스트 메타데이터 조회
   async getAllPosts(): Promise<NotionPost[]> {
-    const response = await this.client.search({
+    const response = await this.getClient().search({
       query: "",
       page_size: 100,
     });
@@ -48,7 +60,7 @@ export class NotionClient {
 
     for (const page of response.results.slice(0, 50)) {
       try {
-        const pageData = await this.client.pages.retrieve({
+        const pageData = await this.getClient().pages.retrieve({
           page_id: page.id,
         });
 
@@ -138,7 +150,7 @@ export class NotionClient {
 
   // 포스트 콘텐츠 변환 (블록 형태로)
   async getPostBlocks(pageId: string): Promise<NotionBlock[]> {
-    const response = await this.client.blocks.children.list({
+    const response = await this.getClient().blocks.children.list({
       block_id: pageId,
       page_size: 100,
     });
