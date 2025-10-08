@@ -2,7 +2,7 @@ import React from "react";
 import type { NotionBlock } from "@/shared/types/notion";
 import { parseNotionBlock } from "@/shared/utils/notionBlockMapper";
 import { RichTextRenderer } from "./RichTextRenderer";
-import { CodeBlock, ImageBlock } from "./blocks";
+import { CodeBlock, ImageBlock, VideoBlock } from "./blocks";
 
 interface NotionBlockRendererProps {
   block: NotionBlock;
@@ -66,6 +66,9 @@ export function NotionBlockRenderer({ block, headingId }: NotionBlockRendererPro
           {renderContent()}
         </blockquote>
       );
+
+    case "video":
+      return <VideoBlock url={parsed.url} caption={parsed.caption} />;
 
     case "divider":
       return <hr className="my-8 border-gray-300 dark:border-gray-600" />;

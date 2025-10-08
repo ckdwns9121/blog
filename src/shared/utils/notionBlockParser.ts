@@ -38,15 +38,37 @@ export function extractLanguage(content: NotionBlock["content"]): string {
 }
 
 /**
- * Image 블록의 URL과 caption 추출
+ * Image/Video 블록의 URL과 caption 추출
  */
 export function extractImageData(content: NotionBlock["content"]): { url?: string; caption?: string } {
-  if (typeof content === "object" && content !== null && "url" in content) {
-    const imageContent = content as ImageContent;
-    return {
-      url: imageContent.url,
-      caption: imageContent.caption,
-    };
+  if (typeof content === "object" && content !== null) {
+    const block = content as Record<string, unknown>;
+
+    // 직접 url 속성이 있는 경우
+    if ("url" in block && typeof block.url === "string") {
+      return {
+        url: block.url,
+        caption: block.caption as string,
+      };
+    }
+
+    // Notion API 구조: { type: 'external', external: { url } } 또는 { type: 'file', file: { url } }
+    let url: string | undefined;
+    if (block.external && typeof block.external === "object") {
+      const external = block.external as { url?: string };
+      url = external.url;
+    } else if (block.file && typeof block.file === "object") {
+      const file = block.file as { url?: string };
+      url = file.url;
+    }
+
+    // caption 추출
+    let caption: string | undefined;
+    if (block.caption && Array.isArray(block.caption)) {
+      caption = block.caption.map((item: { plain_text?: string }) => item.plain_text || "").join("");
+    }
+
+    return { url, caption };
   }
   return {};
 }

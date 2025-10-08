@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { Fragment } from "react";
 import type { NotionBlock } from "../../shared/types/notion";
 import { NotionBlockRenderer } from "./NotionBlockRenderer";
 
@@ -29,14 +29,14 @@ export default function PostContent({ blocks, className = "" }: PostContentProps
     const headingId = getHeadingId(block.type);
 
     return (
-      <div key={block.id || index}>
+      <Fragment key={block.id || index}>
         <NotionBlockRenderer block={block} headingId={headingId} />
         {block.children && block.children.length > 0 && (
           <div className="ml-4">
             {block.children.map((child, childIndex) => renderBlockWithChildren(child, childIndex))}
           </div>
         )}
-      </div>
+      </Fragment>
     );
   };
 

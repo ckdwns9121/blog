@@ -42,6 +42,12 @@ export interface ParsedImageBlock {
   caption?: string;
 }
 
+export interface ParsedVideoBlock {
+  type: "video";
+  url?: string;
+  caption?: string;
+}
+
 export interface ParsedDividerBlock {
   type: "divider";
 }
@@ -60,6 +66,7 @@ export type ParsedBlock =
   | ParsedCodeBlock
   | ParsedQuoteBlock
   | ParsedImageBlock
+  | ParsedVideoBlock
   | ParsedDividerBlock
   | ParsedDefaultBlock;
 
@@ -117,6 +124,14 @@ export function parseNotionBlock(block: NotionBlock): ParsedBlock {
         type: "image",
         url,
         caption,
+      };
+
+    case "video":
+      const videoData = extractImageData(content);
+      return {
+        type: "video",
+        url: videoData.url,
+        caption: videoData.caption,
       };
 
     case "divider":

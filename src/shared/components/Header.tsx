@@ -2,16 +2,10 @@
 
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { useState, useEffect } from "react";
 import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 
 export function Header() {
-  const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const toggleTheme = () => {
     console.log("Current theme:", theme);
@@ -20,27 +14,6 @@ export function Header() {
     setTheme(newTheme);
   };
 
-  if (!mounted) {
-    return (
-      <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex-shrink-0">
-              <div className="flex items-center">
-                <span className="text-xl font-bold text-gray-900 dark:text-white">Changjun.blog</span>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <div className="p-2 rounded-lg text-gray-500 dark:text-gray-400">
-                <MoonIcon className="h-5 w-5" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-    );
-  }
-
   return (
     <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -48,7 +21,7 @@ export function Header() {
           {/* 로고 */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              <span className="text-xl font-bold text-gray-900 dark:text-white">Changjun.blog</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">{`<Changjun.blog/>`}</span>
             </Link>
           </div>
 

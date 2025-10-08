@@ -319,6 +319,12 @@ export class NotionClient {
           url: block.image.external?.url || block.image.file?.url || "",
           caption: this.extractText(block.image.caption || []),
         };
+      case "video":
+        return {
+          type: "image" as const, // video도 ImageContent 타입 사용
+          url: block.video.external?.url || block.video.file?.url || "",
+          caption: this.extractText(block.video.caption || []),
+        };
       case "divider":
         return { type: "plain_text" as const, text: "" };
       default:

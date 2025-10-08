@@ -186,6 +186,16 @@ export interface NotionImageBlock extends NotionBlockBase {
   };
 }
 
+export interface NotionVideoBlock extends NotionBlockBase {
+  type: "video";
+  video: {
+    type: "external" | "file";
+    external?: { url: string };
+    file?: { url: string; expiry_time: string };
+    caption?: NotionRichText[];
+  };
+}
+
 export interface NotionDividerBlock extends NotionBlockBase {
   type: "divider";
   divider: Record<string, never>;
@@ -201,6 +211,7 @@ export type NotionBlockType =
   | NotionCodeBlock
   | NotionQuoteBlock
   | NotionImageBlock
+  | NotionVideoBlock
   | NotionDividerBlock;
 
 // Notion 블록의 content 타입들
