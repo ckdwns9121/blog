@@ -4,50 +4,56 @@ interface VideoBlockProps {
 }
 
 /**
+ * 비디오 플랫폼 설정
+ */
+interface VideoPlatformConfig {
+  platform: string;
+  patterns: RegExp[];
+  embedUrl: (id: string) => string;
+}
+
+const VIDEO_PLATFORMS: VideoPlatformConfig[] = [
+  {
+    platform: "youtube",
+    patterns: [
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([^&]+)/,
+      /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([^?]+)/,
+      /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([^?]+)/,
+    ],
+    embedUrl: (id: string) => `https://www.youtube.com/embed/${id}`,
+  },
+  {
+    platform: "vimeo",
+    patterns: [/(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(\d+)/, /(?:https?:\/\/)?player\.vimeo\.com\/video\/(\d+)/],
+    embedUrl: (id: string) => `https://player.vimeo.com/video/${id}`,
+  },
+  {
+    platform: "loom",
+    patterns: [/(?:https?:\/\/)?(?:www\.)?loom\.com\/share\/([^?]+)/],
+    embedUrl: (id: string) => `https://www.loom.com/embed/${id}`,
+  },
+  // 새로운 플랫폼 추가 시 여기에 추가하면 됨
+  // {
+  //   platform: "dailymotion",
+  //   patterns: [/(?:https?:\/\/)?(?:www\.)?dailymotion\.com\/video\/([^_]+)/],
+  //   embedUrl: (id: string) => `https://www.dailymotion.com/embed/video/${id}`,
+  // },
+];
+
+/**
  * 동영상 URL을 임베드 URL로 변환
  */
 function getVideoEmbedUrl(url: string): { embedUrl: string; platform: string } | null {
-  // YouTube
-  const youtubePatterns = [
-    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([^&]+)/,
-    /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([^?]+)/,
-    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([^?]+)/,
-  ];
-
-  for (const pattern of youtubePatterns) {
-    const match = url.match(pattern);
-    if (match) {
-      return {
-        embedUrl: `https://www.youtube.com/embed/${match[1]}`,
-        platform: "youtube",
-      };
+  for (const { platform, patterns, embedUrl } of VIDEO_PLATFORMS) {
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return {
+          embedUrl: embedUrl(match[1]),
+          platform,
+        };
+      }
     }
-  }
-
-  // Vimeo
-  const vimeoPatterns = [
-    /(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(\d+)/,
-    /(?:https?:\/\/)?player\.vimeo\.com\/video\/(\d+)/,
-  ];
-
-  for (const pattern of vimeoPatterns) {
-    const match = url.match(pattern);
-    if (match) {
-      return {
-        embedUrl: `https://player.vimeo.com/video/${match[1]}`,
-        platform: "vimeo",
-      };
-    }
-  }
-
-  // Loom
-  const loomPattern = /(?:https?:\/\/)?(?:www\.)?loom\.com\/share\/([^?]+)/;
-  const loomMatch = url.match(loomPattern);
-  if (loomMatch) {
-    return {
-      embedUrl: `https://www.loom.com/embed/${loomMatch[1]}`,
-      platform: "loom",
-    };
   }
 
   return null;

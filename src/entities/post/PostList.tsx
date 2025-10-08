@@ -10,6 +10,15 @@ interface PostListProps {
   postsPerPage: number;
 }
 
+// 태그 버튼 스타일 헬퍼
+const getButtonClassName = (isActive: boolean) => {
+  const baseClasses = "px-4 py-2 rounded-full text-sm font-medium transition-colors";
+  if (isActive) {
+    return `${baseClasses} bg-blue-600 text-white`;
+  }
+  return `${baseClasses} bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700`;
+};
+
 export function PostList({ posts, postsPerPage }: PostListProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -42,6 +51,15 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
     window.history.replaceState({}, "", url);
   }, [currentPage, selectedTag]);
 
+  const tagCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    posts.forEach((post) => {
+      post.tags.forEach((tag) => {
+        counts.set(tag, (counts.get(tag) || 0) + 1);
+      });
+    });
+    return counts;
+  }, [posts]);
   // 모든 태그 추출 및 정렬
   const allTags = useMemo(() => {
     const tagSet = new Set<string>();
@@ -74,28 +92,13 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
       {/* 태그 필터 */}
       <div className="mb-8">
         <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => handleTagClick(null)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              selectedTag === null
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-            }`}
-          >
+          <button onClick={() => handleTagClick(null)} className={getButtonClassName(selectedTag === null)}>
             전체 ({posts.length})
           </button>
           {allTags.map((tag) => {
-            const count = posts.filter((p) => p.tags.includes(tag)).length;
+            const count = tagCounts.get(tag) || 0;
             return (
-              <button
-                key={tag}
-                onClick={() => handleTagClick(tag)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  selectedTag === tag
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-                }`}
-              >
+              <button key={tag} onClick={() => handleTagClick(tag)} className={getButtonClassName(selectedTag === tag)}>
                 {tag} ({count})
               </button>
             );
