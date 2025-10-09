@@ -79,7 +79,7 @@ export default function TableOfContents({ items, className = "" }: TableOfConten
           href={`#${item.id}`}
           className={`block py-1 px-2 text-sm rounded transition-all ${
             isActive
-              ? "text-primary-700 bg-primary-50 font-semibold border-l-2 border-primary-600 dark:text-primary-300 dark:bg-primary-950 dark:border-primary-400"
+              ? "text-primary-700 font-semibold dark:text-primary-300 "
               : "text-gray-600 hover:text-primary-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-primary-400 dark:hover:bg-gray-800"
           }`}
         >

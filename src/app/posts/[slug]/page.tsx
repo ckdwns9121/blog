@@ -117,7 +117,18 @@ export default async function PostPage({ params }: PostPageProps) {
                     )}
                   </div>
 
-                  {post.excerpt && <p className="text-lg text-gray-700 dark:text-gray-300 italic">{post.excerpt}</p>}
+                  {post.excerpt && (
+                    <div className="mt-6 p-4 bg-primary-50 dark:bg-primary-950 border-l-4 border-primary-600 dark:border-primary-400 rounded-r-lg">
+                      <div className="flex items-center gap-3 justify-center">
+                        <span className="text-sm font-bold text-primary-700 dark:text-primary-300 uppercase tracking-wide">
+                          TL;DR
+                        </span>
+                        <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed flex-1">
+                          {post.excerpt}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </header>
 
                 {/* 포스트 콘텐츠 */}
