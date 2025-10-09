@@ -43,7 +43,6 @@ export default function PostContent({ blocks, className = "" }: PostContentProps
 
   return (
     <div className={`prose prose-lg max-w-none prose-img:max-w-full ${className}`}>
-      <ScrollProgress />
       {blocks.map((block, index) => renderBlockWithChildren(block, index))}
     </div>
   );
