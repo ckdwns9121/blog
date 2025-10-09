@@ -5,6 +5,7 @@ interface PostCardProps {
   post: BlogPost;
 }
 
+// test
 export function PostCard({ post }: PostCardProps) {
   return (
     <article className="py-4 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
