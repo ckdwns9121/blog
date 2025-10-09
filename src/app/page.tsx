@@ -15,24 +15,29 @@ export default async function Home() {
   return (
     <div className="bg-white dark:bg-dark-bg text-gray-900 dark:text-white min-h-screen">
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-row gap-4 mb-8 mt-8">
-          <div className="flex flex-col gap-4">
-            <Image src="/logo.png" alt="logo" width={140} height={140} />
+        <div className="flex flex-col md:flex-row gap-6 mb-8 mt-8">
+          {/* 프로필 이미지 */}
+          <div className="flex justify-center md:justify-start">
+            <Image src="/logo.png" alt="프로필 로고" width={140} height={140} className="rounded-full" />
           </div>
-          <div className="bg-white dark:bg-dark-bg flex flex-col flex-1">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+
+          {/* 텍스트 및 링크 영역 */}
+          <div className="flex flex-col flex-1 justify-center md:justify-start">
+            <div className="text-center md:text-left">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2 word-break-keep-all">
                 프론트엔드 엔지니어 박창준입니다.
               </h1>
-              <p>기술 블로그를 운영하며 개발 경험과 기술 트렌드를 기록하고 있습니다.</p>
+              <p className="text-sm md:text-base text-gray-600 dark:text-gray-300">
+                기술 블로그를 운영하며 개발 경험과 기술 트렌드를 기록하고 있습니다.
+              </p>
             </div>
 
-            <div className="flex gap-4 mt-auto">
+            <div className="flex gap-4 mt-6 md:mt-auto justify-center md:justify-start">
               <Link
                 href="https://github.com/ckdwns9121"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
                 aria-label="GitHub 프로필"
               >
                 <CodeBracketIcon className="h-5 w-5" />
@@ -42,7 +47,7 @@ export default async function Home() {
                 href="https://linkedin.com/in/devchangjun"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2  rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
                 aria-label="LinkedIn 프로필"
               >
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">

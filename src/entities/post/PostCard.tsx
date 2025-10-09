@@ -8,7 +8,7 @@ interface PostCardProps {
 export function PostCard({ post }: PostCardProps) {
   return (
     <article className="py-4 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
         <div className="flex-1">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
             <Link
@@ -39,7 +39,7 @@ export function PostCard({ post }: PostCardProps) {
 
         <time
           dateTime={post.publishedAt.toISOString()}
-          className="text-xs text-gray-500 dark:text-gray-400 ml-4 flex-shrink-0"
+          className="text-xs text-gray-500 dark:text-gray-400 md:ml-4 md:flex-shrink-0"
         >
           {post.publishedAt.toLocaleDateString("ko-KR", {
             year: "numeric",
