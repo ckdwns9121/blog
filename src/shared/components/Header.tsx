@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
+import Image from "next/image";
 
 export function Header() {
   const { theme, setTheme } = useTheme();
@@ -19,7 +20,11 @@ export function Header() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* 로고 */}
-          <div className="flex-shrink-0">
+
+          <div className="flex-shrink-0 flex items-center flex-row gap-2">
+            <Link href="/" className="flex items-center">
+              <Image src="/logo.png" alt="logo" width={48} height={48} />
+            </Link>
             <Link href="/" className="flex items-center">
               <span className="text-xl font-bold text-gray-900 dark:text-white">{`<Changjun.blog/>`}</span>
             </Link>
