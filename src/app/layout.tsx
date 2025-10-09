@@ -50,10 +50,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-white dark:bg-dark-bg`}
+      >
         <Providers>
           <Header />
-          <ScrollProgress />
           <main className="flex-1">{children}</main>
           <Footer />
         </Providers>

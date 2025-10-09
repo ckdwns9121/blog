@@ -3,6 +3,7 @@
 import { Fragment } from "react";
 import type { NotionBlock } from "@/features/notion";
 import { NotionBlockRenderer } from "@/features/notion";
+import { ScrollProgress } from "@/shared/components/ScrollProgress";
 
 interface PostContentProps {
   blocks: NotionBlock[];
@@ -42,6 +43,7 @@ export default function PostContent({ blocks, className = "" }: PostContentProps
 
   return (
     <div className={`prose prose-lg max-w-none prose-img:max-w-full ${className}`}>
+      <ScrollProgress />
       {blocks.map((block, index) => renderBlockWithChildren(block, index))}
     </div>
   );
