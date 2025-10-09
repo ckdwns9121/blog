@@ -18,7 +18,7 @@ export default async function Home() {
         <div className="flex flex-col md:flex-row gap-6 mb-8 mt-8">
           {/* 프로필 이미지 */}
           <div className="flex justify-center md:justify-start">
-            <Image src="/logo.png" alt="프로필 로고" width={140} height={140} className="rounded-full" />
+            <Image src="/logo.png" alt="프로필 로고" width={140} height={140} />
           </div>
 
           {/* 텍스트 및 링크 영역 */}
