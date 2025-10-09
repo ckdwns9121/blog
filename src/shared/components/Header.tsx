@@ -23,9 +23,6 @@ export function Header() {
 
           <div className="flex-shrink-0 flex items-center flex-row gap-2">
             <Link href="/" className="flex items-center">
-              <Image src="/logo.png" alt="logo" width={48} height={48} />
-            </Link>
-            <Link href="/" className="flex items-center">
               <span className="text-xl font-bold text-gray-900 dark:text-white">{`<Changjun.blog/>`}</span>
             </Link>
           </div>
