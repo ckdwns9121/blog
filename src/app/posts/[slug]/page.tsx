@@ -34,29 +34,103 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
 
   try {
     const post = await notionClient.getPostBySlug(slug);
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blog.changjun.dev";
+    const postUrl = `${baseUrl}/posts/${slug}`;
+
+    // 설명 생성 (excerpt가 없으면 제목 기반)
+    const description =
+      post.excerpt ||
+      `${post.title}에 대한 상세한 내용을 다룹니다. ${post.category.name} 카테고리의 ${post.readingTime}분 분량의 글입니다.`;
+
+    // 키워드 생성
+    const keywords = [
+      post.category.name,
+      ...post.tags.map((tag) => tag.name),
+      "프론트엔드",
+      "개발",
+      "기술블로그",
+      "박창준",
+    ];
 
     return {
-      title: `${post.title} | 블로그`,
-      description: post.excerpt,
+      title: `${post.title} | 프론트엔드 개발자 박창준 블로그`,
+      description: description.slice(0, 160), // 검색엔진 최적 길이
+      keywords: keywords.join(", "),
+      authors: [{ name: "박창준", url: baseUrl }],
+      creator: "박창준",
+      publisher: "박창준",
+
+      // Canonical URL
+      alternates: {
+        canonical: postUrl,
+      },
+
+      // Robots 설정
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-video-preview": -1,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
+      },
+
+      // Open Graph
       openGraph: {
-        title: post.title,
-        description: post.excerpt,
         type: "article",
+        url: postUrl,
+        title: post.title,
+        description,
+        siteName: "프론트엔드 개발자 박창준 블로그",
+        locale: "ko_KR",
         publishedTime: post.publishedAt.toISOString(),
         modifiedTime: post.updatedAt.toISOString(),
-        authors: ["블로그 작성자"],
+        authors: ["박창준"],
         tags: post.tags.map((tag) => tag.name),
+        ...(post.coverImage && {
+          images: [
+            {
+              url: post.coverImage,
+              width: 1200,
+              height: 630,
+              alt: post.title,
+            },
+          ],
+        }),
       },
+
+      // Twitter Card
       twitter: {
         card: "summary_large_image",
+        site: "@changjun",
+        creator: "@changjun",
         title: post.title,
-        description: post.excerpt,
+        description,
+        ...(post.coverImage && {
+          images: [post.coverImage],
+        }),
+      },
+
+      // Article 메타데이터
+      other: {
+        "article:published_time": post.publishedAt.toISOString(),
+        "article:modified_time": post.updatedAt.toISOString(),
+        "article:author": "박창준",
+        "article:section": post.category.name,
+        "article:tag": post.tags.join(", "),
       },
     };
   } catch {
     return {
-      title: "포스트를 찾을 수 없습니다 | 블로그",
+      title: "포스트를 찾을 수 없습니다 | 박창준 블로그",
       description: "요청하신 포스트를 찾을 수 없습니다.",
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 }
@@ -81,8 +155,39 @@ export default async function PostPage({ params }: PostPageProps) {
         ? await notionClient.getPostBySlug(allPosts[currentIndex + 1].slug)
         : undefined;
 
+    // JSON-LD 구조화된 데이터
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blog.changjun.dev";
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: post.title,
+      description: post.excerpt,
+      image: post.coverImage,
+      datePublished: post.publishedAt.toISOString(),
+      dateModified: post.updatedAt.toISOString(),
+      author: {
+        "@type": "Person",
+        name: "박창준",
+        url: baseUrl,
+      },
+      publisher: {
+        "@type": "Person",
+        name: "박창준",
+        url: baseUrl,
+      },
+      mainEntityOfPage: {
+        "@type": "WebPage",
+        "@id": `${baseUrl}/posts/${slug}`,
+      },
+      keywords: [post.category.name, ...post.tags.map((tag) => tag.name)].join(", "),
+      articleSection: post.category.name,
+      wordCount: post.content.length * 100, // 대략적인 단어 수
+      timeRequired: `PT${post.readingTime}M`,
+    };
+
     return (
       <>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <ScrollProgress />
         <div className="bg-white dark:bg-dark-bg">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
