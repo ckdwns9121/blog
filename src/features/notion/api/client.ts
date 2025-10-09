@@ -85,6 +85,12 @@ export class NotionClient {
             const updatedAt = notionPage.last_edited_time || new Date().toISOString();
             const publishedAt = publishedAtDate || createdAt;
 
+            // 커버 이미지 URL 처리 (S3 URL인 경우 공개 프록시 URL로 변환)
+            const rawCoverImage = this.getUrl(properties.coverImage);
+            const coverImage = rawCoverImage
+              ? this.convertToPublicNotionImageUrl(rawCoverImage, notionPage.id)
+              : undefined;
+
             posts.push({
               id: notionPage.id,
               title: titleProperty,
@@ -96,7 +102,7 @@ export class NotionClient {
               category: this.getPlainText(properties.category) || "기타",
               tags: this.getMultiSelect(properties.tags) || [],
               excerpt: this.getPlainText(properties.excerpt),
-              coverImage: this.getUrl(properties.coverImage),
+              coverImage,
               readingTime: readingTimeProperty?.number || 0,
             });
           }
@@ -265,6 +271,39 @@ export class NotionClient {
       .trim();
   }
 
+  /**
+   * Notion S3 이미지 URL을 Notion의 공개 이미지 프록시 URL로 변환
+   * 이렇게 하면 1시간 만료 문제를 해결할 수 있습니다.
+   *
+   * @param notionImageUrl - Notion S3 signed URL
+   * @param blockId - 이미지 블록의 ID
+   * @returns 공개 접근 가능한 Notion 이미지 URL
+   */
+  private convertToPublicNotionImageUrl(notionImageUrl: string, blockId: string): string {
+    // 이미 변환된 URL이거나 외부 URL인 경우 그대로 반환
+    if (!notionImageUrl.includes("prod-files-secure.s3") && !notionImageUrl.includes("s3.us-west-2.amazonaws.com")) {
+      return notionImageUrl;
+    }
+
+    // Signed URL의 쿼리 파라미터 제거 (baseUrl만 추출)
+    const baseUrl = notionImageUrl.split("?")[0];
+
+    // Workspace ID 추출 (URL 패턴: .../workspace-id/file-id/...)
+    const workspaceIdMatch = baseUrl.match(/amazonaws\.com\/([^/]+)\//);
+    const workspaceId = workspaceIdMatch ? workspaceIdMatch[1] : "";
+
+    // Notion 공개 이미지 프록시 URL 생성
+    // 이 방식은 Notion의 공개 페이지에서 사용하는 실제 패턴입니다
+    const encodedUrl = encodeURIComponent(baseUrl);
+
+    // workspace ID가 있으면 spaceId 파라미터 추가
+    if (workspaceId) {
+      return `https://www.notion.so/image/${encodedUrl}?table=block&id=${blockId}&spaceId=${workspaceId}&cache=v2`;
+    }
+
+    return `https://www.notion.so/image/${encodedUrl}?table=block&id=${blockId}&cache=v2`;
+  }
+
   private extractText(richText: NotionRichText[]): string {
     if (!richText || !Array.isArray(richText)) return "";
     return richText.map((text) => text.plain_text).join("");
@@ -341,18 +380,26 @@ export class NotionClient {
             annotations: rt.annotations,
           })),
         };
-      case "image":
+      case "image": {
+        const imageUrl = block.image.external?.url || block.image.file?.url || "";
+        // S3 URL을 Notion 공개 프록시 URL로 변환하여 만료 문제 해결
+        const publicUrl = imageUrl ? this.convertToPublicNotionImageUrl(imageUrl, block.id) : "";
         return {
           type: "image" as const,
-          url: block.image.external?.url || block.image.file?.url || "",
+          url: publicUrl,
           caption: this.extractText(block.image.caption || []),
         };
-      case "video":
+      }
+      case "video": {
+        const videoUrl = block.video.external?.url || block.video.file?.url || "";
+        // 비디오도 동일하게 처리 (Notion 내부 비디오인 경우)
+        const publicVideoUrl = videoUrl ? this.convertToPublicNotionImageUrl(videoUrl, block.id) : "";
         return {
           type: "image" as const, // video도 ImageContent 타입 사용
-          url: block.video.external?.url || block.video.file?.url || "",
+          url: publicVideoUrl,
           caption: this.extractText(block.video.caption || []),
         };
+      }
       case "divider":
         return { type: "plain_text" as const, text: "" };
       default:

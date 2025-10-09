@@ -4,6 +4,23 @@ const nextConfig: NextConfig = {
   // 이미지 최적화
   images: {
     unoptimized: true,
+    // Notion 이미지 도메인 허용
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "www.notion.so",
+        pathname: "/image/**",
+      },
+      {
+        protocol: "https",
+        hostname: "prod-files-secure.s3.us-west-2.amazonaws.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.amazonaws.com",
+      },
+    ],
   },
 
   // 엄격 모드
