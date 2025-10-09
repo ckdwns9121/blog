@@ -55,7 +55,6 @@ export default function RootLayout({
       >
         <Providers>
           <Header />
-          <ScrollProgress />
           <main className="flex-1">{children}</main>
           <Footer />
         </Providers>
