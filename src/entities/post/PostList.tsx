@@ -12,9 +12,9 @@ interface PostListProps {
 
 // 태그 버튼 스타일 헬퍼
 const getButtonClassName = (isActive: boolean) => {
-  const baseClasses = "px-4 py-2 rounded-full text-sm font-medium transition-colors";
+  const baseClasses = "px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer";
   if (isActive) {
-    return `${baseClasses} bg-blue-600 text-white`;
+    return `${baseClasses} bg-primary-600 text-white hover:bg-primary-700`;
   }
   return `${baseClasses} bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700`;
 };
@@ -111,14 +111,6 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
           })}
         </div>
       </div>
-
-      {/* 필터 결과 표시 */}
-      {selectedTag && (
-        <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-          <span className="font-medium text-gray-900 dark:text-white">{selectedTag}</span> 태그로 필터링된 포스트{" "}
-          {filteredPosts.length}개
-        </div>
-      )}
 
       <div className="space-y-0 mb-8">
         {currentPosts.map((post) => (

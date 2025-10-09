@@ -2,6 +2,26 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@theme {
+  /* Primary Color Palette - #75A788 기반 */
+  --color-primary-50: #f0f7f3;
+  --color-primary-100: #daeee1;
+  --color-primary-200: #b8ddc6;
+  --color-primary-300: #8dc5a4;
+  --color-primary-400: #75a788;
+  --color-primary-500: #5a8a6d;
+  --color-primary-600: #476f56;
+  --color-primary-700: #395947;
+  --color-primary-800: #2f483a;
+  --color-primary-900: #283b31;
+  --color-primary-950: #15211b;
+
+  /* Dark Mode Background Colors - 더 어두운 남색 계열 */
+  --color-dark-bg: #070b14; /* 메인 배경 - 매우 어두운 남색 */
+  --color-dark-bg-secondary: #0f1419; /* 보조 배경 - 어두운 남색 */
+  --color-dark-border: #1a1f2e; /* 테두리 - 진한 남색 */
+}
+
 body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;

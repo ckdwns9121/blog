@@ -82,7 +82,7 @@ export default async function PostPage({ params }: PostPageProps) {
         : undefined;
 
     return (
-      <div className="bg-white dark:bg-black">
+      <div className="bg-white dark:bg-dark-bg">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* 메인 콘텐츠 */}
@@ -107,7 +107,7 @@ export default async function PostPage({ params }: PostPageProps) {
                           {post.tags.map((tag) => (
                             <span
                               key={tag.slug}
-                              className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full text-xs"
+                              className="px-2 py-1 bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200 rounded-full text-xs"
                             >
                               {tag.name}
                             </span>

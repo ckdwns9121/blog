@@ -57,7 +57,7 @@ function RichTextItem({ item }: RichTextItemProps) {
         href={item.href}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-blue-600 dark:text-blue-400 hover:underline transition-colors"
+        className="text-primary-600 dark:text-primary-400 hover:underline transition-colors"
       >
         {text}
       </a>

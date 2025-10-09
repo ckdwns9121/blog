@@ -23,7 +23,7 @@ export default function PostNavigation({ previousPost, nextPost, className = "" 
         {previousPost ? (
           <Link
             href={`/posts/${previousPost.slug}`}
-            className="group flex items-center space-x-3 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+            className="group flex items-center space-x-3 text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
           >
             <ChevronLeftIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             <div>
@@ -41,7 +41,7 @@ export default function PostNavigation({ previousPost, nextPost, className = "" 
         {nextPost ? (
           <Link
             href={`/posts/${nextPost.slug}`}
-            className="group flex items-center justify-end space-x-3 text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors"
+            className="group flex items-center justify-end space-x-3 text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
           >
             <div>
               <div className="text-sm text-gray-500 dark:text-gray-500">다음 글</div>

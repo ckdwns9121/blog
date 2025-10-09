@@ -67,7 +67,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
               onClick={() => onPageChange(page)}
               className={`px-3 py-2 text-sm font-medium rounded-md ${
                 currentPage === page
-                  ? "text-blue-600 bg-blue-50 dark:bg-blue-900 dark:text-blue-200 border border-blue-300 dark:border-blue-700"
+                  ? "text-primary-700 bg-primary-50 dark:bg-primary-900 dark:text-primary-200 border border-primary-300 dark:border-primary-700"
                   : "text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >

@@ -62,7 +62,7 @@ export function NotionBlockRenderer({ block, headingId }: NotionBlockRendererPro
 
     case "quote":
       return (
-        <blockquote className="mb-4 border-l-4 border-blue-500 pl-4 italic text-gray-600 dark:text-gray-400">
+        <blockquote className="mb-4 border-l-4 border-primary-500 pl-4 italic text-gray-600 dark:text-gray-400">
           {renderContent()}
         </blockquote>
       );

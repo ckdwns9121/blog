@@ -13,7 +13,7 @@ export function PostCard({ post }: PostCardProps) {
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
             <Link
               href={`/posts/${post.slug}`}
-              className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
             >
               {post.title}
             </Link>
