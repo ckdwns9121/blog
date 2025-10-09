@@ -128,7 +128,15 @@ export class NotionClient {
       throw new Error(`Post with slug "${slug}" not found`);
     }
 
+    console.log("post ----------");
+    console.log(post);
+    console.log("post ----------");
+
     const blocks = await this.getPostBlocks(post.id);
+
+    console.log("blocks ----------");
+    console.log(blocks);
+    console.log("blocks ----------");
 
     return {
       id: post.id,
@@ -156,20 +164,35 @@ export class NotionClient {
 
   // 포스트 콘텐츠 변환 (블록 형태로)
   async getPostBlocks(pageId: string): Promise<NotionBlock[]> {
-    const response = await this.getClient().blocks.children.list({
-      block_id: pageId,
-      page_size: 100,
-    });
+    const allBlocks: NotionBlock[] = [];
+    let cursor: string | undefined = undefined;
+    let hasMore = true;
 
-    return response.results.map((block) => {
-      const notionBlock = block as NotionBlockType;
-      return {
-        id: notionBlock.id,
-        type: notionBlock.type,
-        content: this.extractBlockContent(notionBlock),
-        children: notionBlock.has_children ? [] : undefined,
-      };
-    });
+    // 모든 블록을 페이지네이션으로 가져오기
+    while (hasMore) {
+      const response = await this.getClient().blocks.children.list({
+        block_id: pageId,
+        page_size: 100,
+        start_cursor: cursor,
+      });
+
+      const blocks = response.results.map((block) => {
+        const notionBlock = block as NotionBlockType;
+        return {
+          id: notionBlock.id,
+          type: notionBlock.type,
+          content: this.extractBlockContent(notionBlock),
+          children: notionBlock.has_children ? [] : undefined,
+        };
+      });
+
+      allBlocks.push(...blocks);
+
+      hasMore = response.has_more;
+      cursor = response.next_cursor || undefined;
+    }
+
+    return allBlocks;
   }
 
   // 카테고리 목록 조회
