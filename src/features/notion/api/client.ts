@@ -46,7 +46,7 @@ export async function getAllPosts(): Promise<NotionPost[]> {
 
   const posts: NotionPost[] = [];
 
-  for (const page of response.results.slice(0, 50)) {
+  for (const page of response.results) {
     try {
       const pageData = await getClient().pages.retrieve({
         page_id: page.id,
