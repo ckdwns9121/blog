@@ -3,6 +3,7 @@ import { PostList } from "../entities/post/PostList";
 import Image from "next/image";
 import Link from "next/link";
 import { CodeBracketIcon } from "@heroicons/react/24/outline";
+import { POSTS_PER_PAGE } from "@/shared/constants";
 
 // 이 페이지를 정적으로 생성하도록 강제
 export const dynamic = "force-static";
@@ -60,7 +61,7 @@ export default async function Home() {
         </div>
 
         {/* 클라이언트 컴포넌트로 전체 포스트 전달 */}
-        <PostList posts={sortedPosts} postsPerPage={10} />
+        <PostList posts={sortedPosts} postsPerPage={POSTS_PER_PAGE} />
       </main>
     </div>
   );
