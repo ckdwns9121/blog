@@ -143,14 +143,14 @@ export default async function PostPage({ params }: PostPageProps) {
     const post = await getPostBySlug(slug);
     const toc = generateTableOfContents(post.content);
 
-    // 이전/다음 포스트 조회
+    // 이전/다음 포스트 조회 (콘텐츠 블록 불필요)
     const allPosts = await getAllPosts();
     const currentIndex = allPosts.findIndex((p) => p.slug === slug);
 
-    const previousPost = currentIndex > 0 ? await getPostBySlug(allPosts[currentIndex - 1].slug) : undefined;
+    const previousPost = currentIndex > 0 ? await getPostBySlug(allPosts[currentIndex - 1].slug, false) : undefined;
 
     const nextPost =
-      currentIndex < allPosts.length - 1 ? await getPostBySlug(allPosts[currentIndex + 1].slug) : undefined;
+      currentIndex < allPosts.length - 1 ? await getPostBySlug(allPosts[currentIndex + 1].slug, false) : undefined;
 
     // JSON-LD 구조화된 데이터
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blog.changjun.dev";

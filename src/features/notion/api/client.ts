@@ -110,7 +110,7 @@ export async function getAllPosts(): Promise<NotionPost[]> {
 }
 
 // 특정 포스트 상세 조회 (pageId로 직접 조회)
-export async function getPostBySlug(slug: string): Promise<BlogPost> {
+export async function getPostBySlug(slug: string, fetchContent = true): Promise<BlogPost> {
   // slug에서 마지막 부분(pageId) 추출
   const decodedSlug = decodeURIComponent(slug);
   const parts = decodedSlug.split("-");
@@ -127,7 +127,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost> {
     16
   )}-${pageIdWithoutHyphens.slice(16, 20)}-${pageIdWithoutHyphens.slice(20)}`;
 
-  return getPostByPageId(pageId);
+  return getPostByPageId(pageId, fetchContent);
 }
 
 // pageId로 직접 포스트 조회
