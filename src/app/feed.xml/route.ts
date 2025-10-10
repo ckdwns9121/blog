@@ -1,5 +1,5 @@
 import { Feed } from "feed";
-import { notionClient } from "@/features/notion";
+import { getAllPosts } from "@/features/notion";
 
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
@@ -29,7 +29,7 @@ export async function GET() {
   });
 
   // 모든 포스트 가져오기
-  const posts = await notionClient.getAllPosts();
+  const posts = await getAllPosts();
 
   // 발행일 기준으로 정렬
   const sortedPosts = posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());

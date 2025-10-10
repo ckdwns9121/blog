@@ -1,4 +1,4 @@
-import { notionClient } from "@/features/notion";
+import { getAllPosts } from "@/features/notion";
 import { PostList } from "../entities/post/PostList";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,7 +10,7 @@ export const dynamic = "force-static";
 export const revalidate = 3600; // 1시간마다 재검증
 
 export default async function Home() {
-  const allPosts = await notionClient.getAllPosts();
+  const allPosts = await getAllPosts();
   const sortedPosts = allPosts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 
   return (

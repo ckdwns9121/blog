@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 // Notion feature
-import { notionClient, generateTableOfContents } from "@/features/notion";
+import { getAllPosts, getPostBySlug, generateTableOfContents } from "@/features/notion";
 
 // entities
 import PostContent from "@/entities/post/PostContent";
@@ -21,7 +21,7 @@ export const revalidate = 3600; // 1시간마다 재검증
 
 // SSG를 위한 정적 경로 생성
 export async function generateStaticParams() {
-  const allPosts = await notionClient.getAllPosts();
+  const allPosts = await getAllPosts();
 
   return allPosts.map((post) => ({
     slug: post.slug,
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   const { slug } = resolvedParams;
 
   try {
-    const post = await notionClient.getPostBySlug(slug);
+    const post = await getPostBySlug(slug);
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blog.changjun.dev";
     const postUrl = `${baseUrl}/posts/${slug}`;
 
@@ -140,20 +140,17 @@ export default async function PostPage({ params }: PostPageProps) {
   const { slug } = resolvedParams;
 
   try {
-    const post = await notionClient.getPostBySlug(slug);
+    const post = await getPostBySlug(slug);
     const toc = generateTableOfContents(post.content);
 
     // 이전/다음 포스트 조회
-    const allPosts = await notionClient.getAllPosts();
+    const allPosts = await getAllPosts();
     const currentIndex = allPosts.findIndex((p) => p.slug === slug);
 
-    const previousPost =
-      currentIndex > 0 ? await notionClient.getPostBySlug(allPosts[currentIndex - 1].slug) : undefined;
+    const previousPost = currentIndex > 0 ? await getPostBySlug(allPosts[currentIndex - 1].slug) : undefined;
 
     const nextPost =
-      currentIndex < allPosts.length - 1
-        ? await notionClient.getPostBySlug(allPosts[currentIndex + 1].slug)
-        : undefined;
+      currentIndex < allPosts.length - 1 ? await getPostBySlug(allPosts[currentIndex + 1].slug) : undefined;
 
     // JSON-LD 구조화된 데이터
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blog.changjun.dev";

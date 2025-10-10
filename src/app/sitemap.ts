@@ -1,11 +1,11 @@
 import { MetadataRoute } from "next";
-import { notionClient } from "@/features/notion";
+import { getAllPosts } from "@/features/notion";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
   // 모든 포스트 가져오기
-  const posts = await notionClient.getAllPosts();
+  const posts = await getAllPosts();
 
   // 포스트 URL 생성
   const postUrls = posts.map((post) => ({

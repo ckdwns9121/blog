@@ -1,31 +1,21 @@
-// NotionClient API 테스트
-import { NotionClient } from "@/features/notion";
+// Notion API 테스트
+import { getAllPosts, getPostBySlug, getCategories } from "@/features/notion";
 
-describe("NotionClient", () => {
-  let notionClient: NotionClient;
-
+describe("Notion API", () => {
   beforeEach(() => {
     // 환경 변수 설정
     process.env.NOTION_DATABASE_ID = "test-database-id";
-
-    notionClient = new NotionClient();
+    process.env.NOTION_API_KEY = "test-api-key";
   });
 
   afterEach(() => {
     delete process.env.NOTION_DATABASE_ID;
-  });
-
-  describe("생성자", () => {
-    it("환경 변수가 없을 때 에러를 발생시켜야 한다", () => {
-      delete process.env.NOTION_DATABASE_ID;
-
-      expect(() => new NotionClient()).toThrow("NOTION_DATABASE_ID is required");
-    });
+    delete process.env.NOTION_API_KEY;
   });
 
   describe("getAllPosts", () => {
     it("공개된 포스트 목록을 가져와야 한다", async () => {
-      const posts = await notionClient.getAllPosts();
+      const posts = await getAllPosts();
 
       expect(posts).toHaveLength(3);
       expect(posts[0].title).toBe("첫 번째 블로그 포스트");
@@ -36,7 +26,7 @@ describe("NotionClient", () => {
 
   describe("getPostBySlug", () => {
     it("주어진 slug로 포스트를 찾아야 한다", async () => {
-      const post = await notionClient.getPostBySlug("first-post");
+      const post = await getPostBySlug("first-post");
 
       expect(post.title).toBe("첫 번째 블로그 포스트");
       expect(post.slug).toBe("first-post");
@@ -44,15 +34,13 @@ describe("NotionClient", () => {
     });
 
     it("slug로 포스트를 찾지 못하면 에러를 발생시켜야 한다", async () => {
-      await expect(notionClient.getPostBySlug("non-existent")).rejects.toThrow(
-        'Post with slug "non-existent" not found'
-      );
+      await expect(getPostBySlug("non-existent")).rejects.toThrow('Post with slug "non-existent" not found');
     });
   });
 
   describe("getCategories", () => {
     it("카테고리 목록을 반환해야 한다", async () => {
-      const categories = await notionClient.getCategories();
+      const categories = await getCategories();
 
       expect(categories).toContain("JavaScript");
       expect(categories).toContain("TypeScript");
