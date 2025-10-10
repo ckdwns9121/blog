@@ -5,8 +5,16 @@
  * 다른 모듈에서는 이 파일을 통해서만 Notion 기능에 접근해야 합니다.
  */
 
-// API Client
-export { NotionClient, notionClient } from "./api/client";
+// API Client Functions
+export {
+  getAllPosts,
+  getPostBySlug,
+  getPostByPageId,
+  getPostBlocks,
+  getCategories,
+  getPostsByCategory,
+  getPostsByTag,
+} from "./api/client";
 
 // Types
 export type {
