@@ -131,12 +131,12 @@ export async function getPostBySlug(slug: string): Promise<BlogPost> {
 }
 
 // pageId로 직접 포스트 조회
-export async function getPostByPageId(pageId: string): Promise<BlogPost> {
+export async function getPostByPageId(pageId: string, fetchContent = true): Promise<BlogPost> {
   // ✅ API 병렬 호출로 성능 최적화
-  const [pageData, blocks] = await Promise.all([
-    getClient().pages.retrieve({ page_id: pageId }),
-    getPostBlocks(pageId),
-  ]);
+  const pageDataPromise = getClient().pages.retrieve({ page_id: pageId });
+  const blocksPromise = fetchContent ? getPostBlocks(pageId) : Promise.resolve([]);
+
+  const [pageData, blocks] = await Promise.all([pageDataPromise, blocksPromise]);
 
   if (!("properties" in pageData)) {
     throw new Error("Invalid page");
