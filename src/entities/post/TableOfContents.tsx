@@ -9,6 +9,15 @@ interface TableOfContentsProps {
   className?: string;
 }
 
+const indentClasses: Record<number, string> = {
+  1: "",
+  2: "ml-2",
+  3: "ml-4",
+  4: "ml-6",
+  5: "ml-8",
+  6: "ml-10",
+} as const;
+
 export default function TableOfContents({ items, className = "" }: TableOfContentsProps) {
   const [activeId, setActiveId] = useState<string>("");
   const navRef = useRef<HTMLElement>(null);
@@ -87,14 +96,6 @@ export default function TableOfContents({ items, className = "" }: TableOfConten
 
 const TocItem = ({ item, index, activeId }: { item: TableOfContentsItem; index: number; activeId: string }) => {
   // Tailwind의 정적 클래스 사용 (동적 클래스는 작동하지 않음)
-  const indentClasses: Record<number, string> = {
-    1: "",
-    2: "ml-4",
-    3: "ml-8",
-    4: "ml-12",
-    5: "ml-16",
-    6: "ml-20",
-  };
 
   const indentClass = indentClasses[item.level] || "";
   const isActive = activeId === item.id;
