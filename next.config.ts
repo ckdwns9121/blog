@@ -41,6 +41,21 @@ const nextConfig: NextConfig = {
     // 빌드 ID를 커스텀하여 캐시 무효화 제어
     return `build-${Date.now()}`;
   },
+
+  // 정적 파일 캐싱 설정
+  async headers() {
+    return [
+      {
+        source: "/images/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable", // 1년 캐싱
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

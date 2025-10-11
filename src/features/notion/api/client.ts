@@ -201,15 +201,24 @@ export async function getPostBlocks(pageId: string): Promise<NotionBlock[]> {
       start_cursor: cursor,
     });
 
-    const blocks = response.results.map((block) => {
-      const notionBlock = block as NotionBlockType;
-      return {
-        id: notionBlock.id,
-        type: notionBlock.type,
-        content: extractBlockContent(notionBlock),
-        children: notionBlock.has_children ? [] : undefined,
-      };
-    });
+    const blocks = await Promise.all(
+      response.results.map(async (block) => {
+        const notionBlock = block as NotionBlockType;
+        const baseBlock = {
+          id: notionBlock.id,
+          type: notionBlock.type,
+          content: extractBlockContent(notionBlock),
+          children: undefined as NotionBlock[] | undefined,
+        };
+
+        // children이 있는 경우 재귀적으로 가져오기
+        if (notionBlock.has_children) {
+          baseBlock.children = await getPostBlocks(notionBlock.id);
+        }
+
+        return baseBlock;
+      })
+    );
 
     allBlocks.push(...blocks);
 
