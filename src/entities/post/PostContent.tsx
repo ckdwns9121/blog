@@ -33,7 +33,7 @@ export default function PostContent({ blocks, className = "" }: PostContentProps
       <Fragment key={block.id || index}>
         <NotionBlockRenderer block={block} headingId={headingId} />
         {block.children && block.children.length > 0 && (
-          <div className="ml-8 pl-4 border-l-2 border-gray-200 dark:border-gray-700">
+          <div className="ml-4 pl-2">
             {block.children.map((child, childIndex) => renderBlockWithChildren(child, childIndex))}
           </div>
         )}
