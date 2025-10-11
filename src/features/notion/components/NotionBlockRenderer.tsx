@@ -68,10 +68,10 @@ export function NotionBlockRenderer({ block, headingId }: NotionBlockRendererPro
       );
 
     case "bulleted_list_item":
-      return <li className="mb-2 ml-6 pl-2 list-disc text-gray-700 dark:text-gray-300">{renderContent()}</li>;
+      return <li className="text-gray-700 dark:text-gray-300">{renderContent()}</li>;
 
     case "numbered_list_item":
-      return <li className="mb-2 ml-6 pl-2 list-decimal text-gray-700 dark:text-gray-300">{renderContent()}</li>;
+      return <li className="text-gray-700 dark:text-gray-300">{renderContent()}</li>;
 
     case "code":
       return <CodeBlock code={parsed.code} language={parsed.language} />;
