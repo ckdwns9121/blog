@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# converted images (포스트별 폴더)
+/public/images/*/
+/public/images/image-mapping.json
+/src/shared/utils/imageMapping.generated.ts

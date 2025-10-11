@@ -26,9 +26,16 @@ export function NotionBlockRenderer({ block, headingId }: NotionBlockRendererPro
     return null;
   };
 
+  // 빈 paragraph 블록인 경우 체크
+  const isEmpty = "richText" in parsed && parsed.richText.length === 0;
+
   switch (parsed.type) {
     case "paragraph":
-      return <p className="mb-4 leading-relaxed text-gray-700 dark:text-gray-300">{renderContent()}</p>;
+      // 빈 줄바꿈 블록도 공간을 차지하도록 처리 (Notion과 동일하게 min-height 적용)
+      if (isEmpty) {
+        return <p className="mb-2 leading-relaxed" style={{ minHeight: "1em" }}></p>;
+      }
+      return <p className="mb-2 leading-relaxed text-gray-700 dark:text-gray-300">{renderContent()}</p>;
 
     case "heading_1":
       return (
