@@ -39,21 +39,30 @@ export function NotionBlockRenderer({ block, headingId }: NotionBlockRendererPro
 
     case "heading_1":
       return (
-        <h1 id={headingId} className="mb-6 text-3xl font-bold text-gray-900 dark:text-white scroll-mt-20">
+        <h1
+          id={headingId}
+          className="mt-12 mb-6 text-3xl font-bold text-gray-900 dark:text-white scroll-mt-20 first:mt-0"
+        >
           {renderContent()}
         </h1>
       );
 
     case "heading_2":
       return (
-        <h2 id={headingId} className="mb-5 text-2xl font-semibold text-gray-900 dark:text-white scroll-mt-20">
+        <h2
+          id={headingId}
+          className="mt-10 mb-5 text-2xl font-semibold text-gray-900 dark:text-white scroll-mt-20 first:mt-0"
+        >
           {renderContent()}
         </h2>
       );
 
     case "heading_3":
       return (
-        <h3 id={headingId} className="mb-4 text-xl font-medium text-gray-900 dark:text-white scroll-mt-20">
+        <h3
+          id={headingId}
+          className="mt-8 mb-4 text-xl font-medium text-gray-900 dark:text-white scroll-mt-20 first:mt-0"
+        >
           {renderContent()}
         </h3>
       );
