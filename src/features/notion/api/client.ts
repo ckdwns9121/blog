@@ -459,6 +459,13 @@ function extractBlockContent(block: NotionBlockType): BlockContent {
     }
     case "divider":
       return { type: "plain_text" as const, text: "" };
+    case "bookmark": {
+      return {
+        type: "bookmark" as const,
+        url: block.bookmark.url,
+        caption: extractText(block.bookmark.caption || []),
+      };
+    }
     default:
       // TypeScript exhaustiveness check - 모든 블록 타입이 처리됨
       const _exhaustiveCheck: never = block;

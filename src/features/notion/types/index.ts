@@ -201,6 +201,14 @@ export interface NotionDividerBlock extends NotionBlockBase {
   divider: Record<string, never>;
 }
 
+export interface NotionBookmarkBlock extends NotionBlockBase {
+  type: "bookmark";
+  bookmark: {
+    url: string;
+    caption?: NotionRichText[];
+  };
+}
+
 export type NotionBlockType =
   | NotionParagraphBlock
   | NotionHeading1Block
@@ -212,7 +220,8 @@ export type NotionBlockType =
   | NotionQuoteBlock
   | NotionImageBlock
   | NotionVideoBlock
-  | NotionDividerBlock;
+  | NotionDividerBlock
+  | NotionBookmarkBlock;
 
 // Notion 블록의 content 타입들
 export interface RichTextItem {
@@ -249,7 +258,13 @@ export interface ImageContent {
   caption?: string;
 }
 
-export type BlockContent = string | TextContent | CodeContent | ImageContent;
+export interface BookmarkContent {
+  type: "bookmark";
+  url: string;
+  caption?: string;
+}
+
+export type BlockContent = string | TextContent | CodeContent | ImageContent | BookmarkContent;
 
 export interface NotionBlock {
   id: string;

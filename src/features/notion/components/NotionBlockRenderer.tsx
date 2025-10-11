@@ -92,6 +92,34 @@ export function NotionBlockRenderer({ block, headingId }: NotionBlockRendererPro
     case "image":
       return <ImageBlock url={parsed.url} caption={parsed.caption} />;
 
+    case "bookmark":
+      return (
+        <a
+          href={parsed.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="my-4 block rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex-shrink-0 text-2xl">🔗</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-primary-600 dark:text-primary-400 truncate">{parsed.url}</div>
+              {parsed.caption && <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{parsed.caption}</div>}
+            </div>
+            <div className="flex-shrink-0 text-gray-400">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                />
+              </svg>
+            </div>
+          </div>
+        </a>
+      );
+
     case "default":
       return <div className="mb-4 text-gray-700 dark:text-gray-300">{renderContent()}</div>;
   }

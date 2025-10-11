@@ -52,6 +52,12 @@ export interface ParsedDividerBlock {
   type: "divider";
 }
 
+export interface ParsedBookmarkBlock {
+  type: "bookmark";
+  url: string;
+  caption?: string;
+}
+
 export interface ParsedDefaultBlock {
   type: "default";
   originalType: string;
@@ -68,6 +74,7 @@ export type ParsedBlock =
   | ParsedImageBlock
   | ParsedVideoBlock
   | ParsedDividerBlock
+  | ParsedBookmarkBlock
   | ParsedDefaultBlock;
 
 /**
@@ -138,6 +145,15 @@ export function parseNotionBlock(block: NotionBlock): ParsedBlock {
       return {
         type: "divider",
       };
+
+    case "bookmark": {
+      const bookmarkData = extractImageData(content);
+      return {
+        type: "bookmark",
+        url: bookmarkData.url || "",
+        caption: bookmarkData.caption,
+      };
+    }
 
     default:
       return {
