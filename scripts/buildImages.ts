@@ -21,7 +21,7 @@ async function extractPostImageUrls(postId: string, postSlug: string, coverImage
     if (fullPost.content) {
       for (const block of fullPost.content) {
         // ImageContent 타입인지 체크
-        if (typeof block.content === "object" && "type" in block.content && block.content.type === "image") {
+        if (block.content && typeof block.content === "object" && "type" in block.content && block.content.type === "image") {
           const imageContent = block.content as ImageContent;
           if (imageContent.url) {
             imageUrls.push(imageContent.url);
