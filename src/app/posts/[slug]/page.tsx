@@ -9,6 +9,7 @@ import TableOfContents from "@/entities/post/TableOfContents";
 import PostNavigation from "@/entities/post/PostNavigation";
 import { Comment } from "@/entities/comment";
 import { ScrollProgress } from "@/shared/components/ScrollProgress";
+import BottomNavigation from "@/shared/components/BottomNavigation";
 import type { Metadata } from "next";
 
 interface PostPageProps {
@@ -251,8 +252,8 @@ export default async function PostPage({ params }: PostPageProps) {
                 </article>
               </div>
 
-              {/* 사이드바 - 목차 */}
-              <div className="lg:col-span-1">
+              {/* 사이드바 - 목차 (데스크톱만) */}
+              <div className="hidden lg:block lg:col-span-1">
                 <div className="sticky top-16">
                   <TableOfContents items={toc} />
                 </div>
@@ -260,6 +261,9 @@ export default async function PostPage({ params }: PostPageProps) {
             </div>
           </div>
         </div>
+
+        {/* 모바일 하단 네비게이션 */}
+        <BottomNavigation tocItems={toc} />
       </>
     );
   } catch (error) {
