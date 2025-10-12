@@ -41,6 +41,9 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     siteName: "박창준 블로그",
   },
+  verification: {
+    google: "KkCn5ZoWWUotKW-IU9GakGgXxxoLeAzeeBSig3BvUIQ",
+  },
 };
 
 export default function RootLayout({
