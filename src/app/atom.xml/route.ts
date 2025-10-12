@@ -2,7 +2,7 @@ import { Feed } from "feed";
 import { getAllPosts } from "@/features/notion";
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://changjun.dev";
 
   const feed = new Feed({
     title: "프론트엔드 개발자 박창준",
