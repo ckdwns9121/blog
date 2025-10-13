@@ -4,7 +4,6 @@ import "./globals.css";
 import { Providers } from "@/shared/providers/ThemeProvider";
 import { Header } from "@/shared/components/Header";
 import { Footer } from "@/shared/components/Footer";
-import { ScrollProgress } from "@/shared/components/ScrollProgress";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,6 +42,14 @@ export const metadata: Metadata = {
   },
   verification: {
     google: "KkCn5ZoWWUotKW-IU9GakGgXxxoLeAzeeBSig3BvUIQ",
+  },
+  manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/favicon/favicon.ico", sizes: "any" },
+      { url: "/favicon/favicon-192x192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/favicon/favicon-192x192.png", sizes: "192x192", type: "image/png" }],
   },
 };
 
