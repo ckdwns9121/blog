@@ -4,7 +4,6 @@ import "./globals.css";
 import { Providers } from "@/shared/providers/ThemeProvider";
 import { Header } from "@/shared/components/Header";
 import { Footer } from "@/shared/components/Footer";
-import { ScrollProgress } from "@/shared/components/ScrollProgress";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

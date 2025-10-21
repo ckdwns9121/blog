@@ -3,7 +3,6 @@
 import { Fragment } from "react";
 import type { NotionBlock } from "@/features/notion";
 import { NotionBlockRenderer } from "@/features/notion";
-import { ScrollProgress } from "@/shared/components/ScrollProgress";
 
 interface PostContentProps {
   blocks: NotionBlock[];
