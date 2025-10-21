@@ -19,7 +19,7 @@ export async function GET() {
     feedLinks: {
       rss2: `${baseUrl}/feed.xml`,
       json: `${baseUrl}/feed.json`,
-      atom: `${baseUrl}/feed.json`,
+      atom: `${baseUrl}/atom.xml`,
     },
     author: {
       name: "박창준",

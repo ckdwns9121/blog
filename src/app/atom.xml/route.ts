@@ -53,3 +53,10 @@ export async function GET() {
       image: post.coverImage,
     });
   });
+
+  return new Response(feed.atom1(), {
+    headers: {
+      "Content-Type": "application/xml; charset=utf-8",
+    },
+  });
+}
