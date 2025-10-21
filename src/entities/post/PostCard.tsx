@@ -23,10 +23,6 @@ export function PostCard({ post }: PostCardProps) {
           {post.excerpt && <p className="text-gray-600 dark:text-gray-300 text-sm mb-2 line-clamp-2">{post.excerpt}</p>}
 
           <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-            <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded">
-              {post.category.name}
-            </span>
-
             {post.tags.map((tag) => (
               <span
                 key={tag.slug}

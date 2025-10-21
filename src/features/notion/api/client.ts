@@ -90,7 +90,6 @@ export async function getAllPosts(): Promise<NotionPost[]> {
             createdAt,
             publishedAt,
             updatedAt,
-            category: getPlainText(properties.category) || "기타",
             tags: getMultiSelect(properties.tags) || [],
             excerpt: getPlainText(properties.excerpt),
             coverImage,
@@ -146,7 +145,6 @@ export async function getPostByPageId(pageId: string, fetchContent = true): Prom
   const properties = page.properties;
 
   const title = getPlainText(properties.title) || "Untitled";
-  const category = getPlainText(properties.category) || "기타";
   const tags = getMultiSelect(properties.tags) || [];
   const excerpt = getPlainText(properties.excerpt) || "";
   const publishedAtDate = getDate(properties.publishedAt);
@@ -171,11 +169,7 @@ export async function getPostByPageId(pageId: string, fetchContent = true): Prom
     excerpt,
     publishedAt: new Date(publishedAt),
     updatedAt: new Date(page.last_edited_time),
-    category: {
-      name: category,
-      slug: slugify(category),
-      postCount: 0,
-    },
+
     tags: tags.map((tag: string) => ({
       name: tag,
       slug: slugify(tag),
@@ -227,28 +221,6 @@ export async function getPostBlocks(pageId: string): Promise<NotionBlock[]> {
   }
 
   return allBlocks;
-}
-
-// 카테고리 목록 조회
-export async function getCategories(): Promise<string[]> {
-  const posts = await getAllPosts();
-  const categories = new Set<string>();
-
-  posts.forEach((post) => {
-    if (post.category) {
-      categories.add(post.category);
-    }
-  });
-
-  return Array.from(categories);
-}
-
-// 카테고리별 포스트 필터링
-export async function getPostsByCategory(category: string): Promise<BlogPost[]> {
-  const posts = await getAllPosts();
-  const filteredPosts = posts.filter((post) => post.category === category);
-
-  return Promise.all(filteredPosts.map((post) => getPostBySlug(post.slug)));
 }
 
 // 태그별 포스트 필터링

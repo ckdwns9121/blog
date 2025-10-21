@@ -7,7 +7,6 @@ export interface NotionPost {
   createdAt: string;
   publishedAt: string;
   updatedAt: string;
-  category: string;
   tags: string[];
   excerpt?: string;
   coverImage?: string;
@@ -282,17 +281,10 @@ export interface BlogPost {
   excerpt: string;
   publishedAt: Date;
   updatedAt: Date;
-  category: Category;
   tags: Tag[];
   coverImage?: string;
   readingTime: number;
   toc: TableOfContentsItem[];
-}
-
-export interface Category {
-  name: string;
-  slug: string;
-  postCount: number;
 }
 
 export interface Tag {

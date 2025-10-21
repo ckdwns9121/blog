@@ -124,11 +124,6 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
               excerpt: post.excerpt || "",
               publishedAt: new Date(post.publishedAt),
               updatedAt: new Date(post.updatedAt),
-              category: {
-                name: post.category,
-                slug: post.category.toLowerCase().replace(/\s+/g, "-"),
-                postCount: 0,
-              },
               tags: post.tags.map((tag) => ({
                 name: tag,
                 slug: tag.toLowerCase().replace(/\s+/g, "-"),
