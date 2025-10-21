@@ -19,7 +19,7 @@ export async function GET() {
     feedLinks: {
       rss2: `${baseUrl}/feed.xml`,
       json: `${baseUrl}/feed.json`,
-      atom: `${baseUrl}/feed.json`,
+      atom: `${baseUrl}/atom.xml`,
     },
     author: {
       name: "박창준",
@@ -46,16 +46,10 @@ export async function GET() {
         },
       ],
       date: new Date(post.publishedAt),
-      category: [
-        {
-          name: post.category,
-          term: post.category,
-        },
-        ...post.tags.map((tag) => ({
-          name: tag,
-          term: tag,
-        })),
-      ],
+      category: post.tags.map((tag) => ({
+        name: tag.name,
+        term: tag.name,
+      })),
       image: post.coverImage,
     });
   });

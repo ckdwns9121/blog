@@ -6,15 +6,7 @@
  */
 
 // API Client Functions
-export {
-  getAllPosts,
-  getPostBySlug,
-  getPostByPageId,
-  getPostBlocks,
-  getCategories,
-  getPostsByCategory,
-  getPostsByTag,
-} from "./api/client";
+export { getAllPosts, getPostBySlug, getPostByPageId, getPostBlocks, getPostsByTag } from "./api/client";
 
 // Types
 export type {
@@ -31,7 +23,6 @@ export type {
 
   // Application 타입
   BlogPost,
-  Category,
   Tag,
   TableOfContentsItem,
 } from "./types";

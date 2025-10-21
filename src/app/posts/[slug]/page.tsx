@@ -39,19 +39,10 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
     const postUrl = `${baseUrl}/posts/${slug}`;
 
     // 설명 생성 (excerpt가 없으면 제목 기반)
-    const description =
-      post.excerpt ||
-      `${post.title}에 대한 상세한 내용을 다룹니다. ${post.category.name} 카테고리의 ${post.readingTime}분 분량의 글입니다.`;
+    const description = post.excerpt || `${post.title}에 대한 상세한 내용을 다룹니다. `;
 
     // 키워드 생성
-    const keywords = [
-      post.category.name,
-      ...post.tags.map((tag) => tag.name),
-      "프론트엔드",
-      "개발",
-      "기술블로그",
-      "박창준",
-    ];
+    const keywords = [...post.tags.map((tag) => tag.name), "프론트엔드", "개발", "기술블로그", "박창준"];
 
     return {
       title: `${post.title} | 프론트엔드 개발자 박창준 블로그`,
@@ -120,8 +111,8 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
         "article:published_time": post.publishedAt.toISOString(),
         "article:modified_time": post.updatedAt.toISOString(),
         "article:author": "박창준",
-        "article:section": post.category.name,
-        "article:tag": post.tags.join(", "),
+        "article:section": post.tags.map((tag) => tag.name).join(", "),
+        "article:tag": post.tags.map((tag) => tag.name).join(", "),
       },
     };
   } catch {
@@ -177,8 +168,8 @@ export default async function PostPage({ params }: PostPageProps) {
         "@type": "WebPage",
         "@id": `${baseUrl}/posts/${slug}`,
       },
-      keywords: [post.category.name, ...post.tags.map((tag) => tag.name)].join(", "),
-      articleSection: post.category.name,
+      keywords: [...post.tags.map((tag) => tag.name)].join(", "),
+      articleSection: post.tags.map((tag) => tag.name).join(", "),
       wordCount: post.content.length * 100, // 대략적인 단어 수
       timeRequired: `PT${post.readingTime}M`,
     };
@@ -203,8 +194,6 @@ export default async function PostPage({ params }: PostPageProps) {
                       </time>
                       <span>•</span>
                       <span>{post.readingTime}분 읽기</span>
-                      <span>•</span>
-                      <span>{post.category.name}</span>
                       {post.tags.length > 0 && (
                         <>
                           <span>•</span>
