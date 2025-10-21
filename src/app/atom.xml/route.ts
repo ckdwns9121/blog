@@ -46,23 +46,10 @@ export async function GET() {
         },
       ],
       date: new Date(post.publishedAt),
-      category: [
-        {
-          name: post.category,
-          term: post.category,
-        },
-        ...post.tags.map((tag) => ({
-          name: tag,
-          term: tag,
-        })),
-      ],
+      category: post.tags.map((tag) => ({
+        name: tag.name,
+        term: tag.name,
+      })),
       image: post.coverImage,
     });
   });
-
-  return new Response(feed.atom1(), {
-    headers: {
-      "Content-Type": "application/xml; charset=utf-8",
-    },
-  });
-}

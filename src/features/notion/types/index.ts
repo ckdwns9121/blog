@@ -7,7 +7,10 @@ export interface NotionPost {
   createdAt: string;
   publishedAt: string;
   updatedAt: string;
-  tags: string[];
+  tags: Array<{
+    name: string;
+    slug: string;
+  }>;
   excerpt?: string;
   coverImage?: string;
   readingTime?: number;
