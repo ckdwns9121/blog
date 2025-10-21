@@ -68,7 +68,7 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
     const counts = new Map<string, number>();
     posts.forEach((post) => {
       post.tags.forEach((tag) => {
-        counts.set(tag, (counts.get(tag) || 0) + 1);
+        counts.set(tag.name, (counts.get(tag.name) || 0) + 1);
       });
     });
     const sortedTags = Array.from(counts.keys()).sort();
@@ -78,7 +78,7 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
   // 태그로 필터링된 포스트
   const filteredPosts = useMemo(() => {
     if (!selectedTag) return posts;
-    return posts.filter((post) => post.tags.includes(selectedTag));
+    return posts.filter((post) => post.tags.some((tag) => tag.name === selectedTag));
   }, [posts, selectedTag]);
 
   // 페이지네이션
@@ -125,8 +125,8 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
               publishedAt: new Date(post.publishedAt),
               updatedAt: new Date(post.updatedAt),
               tags: post.tags.map((tag) => ({
-                name: tag,
-                slug: tag.toLowerCase().replace(/\s+/g, "-"),
+                name: tag.name,
+                slug: tag.slug,
                 postCount: 0,
               })),
               coverImage: post.coverImage,

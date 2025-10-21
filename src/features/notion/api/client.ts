@@ -90,7 +90,10 @@ export async function getAllPosts(): Promise<NotionPost[]> {
             createdAt,
             publishedAt,
             updatedAt,
-            tags: getMultiSelect(properties.tags) || [],
+            tags: (getMultiSelect(properties.tags) || []).map((tag: string) => ({
+              name: tag,
+              slug: slugify(tag),
+            })),
             excerpt: getPlainText(properties.excerpt),
             coverImage,
             readingTime: readingTimeProperty?.number || 0,
@@ -226,7 +229,7 @@ export async function getPostBlocks(pageId: string): Promise<NotionBlock[]> {
 // 태그별 포스트 필터링
 export async function getPostsByTag(tag: string): Promise<BlogPost[]> {
   const posts = await getAllPosts();
-  const filteredPosts = posts.filter((post) => post.tags.includes(tag));
+  const filteredPosts = posts.filter((post) => post.tags.some((t) => t.name === tag));
 
   return Promise.all(filteredPosts.map((post) => getPostBySlug(post.slug)));
 }
