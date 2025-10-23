@@ -108,7 +108,7 @@ export async function getAllPosts(): Promise<NotionPost[]> {
     }
   }
 
-  return posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  return posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 }
 
 // 특정 포스트 상세 조회 (pageId로 직접 조회)

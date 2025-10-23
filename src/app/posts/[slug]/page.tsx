@@ -193,7 +193,6 @@ export default async function PostPage({ params }: PostPageProps) {
                         {post.publishedAt.toLocaleDateString("ko-KR")}
                       </time>
                       <span>•</span>
-                      <span>{post.readingTime}분 읽기</span>
                       {post.tags.length > 0 && (
                         <>
                           <span>•</span>
