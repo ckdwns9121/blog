@@ -13,7 +13,6 @@ export interface NotionPost {
   }>;
   excerpt?: string;
   coverImage?: string;
-  readingTime?: number;
 }
 
 // Notion API 응답 타입들
@@ -286,7 +285,6 @@ export interface BlogPost {
   updatedAt: Date;
   tags: Tag[];
   coverImage?: string;
-  readingTime: number;
   toc: TableOfContentsItem[];
 }
 
