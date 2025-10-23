@@ -130,7 +130,6 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
                 postCount: 0,
               })),
               coverImage: post.coverImage,
-              readingTime: post.readingTime || 0,
               toc: [],
             }}
           />

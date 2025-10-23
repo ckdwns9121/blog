@@ -171,7 +171,6 @@ export default async function PostPage({ params }: PostPageProps) {
       keywords: [...post.tags.map((tag) => tag.name)].join(", "),
       articleSection: post.tags.map((tag) => tag.name).join(", "),
       wordCount: post.content.length * 100, // 대략적인 단어 수
-      timeRequired: `PT${post.readingTime}M`,
     };
 
     return (
@@ -193,7 +192,6 @@ export default async function PostPage({ params }: PostPageProps) {
                         {post.publishedAt.toLocaleDateString("ko-KR")}
                       </time>
                       <span>•</span>
-                      <span>{post.readingTime}분 읽기</span>
                       {post.tags.length > 0 && (
                         <>
                           <span>•</span>

@@ -70,7 +70,6 @@ export async function getAllPosts(): Promise<NotionPost[]> {
           // slug + pageId 조합 (예: javascript-promise-8618d667c89b3708a1b2c3d4e5f6g7h8)
           const validSlug = `${baseSlug}-${pageIdWithoutHyphens}`;
 
-          const readingTimeProperty = properties.readingTime as NotionNumberProperty | undefined;
           const publishedAtDate = getDate(properties.publishedAt);
 
           // 날짜 유효성 재검증
@@ -96,7 +95,6 @@ export async function getAllPosts(): Promise<NotionPost[]> {
             })),
             excerpt: getPlainText(properties.excerpt),
             coverImage,
-            readingTime: readingTimeProperty?.number || 0,
           });
         }
       }
@@ -108,7 +106,7 @@ export async function getAllPosts(): Promise<NotionPost[]> {
     }
   }
 
-  return posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  return posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 }
 
 // 특정 포스트 상세 조회 (pageId로 직접 조회)
@@ -162,8 +160,6 @@ export async function getPostByPageId(pageId: string, fetchContent = true): Prom
   const rawCoverImage = getUrl(properties.coverImage);
   const coverImage = rawCoverImage ? convertToPublicNotionImageUrl(rawCoverImage, page.id) : undefined;
 
-  const readingTimeProperty = properties.readingTime as NotionNumberProperty | undefined;
-
   return {
     id: page.id,
     title,
@@ -179,7 +175,6 @@ export async function getPostByPageId(pageId: string, fetchContent = true): Prom
       postCount: 0,
     })),
     coverImage,
-    readingTime: readingTimeProperty?.number || 0,
     toc: [],
   };
 }
