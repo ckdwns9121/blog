@@ -191,7 +191,6 @@ export default async function PostPage({ params }: PostPageProps) {
                       <time dateTime={post.publishedAt.toISOString()}>
                         {post.publishedAt.toLocaleDateString("ko-KR")}
                       </time>
-                      <span>•</span>
                       {post.tags.length > 0 && (
                         <>
                           <span>•</span>
