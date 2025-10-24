@@ -83,9 +83,7 @@ export default function PostContent({ blocks, className = "" }: PostContentProps
       const listType = item[0].type;
       const ListTag = listType === "numbered_list_item" ? "ol" : "ul";
       const listClassName =
-        listType === "numbered_list_item"
-          ? "my-4 space-y-2 list-decimal pl-6 ml-4"
-          : "my-4 space-y-2 list-disc pl-6 ml-4";
+        listType === "numbered_list_item" ? "my-4 space-y-2 list-decimal pl-6" : "my-4 space-y-2 list-disc pl-6";
 
       return (
         <ListTag key={`list-${index}`} className={listClassName}>
