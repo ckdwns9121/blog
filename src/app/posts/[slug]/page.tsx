@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 // Notion feature
 import { getAllPosts, getPostBySlug, generateTableOfContents } from "@/features/notion";
 
-// entities
+// entities.
 import PostContent from "@/entities/post/PostContent";
 import TableOfContents from "@/entities/post/TableOfContents";
 import PostNavigation from "@/entities/post/PostNavigation";
