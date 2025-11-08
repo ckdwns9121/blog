@@ -1,8 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { CodeBracketIcon } from "@heroicons/react/24/outline";
-
 export function Footer() {
   const currentYear = new Date().getFullYear();
 

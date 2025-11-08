@@ -12,7 +12,6 @@ import type {
   NotionRichTextProperty,
   NotionMultiSelectProperty,
   NotionUrlProperty,
-  NotionNumberProperty,
   NotionDateProperty,
   BlockContent,
 } from "../types";
