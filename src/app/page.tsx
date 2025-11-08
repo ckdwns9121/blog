@@ -5,8 +5,8 @@ import Link from "next/link";
 import { CodeBracketIcon } from "@heroicons/react/24/outline";
 import { POSTS_PER_PAGE } from "@/shared/constants";
 
-// 개발 모드에서는 동적 렌더링, 프로덕션 빌드 시에는 force-static으로 변경 필요
-export const dynamic = process.env.NODE_ENV === 'development' ? 'auto' : 'force-static';
+// 프로덕션 빌드 시에는 force-static으로 변경 필요
+export const dynamic = 'auto';
 export const revalidate = 3600; // 1시간마다 재검증
 
 export default async function Home() {

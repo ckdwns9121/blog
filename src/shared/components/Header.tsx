@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
-import Image from "next/image";
 
 export function Header() {
   const { theme, setTheme } = useTheme();
