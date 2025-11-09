@@ -44,6 +44,13 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
     // 키워드 생성
     const keywords = [...post.tags.map((tag) => tag.name), "프론트엔드", "개발", "기술블로그", "박창준"];
 
+    // 커버 이미지 URL을 절대 URL로 변환
+    const coverImageUrl = post.coverImage
+      ? post.coverImage.startsWith("http")
+        ? post.coverImage
+        : `${baseUrl}${post.coverImage.startsWith("/") ? post.coverImage : `/${post.coverImage}`}`
+      : undefined;
+
     return {
       title: `${post.title} | 프론트엔드 개발자 박창준 블로그`,
       description: description.slice(0, 160), // 검색엔진 최적 길이
@@ -82,10 +89,10 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
         modifiedTime: post.updatedAt.toISOString(),
         authors: ["박창준"],
         tags: post.tags.map((tag) => tag.name),
-        ...(post.coverImage && {
+        ...(coverImageUrl && {
           images: [
             {
-              url: post.coverImage,
+              url: coverImageUrl,
               width: 1200,
               height: 630,
               alt: post.title,
@@ -101,8 +108,8 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
         creator: "@changjun",
         title: post.title,
         description,
-        ...(post.coverImage && {
-          images: [post.coverImage],
+        ...(coverImageUrl && {
+          images: [coverImageUrl],
         }),
       },
 
