@@ -2,7 +2,7 @@ import React from "react";
 import type { NotionBlock } from "../types";
 import { parseNotionBlock } from "../utils/blockMapper";
 import { RichTextRenderer } from "./RichTextRenderer";
-import { CodeBlock, ImageBlock, VideoBlock } from "./blocks";
+import { CodeBlock, ImageWithModal, VideoBlock } from "./blocks";
 
 interface NotionBlockRendererProps {
   block: NotionBlock;
@@ -90,7 +90,7 @@ export function NotionBlockRenderer({ block, headingId }: NotionBlockRendererPro
       return <hr className="my-8 border-gray-300 dark:border-gray-600" />;
 
     case "image":
-      return <ImageBlock url={parsed.url} caption={parsed.caption} />;
+      return <ImageWithModal url={parsed.url} caption={parsed.caption} />;
 
     case "bookmark":
       return (
