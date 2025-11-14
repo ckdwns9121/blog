@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 // Notion feature
 import { getAllPosts, getPostBySlug, generateTableOfContents } from "@/features/notion";
+import { getFirstImageFromContent } from "@/features/notion/utils/blockParser";
 
 // entities.
 import PostContent from "@/entities/post/PostContent";
@@ -44,12 +45,23 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
     // 키워드 생성
     const keywords = [...post.tags.map((tag) => tag.name), "프론트엔드", "개발", "기술블로그", "박창준"];
 
-    // 커버 이미지 URL을 절대 URL로 변환
-    const coverImageUrl = post.coverImage
-      ? post.coverImage.startsWith("http")
+    // OG Image 우선순위: 1. coverImage, 2. 포스트 내부 첫 번째 이미지
+    let ogImageUrl: string | undefined = undefined;
+
+    // 1. 커버 이미지 확인
+    if (post.coverImage) {
+      ogImageUrl = post.coverImage.startsWith("http")
         ? post.coverImage
-        : `${baseUrl}${post.coverImage.startsWith("/") ? post.coverImage : `/${post.coverImage}`}`
-      : undefined;
+        : `${baseUrl}${post.coverImage.startsWith("/") ? post.coverImage : `/${post.coverImage}`}`;
+    } else {
+      // 2. 포스트 콘텐츠에서 첫 번째 이미지 찾기
+      const firstImageUrl = getFirstImageFromContent(post.content);
+      if (firstImageUrl) {
+        ogImageUrl = firstImageUrl.startsWith("http")
+          ? firstImageUrl
+          : `${baseUrl}${firstImageUrl.startsWith("/") ? firstImageUrl : `/${firstImageUrl}`}`;
+      }
+    }
 
     return {
       title: `${post.title} | 프론트엔드 개발자 박창준 블로그`,
@@ -89,10 +101,10 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
         modifiedTime: post.updatedAt.toISOString(),
         authors: ["박창준"],
         tags: post.tags.map((tag) => tag.name),
-        ...(coverImageUrl && {
+        ...(ogImageUrl && {
           images: [
             {
-              url: coverImageUrl,
+              url: ogImageUrl,
               width: 1200,
               height: 630,
               alt: post.title,
@@ -108,8 +120,8 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
         creator: "@changjun",
         title: post.title,
         description,
-        ...(coverImageUrl && {
-          images: [coverImageUrl],
+        ...(ogImageUrl && {
+          images: [ogImageUrl],
         }),
       },
 
@@ -153,12 +165,28 @@ export default async function PostPage({ params }: PostPageProps) {
 
     // JSON-LD 구조화된 데이터
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blog.changjun.dev";
+    
+    // OG Image와 동일한 로직으로 이미지 선택
+    let jsonLdImage: string | undefined = undefined;
+    if (post.coverImage) {
+      jsonLdImage = post.coverImage.startsWith("http")
+        ? post.coverImage
+        : `${baseUrl}${post.coverImage.startsWith("/") ? post.coverImage : `/${post.coverImage}`}`;
+    } else {
+      const firstImageUrl = getFirstImageFromContent(post.content);
+      if (firstImageUrl) {
+        jsonLdImage = firstImageUrl.startsWith("http")
+          ? firstImageUrl
+          : `${baseUrl}${firstImageUrl.startsWith("/") ? firstImageUrl : `/${firstImageUrl}`}`;
+      }
+    }
+    
     const jsonLd = {
       "@context": "https://schema.org",
       "@type": "BlogPosting",
       headline: post.title,
       description: post.excerpt,
-      image: post.coverImage,
+      ...(jsonLdImage && { image: jsonLdImage }),
       datePublished: post.publishedAt.toISOString(),
       dateModified: post.updatedAt.toISOString(),
       author: {

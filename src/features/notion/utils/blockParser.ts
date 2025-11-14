@@ -1,4 +1,4 @@
-import type { NotionBlock, CodeContent, TextContent, RichTextItem } from "../types";
+import type { NotionBlock, CodeContent, TextContent, RichTextItem, ImageContent } from "../types";
 
 /**
  * Notion 블록의 content에서 순수 텍스트를 추출
@@ -104,4 +104,40 @@ export function isSimpleText(content: NotionBlock["content"]): content is string
  */
 export function isContentObject(content: NotionBlock["content"]): content is TextContent {
   return typeof content === "object" && content !== null;
+}
+
+/**
+ * 포스트 콘텐츠에서 첫 번째 이미지 URL 추출
+ */
+export function getFirstImageFromContent(blocks: NotionBlock[]): string | undefined {
+  for (const block of blocks) {
+    // 재귀적으로 자식 블록도 확인
+    if (block.children) {
+      const childImage = getFirstImageFromContent(block.children);
+      if (childImage) {
+        return childImage;
+      }
+    }
+
+    // 현재 블록이 이미지인지 확인
+    if (
+      typeof block.content === "object" &&
+      block.content !== null &&
+      "type" in block.content &&
+      block.content.type === "image"
+    ) {
+      // ImageContent 타입인 경우 직접 url 속성 사용
+      const imageContent = block.content as ImageContent;
+      if (imageContent.url) {
+        return imageContent.url;
+      }
+      
+      // fallback: extractImageData 사용 (레거시 지원)
+      const imageData = extractImageData(block.content);
+      if (imageData.url) {
+        return imageData.url;
+      }
+    }
+  }
+  return undefined;
 }
