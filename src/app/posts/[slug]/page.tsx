@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
     // 키워드 생성
     const keywords = [...post.tags.map((tag) => tag.name), "프론트엔드", "개발", "기술블로그", "박창준"];
 
-    // OG Image 우선순위: 1. coverImage, 2. 포스트 내부 첫 번째 이미지
+    // OG Image 우선순위: 1. coverImage, 2. 포스트 내부 첫 번째 이미지, 3. 동적 생성 이미지
     let ogImageUrl: string | undefined = undefined;
 
     // 1. 커버 이미지 확인
@@ -60,6 +60,9 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
         ogImageUrl = firstImageUrl.startsWith("http")
           ? firstImageUrl
           : `${baseUrl}${firstImageUrl.startsWith("/") ? firstImageUrl : `/${firstImageUrl}`}`;
+      } else {
+        // 3. 이미지가 없으면 동적 생성된 OG 이미지 사용
+        ogImageUrl = `${baseUrl}/posts/${slug}/opengraph-image`;
       }
     }
 
@@ -101,16 +104,14 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
         modifiedTime: post.updatedAt.toISOString(),
         authors: ["박창준"],
         tags: post.tags.map((tag) => tag.name),
-        ...(ogImageUrl && {
-          images: [
-            {
-              url: ogImageUrl,
-              width: 1200,
-              height: 630,
-              alt: post.title,
-            },
-          ],
-        }),
+        images: [
+          {
+            url: ogImageUrl,
+            width: 1200,
+            height: 630,
+            alt: post.title,
+          },
+        ],
       },
 
       // Twitter Card
@@ -120,9 +121,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
         creator: "@changjun",
         title: post.title,
         description,
-        ...(ogImageUrl && {
-          images: [ogImageUrl],
-        }),
+        images: [ogImageUrl],
       },
 
       // Article 메타데이터
