@@ -15,7 +15,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ results: [] });
     }
 
-    const posts = await getAllPosts();
+    const posts = await getCachedAllPosts();
     
     if (posts.length === 0) {
       console.warn("No posts found for search");
