@@ -1,0 +1,37 @@
+{
+  "workflow_version": "1.2.0",
+  "timestamps": {
+    "started": "2025-11-16T11:24:55.3NZ",
+    "last_updated": "2025-11-16T11:26:09.3NZ"
+  },
+  "mode": "initial_scan",
+  "scan_level": "exhaustive",
+  "project_root": "/Users/changjun/Desktop/blog",
+  "output_folder": "/Users/changjun/Desktop/blog/docs",
+  "completed_steps": [
+    {
+      "step": "step_1",
+      "status": "completed",
+      "timestamp": "2025-11-16T11:26:09.3NZ",
+      "summary": "Classified as monolith with 1 part (web type)"
+    }
+  ],
+  "current_step": "step_2",
+  "findings": {
+    "project_classification": {
+      "repository_type": "monolith",
+      "parts_count": 1,
+      "primary_tech": "Next.js 15 + TypeScript"
+    }
+  },
+  "project_types": [
+    {
+      "part_id": "main",
+      "project_type_id": "web",
+      "display_name": "Web Application"
+    }
+  ],
+  "outputs_generated": ["project-scan-report.json"],
+  "resume_instructions": "Starting from step 2: Discover existing documentation"
+}
+
