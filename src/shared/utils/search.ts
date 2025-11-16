@@ -38,6 +38,20 @@ export function createSearchIndex(posts: NotionPost[]): Fuse<NotionPost> {
   return new Fuse(posts, options);
 }
 
+// Fuse 인스턴스 캐싱을 위한 변수
+let fuse: Fuse<NotionPost> | null = null;
+let lastPosts: NotionPost[] | null = null;
+let lastPostsHash: string | null = null;
+
+/**
+ * 포스트 목록의 해시 생성 (간단한 변경 감지용)
+ */
+function getPostsHash(posts: NotionPost[]): string {
+  if (posts.length === 0) return "";
+  // 포스트 ID와 개수를 기반으로 해시 생성
+  return `${posts.length}-${posts[0]?.id}-${posts[posts.length - 1]?.id}`;
+}
+
 /**
  * 포스트 목록에서 검색 수행
  */
@@ -46,7 +60,14 @@ export function searchPosts(posts: NotionPost[], query: string): SearchResult[] 
     return [];
   }
 
-  const fuse = createSearchIndex(posts);
+  // 포스트 데이터가 변경되었을 때만 Fuse 인덱스를 재생성합니다.
+  const currentHash = getPostsHash(posts);
+  if (!fuse || lastPostsHash !== currentHash || lastPosts !== posts) {
+    fuse = createSearchIndex(posts);
+    lastPosts = posts;
+    lastPostsHash = currentHash;
+  }
+
   const results = fuse.search(query);
 
   return results.map((result) => ({

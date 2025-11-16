@@ -10,11 +10,6 @@ interface SearchModalProps {
   onClose: () => void;
 }
 
-interface SearchResult {
-  item: NotionPost;
-  score: number;
-}
-
 export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<(NotionPost & { score: number })[]>([]);
