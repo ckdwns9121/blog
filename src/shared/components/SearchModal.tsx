@@ -17,7 +17,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout>();
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 검색 실행 (디바운싱)
   useEffect(() => {
