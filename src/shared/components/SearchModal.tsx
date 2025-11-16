@@ -100,7 +100,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
         case "Enter":
           if (results[selectedIndex]) {
             const slug = results[selectedIndex].slug;
-            router.push(`/posts/${slug}`);
+            window.location.href = `/posts/${slug}`;
             onClose();
           }
           break;
