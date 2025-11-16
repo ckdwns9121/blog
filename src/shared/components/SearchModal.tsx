@@ -17,7 +17,7 @@ interface SearchResult {
 
 export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<NotionPost[]>([]);
+  const [results, setResults] = useState<(NotionPost & { score: number })[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
