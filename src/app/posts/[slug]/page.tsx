@@ -67,7 +67,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
     }
 
     return {
-      title: `${post.title} | 프론트엔드 개발자 박창준 블로그`,
+      title: `${post.title} | 박창준`,
       description: description.slice(0, 160), // 검색엔진 최적 길이
       keywords: keywords.join(", "),
       authors: [{ name: "박창준", url: baseUrl }],
@@ -98,7 +98,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
         url: postUrl,
         title: post.title,
         description,
-        siteName: "프론트엔드 개발자 박창준 블로그",
+        siteName: "박창준",
         locale: "ko_KR",
         publishedTime: post.publishedAt.toISOString(),
         modifiedTime: post.updatedAt.toISOString(),

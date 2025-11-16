@@ -1,11 +1,71 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CodeBracketIcon } from "@heroicons/react/24/outline";
+import type { Metadata } from "next";
+
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://changjun.dev";
+
+export const metadata: Metadata = {
+  title: "박창준 소개",
+  description:
+    "프론트엔드 개발자 박창준입니다. React와 Next.js를 활용한 웹 애플리케이션 개발에 집중하며, 기술 블로그를 통해 개발 경험과 학습한 내용을 공유합니다.",
+  keywords: ["박창준", "프론트엔드", "개발자", "소개", "이력", "React", "Next.js", "TypeScript"],
+  authors: [{ name: "박창준", url: baseUrl }],
+  creator: "박창준",
+  publisher: "박창준",
+  openGraph: {
+    title: "박창준 소개",
+    description:
+      "프론트엔드 개발자 박창준입니다. React와 Next.js를 활용한 웹 애플리케이션 개발에 집중하며, 기술 블로그를 통해 개발 경험과 학습한 내용을 공유합니다.",
+    type: "profile",
+    locale: "ko_KR",
+    siteName: "박창준",
+    url: `${baseUrl}/about`,
+  },
+  twitter: {
+    card: "summary",
+    title: "박창준 소개",
+    description: "프론트엔드 개발자 박창준입니다.",
+    creator: "@changjun",
+  },
+};
+
+// JSON-LD Person 스키마 (About 페이지용 상세 정보)
+const aboutPersonSchema = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "박창준",
+  url: baseUrl,
+  jobTitle: "프론트엔드 개발자",
+  description: "프론트엔드 개발자 박창준입니다. React와 Next.js를 활용한 웹 애플리케이션 개발에 집중하며, 기술 블로그를 통해 개발 경험과 학습한 내용을 공유합니다.",
+  sameAs: [
+    "https://github.com/ckdwns9121",
+    "https://linkedin.com/in/devchangjun",
+  ],
+  knowsAbout: [
+    "프론트엔드 개발",
+    "React",
+    "Next.js",
+    "TypeScript",
+    "JavaScript",
+    "웹 개발",
+  ],
+  worksFor: {
+    "@type": "Organization",
+    name: "Colosseum",
+    url: "https://colosseum.global/",
+  },
+};
 
 export default function About() {
   return (
-    <div className="bg-white dark:bg-dark-bg text-gray-900 dark:text-white min-h-screen">
-      <main className="max-w-3xl mx-auto px-3 sm:px-4 lg:px-6 py-16">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutPersonSchema) }}
+      />
+      <div className="bg-white dark:bg-dark-bg text-gray-900 dark:text-white min-h-screen">
+        <main className="max-w-3xl mx-auto px-3 sm:px-4 lg:px-6 py-16">
         {/* 프로필 헤더 */}
         <div className="flex flex-col md:flex-row gap-8 mb-16 items-center md:items-start">
           {/* 왼쪽: 프로필 이미지 */}
@@ -53,7 +113,7 @@ export default function About() {
             {/* 소개 */}
             <div className="text-left">
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                안녕하세요. 프론트엔드 엔지니어 박창준입니다.
+                안녕하세요. 프론트엔드 개발자 <strong>박창준</strong>입니다.
               </p>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
                 복잡한 문제를 구조화하고, 빠르게 실행하는 것을 강점으로 가지고 있습니다. 
@@ -88,5 +148,6 @@ export default function About() {
         </div>
       </main>
     </div>
+    </>
   );
 }

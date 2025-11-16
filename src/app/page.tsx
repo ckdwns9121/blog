@@ -68,25 +68,29 @@ export default async function Home() {
 }
 
 export async function generateMetadata() {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://changjun.dev";
+  
   return {
-    title: "프론트엔드 개발자 박창준",
+    title: "박창준 - 프론트엔드 개발자",
     description:
-      "프론트엔드 개발자 박창준의 블로그입니다. React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
-    keywords: ["프론트엔드", "개발자", "박창준", "React", "Next.js", "TypeScript", "JavaScript", "웹 개발"],
-    authors: [{ name: "박창준" }],
+      "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
+    keywords: ["박창준", "프론트엔드", "개발자", "React", "Next.js", "TypeScript", "JavaScript", "웹 개발", "기술 블로그"],
+    authors: [{ name: "박창준", url: baseUrl }],
     creator: "박창준",
+    publisher: "박창준",
     openGraph: {
-      title: "프론트엔드 개발자 박창준",
+      title: "박창준 - 프론트엔드 개발자",
       description:
-        "프론트엔드 개발자 박창준의 블로그입니다. React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
+        "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
       type: "website",
       locale: "ko_KR",
-      siteName: "박창준 블로그",
+      siteName: "박창준",
+      url: baseUrl,
     },
     twitter: {
       card: "summary_large_image",
-      title: "프론트엔드 개발자 박창준",
-      description: "프론트엔드 개발자 박창준의 블로그입니다.",
+      title: "박창준 - 프론트엔드 개발자",
+      description: "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
       creator: "@changjun",
     },
   };
