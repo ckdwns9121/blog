@@ -2,12 +2,27 @@
 
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { SunIcon, MoonIcon, Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { SunIcon, MoonIcon, Bars3Icon, XMarkIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { useState, useEffect } from "react";
+import { SearchModal } from "@/shared/components/SearchModal";
 
 export function Header() {
   const { theme, setTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // 키보드 단축키 (Cmd+K / Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setIsSearchOpen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const toggleTheme = () => {
     console.log("Current theme:", theme);
@@ -59,8 +74,19 @@ export function Header() {
             </Link>
           </nav>
 
-          {/* 다크모드 토글 */}
-          <div className="flex items-center">
+          {/* 검색 및 다크모드 토글 */}
+          <div className="flex items-center gap-2">
+            {/* 검색 버튼 */}
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label="검색"
+              title="검색 (Cmd+K / Ctrl+K)"
+            >
+              <MagnifyingGlassIcon className="h-5 w-5" />
+            </button>
+
+            {/* 다크모드 토글 */}
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -93,6 +119,9 @@ export function Header() {
           </div>
         )}
       </div>
+
+      {/* 검색 모달 */}
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header>
   );
 }

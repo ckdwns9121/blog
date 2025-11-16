@@ -117,3 +117,5 @@ pnpm build
 - **이미지 최적화**: `IMAGE_OPTIMIZATION.md`
 - **프로젝트 README**: `README.md`
 
+
+

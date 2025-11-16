@@ -58,3 +58,5 @@
 - **개발 서버**: `pnpm dev` (Turbopack 사용)
 - **배포 플랫폼**: Vercel (추정, Next.js 최적화)
 
+
+
