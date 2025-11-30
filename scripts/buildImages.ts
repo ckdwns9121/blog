@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { getAllPosts, getPostByPageId } from "../src/features/notion/api/client";
+import { getAllPosts, getPostByPageId } from "../src/features/notion/service/notion-client";
 import { convertPostImages, saveImageMapping, loadImageMapping } from "./convertImages";
 import type { ContentBlockWithChildren } from "../src/shared/types/content";
 

@@ -2,7 +2,7 @@
 
 import { Fragment } from "react";
 import type { ContentBlockWithChildren } from "@/shared/types/content";
-import { ContentBlockRenderer } from "@/shared/components/ContentBlockRenderer";
+import { ContentBlockRenderer } from "@/shared/ui/ContentBlockRenderer";
 
 interface PostContentProps {
   blocks: ContentBlockWithChildren[];

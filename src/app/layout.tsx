@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/shared/providers/ThemeProvider";
-import { Header } from "@/shared/components/Header";
-import { Footer } from "@/shared/components/Footer";
+import { Header } from "@/shared/ui/Header";
+import { Footer } from "@/shared/ui/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,7 +24,17 @@ export const metadata: Metadata = {
   },
   description:
     "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
-  keywords: ["박창준", "프론트엔드", "개발자", "React", "Next.js", "TypeScript", "JavaScript", "웹 개발", "기술 블로그"],
+  keywords: [
+    "박창준",
+    "프론트엔드",
+    "개발자",
+    "React",
+    "Next.js",
+    "TypeScript",
+    "JavaScript",
+    "웹 개발",
+    "기술 블로그",
+  ],
   authors: [{ name: "박창준", url: baseUrl }],
   creator: "박창준",
   publisher: "박창준",
@@ -41,7 +51,8 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     siteName: "박창준",
     title: "박창준 - 프론트엔드 개발자",
-    description: "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
+    description:
+      "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
     url: baseUrl,
   },
   verification: {
@@ -64,19 +75,10 @@ const personSchema = {
   name: "박창준",
   url: baseUrl,
   jobTitle: "프론트엔드 개발자",
-  description: "프론트엔드 개발자 박창준의 기술 블로그입니다. React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
-  sameAs: [
-    "https://github.com/ckdwns9121",
-    "https://linkedin.com/in/devchangjun",
-  ],
-  knowsAbout: [
-    "프론트엔드 개발",
-    "React",
-    "Next.js",
-    "TypeScript",
-    "JavaScript",
-    "웹 개발",
-  ],
+  description:
+    "프론트엔드 개발자 박창준의 기술 블로그입니다. React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
+  sameAs: ["https://github.com/ckdwns9121", "https://linkedin.com/in/devchangjun"],
+  knowsAbout: ["프론트엔드 개발", "React", "Next.js", "TypeScript", "JavaScript", "웹 개발"],
 };
 
 export default function RootLayout({
@@ -89,10 +91,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-white dark:bg-dark-bg`}
       >
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
-        />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }} />
         <Providers>
           <Header />
           <main className="flex-1">{children}</main>

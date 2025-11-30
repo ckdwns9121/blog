@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { ImageBlock } from "./ImageBlock";
-import { Modal } from "@/shared/components/Modal";
+import { Modal } from "@/shared/ui/Modal";
 import { getOptimizedImageUrl } from "@/shared/utils/imageMapper";
 
 interface ImageWithModalProps {
@@ -24,16 +24,8 @@ export function ImageWithModal({ url, caption }: ImageWithModalProps) {
 
   return (
     <>
-      <ImageBlock
-        url={url}
-        caption={caption}
-        enableModal={true}
-        onImageClick={() => setIsModalOpen(true)}
-      />
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      >
+      <ImageBlock url={url} caption={caption} enableModal={true} onImageClick={() => setIsModalOpen(true)} />
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
         {/* 이미지 */}
         <div className="relative w-full h-full flex items-center justify-center">
           <Image
@@ -48,12 +40,9 @@ export function ImageWithModal({ url, caption }: ImageWithModalProps) {
 
         {/* 캡션 */}
         {caption && (
-          <div className="mt-4 text-center text-sm text-white bg-black/50 rounded-lg px-4 py-2">
-            {caption}
-          </div>
+          <div className="mt-4 text-center text-sm text-white bg-black/50 rounded-lg px-4 py-2">{caption}</div>
         )}
       </Modal>
     </>
   );
 }
-

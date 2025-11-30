@@ -1,8 +1,14 @@
 import { notFound } from "next/navigation";
 
-// Notion feature
-import { getAllPosts, getPostBySlug, generateTableOfContents } from "@/features/notion";
+// Post API (entities 레이어)
+import { getAllPosts, getPostBySlug } from "@/entities/post/api";
+
+// Notion feature (유틸리티만 사용)
+import { generateTableOfContents } from "@/features/notion";
 import { getFirstImageFromContent } from "@/features/notion/utils/blockParser";
+
+// Post API 어댑터 초기화
+import "@/app/init-post-api";
 
 // entities.
 import PostContent from "@/entities/post/ui/PostContent";
@@ -13,9 +19,9 @@ import { Comment } from "@/entities/comment";
 import { PostViewCounter } from "@/features/page-views";
 
 // widgets
-import { PostNavigation } from "@/widgets/post";
-import { ScrollProgress } from "@/shared/components/ScrollProgress";
-import BottomNavigation from "@/shared/components/BottomNavigation";
+import { PostNavigation } from "@/widgets/post-navigation";
+import { ScrollProgress } from "@/shared/ui/ScrollProgress";
+import BottomNavigation from "@/shared/ui/BottomNavigation";
 import type { Metadata } from "next";
 
 interface PostPageProps {

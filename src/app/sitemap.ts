@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
-import { getAllPosts } from "@/features/notion";
+import { getAllPosts } from "@/entities/post/api";
+import "@/app/init-post-api";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://changjun.dev";

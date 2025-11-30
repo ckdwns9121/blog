@@ -14,7 +14,7 @@ import type {
   NotionDateProperty,
   BlockContent,
 } from "../types";
-import type { BlogPost } from "@/entities/post/types";
+import type { BlogPost } from "@/entities/post/model";
 import { adaptNotionBlocksToContentBlocks } from "../utils/blockAdapter";
 
 // Singleton client instance

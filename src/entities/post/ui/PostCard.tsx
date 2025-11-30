@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { BlogPost } from "../types";
+import type { BlogPost } from "../model";
 
 interface PostCardProps {
   post: BlogPost;

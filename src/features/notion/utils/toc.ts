@@ -1,5 +1,5 @@
 import type { ContentBlockWithChildren } from "@/shared/types/content";
-import type { TableOfContentsItem } from "@/entities/post/types";
+import type { TableOfContentsItem } from "@/entities/post/model";
 
 /**
  * 공통 콘텐츠 블록에서 목차(TOC)를 생성하는 유틸리티 함수

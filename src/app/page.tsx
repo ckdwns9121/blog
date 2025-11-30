@@ -1,5 +1,8 @@
-import { getAllPosts } from "@/features/notion";
+import { getAllPosts } from "@/entities/post/api";
 import { PostList } from "../entities/post/ui/PostList";
+
+// Post API 어댑터 초기화
+import "@/app/init-post-api";
 import Image from "next/image";
 import Link from "next/link";
 import { CodeBracketIcon } from "@heroicons/react/24/outline";
