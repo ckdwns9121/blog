@@ -1,0 +1,2 @@
+export { usePostViewsQuery } from "./usePostViewsQuery";
+

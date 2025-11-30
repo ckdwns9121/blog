@@ -1,2 +1,2 @@
-export { default as PostViewCounter } from "./components/PostViewCounter";
+export { default as PostViewCounter } from "./ui/PostViewCounter";
 export { usePostViews } from "./hooks/usePostViews";

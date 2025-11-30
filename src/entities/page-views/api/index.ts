@@ -1,0 +1,2 @@
+export { getPostViews } from "./getPostViews";
+
