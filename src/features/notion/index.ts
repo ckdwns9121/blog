@@ -20,20 +20,16 @@ export type {
   TextContent,
   CodeContent,
   ImageContent,
-
-  // Application 타입
-  BlogPost,
-  Tag,
-  TableOfContentsItem,
 } from "./types";
 
 // Components
-export { NotionBlockRenderer } from "./components/NotionBlockRenderer";
-export { RichTextRenderer } from "./components/RichTextRenderer";
-export { CodeBlock, ImageBlock, VideoBlock } from "./components/blocks";
+export { NotionBlockRenderer } from "./ui/NotionBlockRenderer";
+export { RichTextRenderer } from "./ui/RichTextRenderer";
+export { CodeBlock, ImageBlock, VideoBlock } from "./ui/blocks";
 
 // Utils
 export { parseNotionBlock } from "./utils/blockMapper";
 export type { ParsedBlock } from "./utils/blockMapper";
 export { extractText, extractLanguage, extractImageData, extractRichTextArray } from "./utils/blockParser";
 export { generateTableOfContents, organizeTocHierarchy, filterTocByLevel } from "./utils/toc";
+export { adaptNotionBlockToContentBlock, adaptNotionBlocksToContentBlocks } from "./utils/blockAdapter";

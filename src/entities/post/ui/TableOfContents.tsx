@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import type { TableOfContentsItem } from "@/features/notion";
+import type { TableOfContentsItem } from "../types";
 
 interface TableOfContentsProps {
   items: TableOfContentsItem[];

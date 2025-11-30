@@ -5,10 +5,15 @@ import { getAllPosts, getPostBySlug, generateTableOfContents } from "@/features/
 import { getFirstImageFromContent } from "@/features/notion/utils/blockParser";
 
 // entities.
-import PostContent from "@/entities/post/PostContent";
-import TableOfContents from "@/entities/post/TableOfContents";
-import PostNavigation from "@/entities/post/PostNavigation";
+import PostContent from "@/entities/post/ui/PostContent";
+import TableOfContents from "@/entities/post/ui/TableOfContents";
 import { Comment } from "@/entities/comment";
+
+// features
+import { PostViewCounter } from "@/features/page-views";
+
+// widgets
+import { PostNavigation } from "@/widgets/post";
 import { ScrollProgress } from "@/shared/components/ScrollProgress";
 import BottomNavigation from "@/shared/components/BottomNavigation";
 import type { Metadata } from "next";
@@ -18,7 +23,7 @@ interface PostPageProps {
 }
 
 // 프로덕션 빌드 시에는 force-static으로 변경 필요
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 export const revalidate = 3600; // 1시간마다 재검증
 
 // SSG를 위한 정적 경로 생성
@@ -164,7 +169,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
     // JSON-LD 구조화된 데이터
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blog.changjun.dev";
-    
+
     // OG Image와 동일한 로직으로 이미지 선택
     let jsonLdImage: string | undefined = undefined;
     if (post.coverImage) {
@@ -179,7 +184,7 @@ export default async function PostPage({ params }: PostPageProps) {
           : `${baseUrl}${firstImageUrl.startsWith("/") ? firstImageUrl : `/${firstImageUrl}`}`;
       }
     }
-    
+
     const jsonLd = {
       "@context": "https://schema.org",
       "@type": "BlogPosting",
@@ -225,6 +230,8 @@ export default async function PostPage({ params }: PostPageProps) {
                       <time dateTime={post.publishedAt.toISOString()}>
                         {post.publishedAt.toLocaleDateString("ko-KR")}
                       </time>
+                      <span>•</span>
+                      <PostViewCounter slug={slug} />
                       {post.tags.length > 0 && (
                         <>
                           <span>•</span>

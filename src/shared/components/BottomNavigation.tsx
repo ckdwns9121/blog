@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import type { TableOfContentsItem } from "@/features/notion";
+import type { TableOfContentsItem } from "@/entities/post/types";
 
 interface BottomNavigationProps {
   tocItems: TableOfContentsItem[];

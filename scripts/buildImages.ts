@@ -1,7 +1,28 @@
 import "dotenv/config";
 import { getAllPosts, getPostByPageId } from "../src/features/notion/api/client";
 import { convertPostImages, saveImageMapping, loadImageMapping } from "./convertImages";
-import type { ImageContent } from "../src/features/notion/types";
+import type { ContentBlockWithChildren } from "../src/shared/types/content";
+
+/**
+ * 콘텐츠 블록에서 모든 이미지 URL을 재귀적으로 추출
+ */
+function extractImageUrlsFromBlocks(blocks: ContentBlockWithChildren[]): string[] {
+  const imageUrls: string[] = [];
+
+  for (const block of blocks) {
+    // 이미지 블록인 경우
+    if (block.type === "image" && block.url) {
+      imageUrls.push(block.url);
+    }
+
+    // 자식 블록도 재귀적으로 확인
+    if (block.children && block.children.length > 0) {
+      imageUrls.push(...extractImageUrlsFromBlocks(block.children));
+    }
+  }
+
+  return imageUrls;
+}
 
 /**
  * 포스트의 모든 이미지 URL 추출
@@ -18,21 +39,9 @@ async function extractPostImageUrls(postId: string, postSlug: string, coverImage
     // 포스트 콘텐츠의 이미지
     const fullPost = await getPostByPageId(postId, true);
 
-    if (fullPost.content) {
-      for (const block of fullPost.content) {
-        // ImageContent 타입인지 체크
-        if (
-          block.content &&
-          typeof block.content === "object" &&
-          "type" in block.content &&
-          block.content.type === "image"
-        ) {
-          const imageContent = block.content as ImageContent;
-          if (imageContent.url) {
-            imageUrls.push(imageContent.url);
-          }
-        }
-      }
+    if (fullPost.content && fullPost.content.length > 0) {
+      const contentImageUrls = extractImageUrlsFromBlocks(fullPost.content);
+      imageUrls.push(...contentImageUrls);
     }
 
     return imageUrls;

@@ -1,7 +1,6 @@
 import { Client } from "@notionhq/client";
 import type {
   NotionPost,
-  BlogPost,
   NotionBlock,
   NotionPage,
   NotionBlockType,
@@ -15,6 +14,8 @@ import type {
   NotionDateProperty,
   BlockContent,
 } from "../types";
+import type { BlogPost } from "@/entities/post/types";
+import { adaptNotionBlocksToContentBlocks } from "../utils/blockAdapter";
 
 // Singleton client instance
 let client: Client | null = null;
@@ -164,11 +165,14 @@ export async function getPostByPageId(pageId: string, fetchContent = true): Prom
   const rawCoverImage = getUrl(properties.coverImage);
   const coverImage = rawCoverImage ? convertToPublicNotionImageUrl(rawCoverImage, page.id) : undefined;
 
+  // NotionBlock을 공통 ContentBlock으로 변환
+  const contentBlocks = adaptNotionBlocksToContentBlocks(blocks);
+
   return {
     id: page.id,
     title,
     slug,
-    content: blocks,
+    content: contentBlocks,
     excerpt,
     publishedAt: new Date(publishedAt),
     updatedAt: new Date(page.last_edited_time),

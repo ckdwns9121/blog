@@ -1,12 +1,12 @@
 import { getAllPosts } from "@/features/notion";
-import { PostList } from "../entities/post/PostList";
+import { PostList } from "../entities/post/ui/PostList";
 import Image from "next/image";
 import Link from "next/link";
 import { CodeBracketIcon } from "@heroicons/react/24/outline";
 import { POSTS_PER_PAGE } from "@/shared/constants";
 
 // 프로덕션 빌드 시에는 force-static으로 변경 필요
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 export const revalidate = 3600; // 1시간마다 재검증
 
 export default async function Home() {
@@ -69,12 +69,22 @@ export default async function Home() {
 
 export async function generateMetadata() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://changjun.dev";
-  
+
   return {
     title: "박창준 - 프론트엔드 개발자",
     description:
       "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
-    keywords: ["박창준", "프론트엔드", "개발자", "React", "Next.js", "TypeScript", "JavaScript", "웹 개발", "기술 블로그"],
+    keywords: [
+      "박창준",
+      "프론트엔드",
+      "개발자",
+      "React",
+      "Next.js",
+      "TypeScript",
+      "JavaScript",
+      "웹 개발",
+      "기술 블로그",
+    ],
     authors: [{ name: "박창준", url: baseUrl }],
     creator: "박창준",
     publisher: "박창준",
@@ -90,7 +100,8 @@ export async function generateMetadata() {
     twitter: {
       card: "summary_large_image",
       title: "박창준 - 프론트엔드 개발자",
-      description: "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
+      description:
+        "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
       creator: "@changjun",
     },
   };
