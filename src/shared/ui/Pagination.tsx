@@ -6,42 +6,33 @@ interface PaginationProps {
 
 export function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
   const getPageNumbers = () => {
-    const pages = [];
     const maxVisiblePages = 5;
+    const ELLIPSIS = -1;
 
+    // 전체 페이지 범위 생성
+    const allPages = Array.from({ length: totalPages }, (_, i) => i + 1);
+
+    // 간단한 경우: 전체 페이지 표시
     if (totalPages <= maxVisiblePages) {
-      // 전체 페이지가 5개 이하인 경우
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      // 첫 페이지만 표시
-      pages.push(1);
-
-      // 현재 페이지 주변 계산
-      const startPage = Math.max(2, currentPage - 1);
-      const endPage = Math.min(totalPages - 1, currentPage + 1);
-
-      // 여러 페이지 간격이 있는 경우 생략 표시
-      if (startPage > 2) {
-        pages.push(-1); // 생략 표시
-      }
-
-      // 현재 페이지 주변 페이지들
-      for (let i = startPage; i <= endPage; i++) {
-        pages.push(i);
-      }
-
-      // 마지막 페이지 전에 생략 표시
-      if (endPage < totalPages - 1) {
-        pages.push(-1); // 생략 표시
-      }
-
-      // 마지막 페이지만 표시
-      pages.push(totalPages);
+      return allPages;
     }
 
-    return pages;
+    // 복잡한 경우: 페이지 범위 계산
+    const getRange = (start: number, end: number) => Array.from({ length: end - start + 1 }, (_, i) => start + i);
+
+    const startPage = Math.max(2, currentPage - 1);
+    const endPage = Math.min(totalPages - 1, currentPage + 1);
+
+    // 페이지 세그먼트 구성
+    const segments = [
+      [1], // 첫 페이지
+      startPage > 2 ? [ELLIPSIS] : [], // 첫 생략
+      getRange(startPage, endPage), // 현재 페이지 주변
+      endPage < totalPages - 1 ? [ELLIPSIS] : [], // 마지막 생략
+      [totalPages], // 마지막 페이지
+    ];
+
+    return segments.flat();
   };
 
   const pageNumbers = getPageNumbers();
