@@ -221,7 +221,7 @@ export default async function PostPage({ params }: PostPageProps) {
       <>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <ScrollProgress />
-        <div className="bg-white dark:bg-dark-bg">
+        <div>
           <div className="py-8">
             <article className="prose prose-lg max-w-none">
               {/* 포스트 헤더 */}

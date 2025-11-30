@@ -52,8 +52,8 @@ export default function About() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutPersonSchema) }} />
-      <div className="bg-white dark:bg-dark-bg text-gray-900 dark:text-white min-h-screen">
-        <main className="py-16">
+      <div className="text-gray-900 dark:text-white">
+        <div className="py-16">
           {/* 프로필 헤더 */}
           <div className="flex flex-col md:flex-row gap-8 mb-16 items-center md:items-start">
             {/* 왼쪽: 프로필 이미지 */}
@@ -127,7 +127,7 @@ export default function About() {
               </div>
             </div>
           </div>
-        </main>
+        </div>
       </div>
     </>
   );

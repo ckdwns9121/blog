@@ -17,8 +17,8 @@ export default async function Home() {
   const sortedPosts = allPosts.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
 
   return (
-    <div className="bg-white dark:bg-dark-bg text-gray-900 dark:text-white min-h-screen">
-      <main className="py-8">
+    <div className="text-gray-900 dark:text-white">
+      <div className="py-8">
         <div className="flex flex-col md:flex-row gap-6 mb-8 mt-8">
           {/* 프로필 이미지 */}
           <div className="flex justify-center md:justify-start">
@@ -65,7 +65,7 @@ export default async function Home() {
 
         {/* 클라이언트 컴포넌트로 전체 포스트 전달 */}
         <PostList posts={sortedPosts} postsPerPage={POSTS_PER_PAGE} />
-      </main>
+      </div>
     </div>
   );
 }
