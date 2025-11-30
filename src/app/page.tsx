@@ -74,7 +74,7 @@ export async function generateMetadata() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://changjun.dev";
 
   return {
-    title: "박창준 - 프론트엔드 개발자",
+    title: "박창준 블로그",
     description:
       "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
     keywords: [
@@ -92,7 +92,7 @@ export async function generateMetadata() {
     creator: "박창준",
     publisher: "박창준",
     openGraph: {
-      title: "박창준 - 프론트엔드 개발자",
+      title: "박창준 블로그",
       description:
         "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
       type: "website",
@@ -102,7 +102,7 @@ export async function generateMetadata() {
     },
     twitter: {
       card: "summary_large_image",
-      title: "박창준 - 프론트엔드 개발자",
+      title: "박창준 블로그",
       description:
         "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
       creator: "@changjun",

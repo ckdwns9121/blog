@@ -19,8 +19,8 @@ const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://changjun.dev";
 
 export const metadata: Metadata = {
   title: {
-    default: "박창준 - 프론트엔드 개발자",
-    template: "%s | 박창준",
+    default: "박창준 블로그",
+    template: "%s | 박창준 블로그",
   },
   description:
     "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ko_KR",
     siteName: "박창준",
-    title: "박창준 - 프론트엔드 개발자",
+    title: "박창준 블로그",
     description:
       "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
     url: baseUrl,
