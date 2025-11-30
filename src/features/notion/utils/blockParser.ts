@@ -1,4 +1,5 @@
 import type { NotionBlock, CodeContent, TextContent, RichTextItem, ImageContent } from "../types";
+import type { ContentBlockWithChildren } from "@/shared/types/content";
 
 /**
  * Notion 블록의 content에서 순수 텍스트를 추출
@@ -107,9 +108,17 @@ export function isContentObject(content: NotionBlock["content"]): content is Tex
 }
 
 /**
- * 포스트 콘텐츠에서 첫 번째 이미지 URL 추출
+ * 타입 가드: ContentBlockWithChildren인지 확인
  */
-export function getFirstImageFromContent(blocks: NotionBlock[]): string | undefined {
+function isContentBlock(block: NotionBlock | ContentBlockWithChildren): block is ContentBlockWithChildren {
+  return "type" in block && typeof block.type === "string" && !("content" in block);
+}
+
+/**
+ * 포스트 콘텐츠에서 첫 번째 이미지 URL 추출
+ * NotionBlock과 ContentBlockWithChildren 모두 지원
+ */
+export function getFirstImageFromContent(blocks: NotionBlock[] | ContentBlockWithChildren[]): string | undefined {
   for (const block of blocks) {
     // 재귀적으로 자식 블록도 확인
     if (block.children) {
@@ -119,23 +128,33 @@ export function getFirstImageFromContent(blocks: NotionBlock[]): string | undefi
       }
     }
 
-    // 현재 블록이 이미지인지 확인
-    if (
-      typeof block.content === "object" &&
-      block.content !== null &&
-      "type" in block.content &&
-      block.content.type === "image"
-    ) {
-      // ImageContent 타입인 경우 직접 url 속성 사용
-      const imageContent = block.content as ImageContent;
-      if (imageContent.url) {
-        return imageContent.url;
+    // ContentBlockWithChildren 타입인 경우 (공통 타입)
+    if (isContentBlock(block) && block.type === "image") {
+      if (block.url) {
+        return block.url;
       }
-      
-      // fallback: extractImageData 사용 (레거시 지원)
-      const imageData = extractImageData(block.content);
-      if (imageData.url) {
-        return imageData.url;
+    }
+
+    // NotionBlock 타입인 경우 (레거시 지원)
+    if (!isContentBlock(block)) {
+      const notionBlock = block as NotionBlock;
+      if (
+        typeof notionBlock.content === "object" &&
+        notionBlock.content !== null &&
+        "type" in notionBlock.content &&
+        notionBlock.content.type === "image"
+      ) {
+        // ImageContent 타입인 경우 직접 url 속성 사용
+        const imageContent = notionBlock.content as ImageContent;
+        if (imageContent.url) {
+          return imageContent.url;
+        }
+
+        // fallback: extractImageData 사용 (레거시 지원)
+        const imageData = extractImageData(notionBlock.content);
+        if (imageData.url) {
+          return imageData.url;
+        }
       }
     }
   }

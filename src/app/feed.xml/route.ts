@@ -1,5 +1,6 @@
 import { Feed } from "feed";
-import { getAllPosts } from "@/features/notion";
+import { getAllPosts } from "@/entities/post/api";
+import "@/app/init-post-api";
 
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://changjun.dev";
