@@ -43,69 +43,74 @@ export async function getAllPosts(): Promise<NotionPost[]> {
     page_size: 100,
   });
 
-  const posts: NotionPost[] = [];
+  // 병렬 처리: 모든 페이지를 동시에 가져오기
+  const posts = await Promise.all(
+    response.results.map(async (page) => {
+      try {
+        const pageData = await getClient().pages.retrieve({
+          page_id: page.id,
+        });
 
-  for (const page of response.results) {
-    try {
-      const pageData = await getClient().pages.retrieve({
-        page_id: page.id,
-      });
+        if (pageData.object === "page") {
+          const notionPage = pageData as NotionPage;
+          const properties = notionPage.properties;
 
-      if (pageData.object === "page") {
-        const notionPage = pageData as NotionPage;
-        const properties = notionPage.properties;
+          const publishedProperty = properties.published as NotionCheckboxProperty | undefined;
+          const titleProperty = getPlainText(properties.title);
 
-        const publishedProperty = properties.published as NotionCheckboxProperty | undefined;
-        const titleProperty = getPlainText(properties.title);
+          if (publishedProperty?.checkbox && titleProperty) {
+            const originalSlug = getPlainText(properties.slug);
+            const generatedSlug = slugify(titleProperty);
+            const baseSlug = originalSlug || generatedSlug || "post";
 
-        if (publishedProperty?.checkbox && titleProperty) {
-          const originalSlug = getPlainText(properties.slug);
-          const generatedSlug = slugify(titleProperty);
-          const baseSlug = originalSlug || generatedSlug || "post";
+            // pageId에서 하이픈 제거 (전체 32자리)
+            const pageIdWithoutHyphens = notionPage.id.replace(/-/g, "");
 
-          // pageId에서 하이픈 제거 (전체 32자리)
-          const pageIdWithoutHyphens = notionPage.id.replace(/-/g, "");
+            // slug + pageId 조합 (예: javascript-promise-8618d667c89b3708a1b2c3d4e5f6g7h8)
+            const validSlug = `${baseSlug}-${pageIdWithoutHyphens}`;
 
-          // slug + pageId 조합 (예: javascript-promise-8618d667c89b3708a1b2c3d4e5f6g7h8)
-          const validSlug = `${baseSlug}-${pageIdWithoutHyphens}`;
+            const publishedAtDate = getDate(properties.publishedAt);
 
-          const publishedAtDate = getDate(properties.publishedAt);
+            // 날짜 유효성 재검증
+            const createdAt = notionPage.created_time || new Date().toISOString();
+            const updatedAt = notionPage.last_edited_time || new Date().toISOString();
+            const publishedAt = publishedAtDate || createdAt;
 
-          // 날짜 유효성 재검증
-          const createdAt = notionPage.created_time || new Date().toISOString();
-          const updatedAt = notionPage.last_edited_time || new Date().toISOString();
-          const publishedAt = publishedAtDate || createdAt;
+            // 커버 이미지 URL 처리 (S3 URL인 경우 공개 프록시 URL로 변환)
+            const rawCoverImage = getUrl(properties.coverImage);
+            const coverImage = rawCoverImage ? convertToPublicNotionImageUrl(rawCoverImage, notionPage.id) : undefined;
 
-          // 커버 이미지 URL 처리 (S3 URL인 경우 공개 프록시 URL로 변환)
-          const rawCoverImage = getUrl(properties.coverImage);
-          const coverImage = rawCoverImage ? convertToPublicNotionImageUrl(rawCoverImage, notionPage.id) : undefined;
-
-          posts.push({
-            id: notionPage.id,
-            title: titleProperty,
-            slug: validSlug,
-            published: publishedProperty.checkbox,
-            createdAt,
-            publishedAt,
-            updatedAt,
-            tags: (getMultiSelect(properties.tags) || []).map((tag: string) => ({
-              name: tag,
-              slug: slugify(tag),
-            })),
-            excerpt: getPlainText(properties.excerpt),
-            coverImage,
-          });
+            return {
+              id: notionPage.id,
+              title: titleProperty,
+              slug: validSlug,
+              published: publishedProperty.checkbox,
+              createdAt,
+              publishedAt,
+              updatedAt,
+              tags: (getMultiSelect(properties.tags) || []).map((tag: string) => ({
+                name: tag,
+                slug: slugify(tag),
+              })),
+              excerpt: getPlainText(properties.excerpt),
+              coverImage,
+            } as NotionPost;
+          }
+        }
+      } catch (pageError) {
+        const error = pageError as Error & { code?: string };
+        if (error.code !== "object_not_found") {
+          console.warn(`Failed to process page ${page.id}:`, error.message);
         }
       }
-    } catch (pageError) {
-      const error = pageError as Error & { code?: string };
-      if (error.code !== "object_not_found") {
-        console.warn(`Failed to process page ${page.id}:`, error.message);
-      }
-    }
-  }
+      return null;
+    })
+  );
 
-  return posts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+  // null 값 필터링 및 정렬
+  return posts
+    .filter((post): post is NotionPost => post !== null)
+    .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 }
 
 // 특정 포스트 상세 조회 (pageId로 직접 조회)

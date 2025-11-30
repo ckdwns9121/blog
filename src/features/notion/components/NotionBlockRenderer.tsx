@@ -33,15 +33,15 @@ export function NotionBlockRenderer({ block, headingId }: NotionBlockRendererPro
     case "paragraph":
       // 빈 줄바꿈 블록도 공간을 차지하도록 처리 (Notion과 동일하게 min-height 적용)
       if (isEmpty) {
-        return <p className="mb-2 leading-relaxed" style={{ minHeight: "1em" }}></p>;
+        return <p className="mb-3 leading-relaxed" style={{ minHeight: "1em" }}></p>;
       }
-      return <p className="mb-2 leading-relaxed text-gray-700 dark:text-gray-300">{renderContent()}</p>;
+      return <p className="mb-3 leading-relaxed text-gray-700 dark:text-gray-300">{renderContent()}</p>;
 
     case "heading_1":
       return (
         <h1
           id={headingId}
-          className="mt-12 mb-6 text-3xl font-bold text-gray-900 dark:text-white scroll-mt-20 first:mt-0"
+          className="mt-14 mb-7 text-3xl font-bold text-gray-900 dark:text-white scroll-mt-20 first:mt-0"
         >
           {renderContent()}
         </h1>
@@ -51,7 +51,7 @@ export function NotionBlockRenderer({ block, headingId }: NotionBlockRendererPro
       return (
         <h2
           id={headingId}
-          className="mt-10 mb-5 text-2xl font-semibold text-gray-900 dark:text-white scroll-mt-20 first:mt-0"
+          className="mt-11 mb-6 text-2xl font-semibold text-gray-900 dark:text-white scroll-mt-20 first:mt-0"
         >
           {renderContent()}
         </h2>
@@ -61,36 +61,48 @@ export function NotionBlockRenderer({ block, headingId }: NotionBlockRendererPro
       return (
         <h3
           id={headingId}
-          className="mt-8 mb-4 text-xl font-medium text-gray-900 dark:text-white scroll-mt-20 first:mt-0"
+          className="mt-9 mb-5 text-xl font-medium text-gray-900 dark:text-white scroll-mt-20 first:mt-0"
         >
           {renderContent()}
         </h3>
       );
 
     case "bulleted_list_item":
-      return <li className="text-gray-700 dark:text-gray-300">{renderContent()}</li>;
+      return <li className="mb-1 text-gray-700 dark:text-gray-300">{renderContent()}</li>;
 
     case "numbered_list_item":
-      return <li className="text-gray-700 dark:text-gray-300">{renderContent()}</li>;
+      return <li className="mb-1 text-gray-700 dark:text-gray-300">{renderContent()}</li>;
 
     case "code":
-      return <CodeBlock code={parsed.code} language={parsed.language} />;
+      return (
+        <div className="my-4">
+          <CodeBlock code={parsed.code} language={parsed.language} />
+        </div>
+      );
 
     case "quote":
       return (
-        <blockquote className="mb-4 border-l-4 border-primary-500 pl-4 italic text-gray-600 dark:text-gray-400">
+        <blockquote className="my-5 border-l-4 border-primary-500 pl-4 italic text-gray-600 dark:text-gray-400">
           {renderContent()}
         </blockquote>
       );
 
     case "video":
-      return <VideoBlock url={parsed.url} caption={parsed.caption} />;
+      return (
+        <div className="my-4">
+          <VideoBlock url={parsed.url} caption={parsed.caption} />
+        </div>
+      );
 
     case "divider":
-      return <hr className="my-8 border-gray-300 dark:border-gray-600" />;
+      return <hr className="my-9 border-gray-300 dark:border-gray-600" />;
 
     case "image":
-      return <ImageWithModal url={parsed.url} caption={parsed.caption} />;
+      return (
+        <div className="my-4">
+          <ImageWithModal url={parsed.url} caption={parsed.caption} />
+        </div>
+      );
 
     case "bookmark":
       return (
@@ -98,7 +110,7 @@ export function NotionBlockRenderer({ block, headingId }: NotionBlockRendererPro
           href={parsed.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="my-4 block rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          className="my-5 block rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
         >
           <div className="flex items-center gap-3">
             <div className="flex-shrink-0 text-2xl">🔗</div>
