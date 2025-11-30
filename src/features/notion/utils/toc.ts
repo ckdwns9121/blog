@@ -12,11 +12,16 @@ export function generateTableOfContents(blocks: ContentBlockWithChildren[]): Tab
   const processBlocks = (blockList: ContentBlockWithChildren[]) => {
     blockList.forEach((block) => {
       if (block.type === "heading") {
+        // fallbackText가 없으면 건너뛰기 (빈 헤딩은 목차에 포함하지 않음)
+        if (!block.fallbackText) {
+          return;
+        }
+
         headingCounter++;
         toc.push({
           id: block.id || `heading-${headingCounter}`,
           title: block.fallbackText,
-          level: block.level,
+          level: block.level || 1, // level이 없으면 기본값 1 사용
         });
       }
 
