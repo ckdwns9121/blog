@@ -77,13 +77,8 @@ async function main() {
     console.log("📥 모든 포스트의 이미지 URL을 병렬로 추출하는 중...\n");
     const postImageData = await Promise.all(
       posts.map(async (post) => {
-        try {
-          const imageUrls = await extractPostImageUrls(post.id, post.slug, post.coverImage);
-          return { post, imageUrls };
-        } catch (error) {
-          console.warn(`  ⚠️  [${post.title}] 이미지 URL 추출 실패:`, error);
-          return { post, imageUrls: [] };
-        }
+        const imageUrls = await extractPostImageUrls(post.id, post.slug, post.coverImage);
+        return { post, imageUrls };
       })
     );
 
