@@ -46,7 +46,7 @@ export function ScrollProgress() {
   }, []);
 
   return (
-    <div className="fixed top-16 left-0 right-0 z-40 h-1 bg-gray-200 dark:bg-dark-border">
+    <div className="fixed top-0 left-0 right-0 z-40 h-1 bg-gray-200 dark:bg-dark-border">
       <div
         className="h-full bg-primary-600 dark:bg-primary-500 transition-transform duration-100 ease-out will-change-transform"
         style={{

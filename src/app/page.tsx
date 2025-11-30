@@ -18,7 +18,7 @@ export default async function Home() {
 
   return (
     <div className="bg-white dark:bg-dark-bg text-gray-900 dark:text-white min-h-screen">
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="py-8">
         <div className="flex flex-col md:flex-row gap-6 mb-8 mt-8">
           {/* 프로필 이미지 */}
           <div className="flex justify-center md:justify-start">

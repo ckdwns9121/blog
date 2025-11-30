@@ -94,7 +94,7 @@ export default function RootLayout({
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }} />
         <Providers>
           <Header />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 w-full">{children}</main>
           <Footer />
         </Providers>
       </body>

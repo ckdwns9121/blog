@@ -5,7 +5,7 @@ export function Footer() {
 
   return (
     <footer className="bg-white dark:bg-dark-bg border-t border-gray-200 dark:border-dark-border mt-auto">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-center items-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             © {currentYear} <span className="font-semibold">changjun</span>. All rights reserved.
