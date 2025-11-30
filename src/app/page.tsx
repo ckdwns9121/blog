@@ -14,7 +14,7 @@ export const revalidate = 3600; // 1시간마다 재검증
 
 export default async function Home() {
   const allPosts = await getAllPosts();
-  const sortedPosts = allPosts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+  const sortedPosts = allPosts.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
 
   return (
     <div className="bg-white dark:bg-dark-bg text-gray-900 dark:text-white min-h-screen">

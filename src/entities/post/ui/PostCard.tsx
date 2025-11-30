@@ -1,8 +1,8 @@
 import Link from "next/link";
-import type { BlogPost } from "../model";
+import type { PostMetadata } from "../model/usePostsQuery";
 
 interface PostCardProps {
-  post: BlogPost;
+  post: PostMetadata;
 }
 
 // test

@@ -3,10 +3,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { PostCard } from "./PostCard";
 import { ClientPagination } from "./ClientPagination";
-import type { NotionPost } from "@/features/notion";
+import type { PostMetadata } from "../model/usePostsQuery";
 
 interface PostListProps {
-  posts: NotionPost[];
+  posts: PostMetadata[];
   postsPerPage: number;
 }
 
@@ -114,25 +114,7 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
 
       <div className="space-y-0 mb-8">
         {currentPosts.map((post) => (
-          <PostCard
-            key={post.id}
-            post={{
-              id: post.id,
-              title: post.title,
-              slug: post.slug,
-              content: [],
-              excerpt: post.excerpt || "",
-              publishedAt: new Date(post.publishedAt),
-              updatedAt: new Date(post.updatedAt),
-              tags: post.tags.map((tag) => ({
-                name: tag.name,
-                slug: tag.slug,
-                postCount: 0,
-              })),
-              coverImage: post.coverImage,
-              toc: [],
-            }}
-          />
+          <PostCard key={post.id} post={post} />
         ))}
       </div>
 
