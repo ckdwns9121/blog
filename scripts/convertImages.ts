@@ -57,7 +57,7 @@ export async function convertImageToWebp(
 }
 
 /**
- * 포스트의 이미지들을 순서대로 변환
+ * 포스트의 이미지들을 병렬로 변환
  */
 export async function convertPostImages(
   postSlug: string,
@@ -72,11 +72,18 @@ export async function convertPostImages(
 
   console.log(`\n📸 [${postSlug}] ${imageUrls.length}개의 이미지 변환 중...\n`);
 
-  for (let i = 0; i < imageUrls.length; i++) {
-    const url = imageUrls[i];
-    const localPath = await convertImageToWebp(url, postSlug, i + 1, quality);
+  // 병렬 처리: 모든 이미지를 동시에 변환
+  const conversionResults = await Promise.all(
+    imageUrls.map(async (url, index) => {
+      const localPath = await convertImageToWebp(url, postSlug, index + 1, quality);
+      return { url, localPath };
+    })
+  );
+
+  // 결과를 Map에 추가
+  conversionResults.forEach(({ url, localPath }) => {
     results.set(url, localPath);
-  }
+  });
 
   return results;
 }

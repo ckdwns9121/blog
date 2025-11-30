@@ -67,45 +67,71 @@ async function main() {
 
     console.log("━".repeat(60));
 
-    // 3. 포스트별로 이미지 처리 (증분 빌드)
+    // 3. 포스트별로 이미지 처리 (증분 빌드 + 병렬 처리)
     const allImageMapping = new Map<string, string>(existingMapping); // 기존 매핑 복사
     let totalImageCount = 0;
     let newImageCount = 0;
     let skippedImageCount = 0;
 
-    for (const post of posts) {
-      // 포스트의 이미지 URL 추출
-      const imageUrls = await extractPostImageUrls(post.id, post.slug, post.coverImage);
+    // 병렬 처리: 모든 포스트의 이미지 URL을 동시에 추출
+    console.log("📥 모든 포스트의 이미지 URL을 병렬로 추출하는 중...\n");
+    const postImageData = await Promise.all(
+      posts.map(async (post) => {
+        try {
+          const imageUrls = await extractPostImageUrls(post.id, post.slug, post.coverImage);
+          return { post, imageUrls };
+        } catch (error) {
+          console.warn(`  ⚠️  [${post.title}] 이미지 URL 추출 실패:`, error);
+          return { post, imageUrls: [] };
+        }
+      })
+    );
 
-      if (imageUrls.length === 0) {
-        console.log(`\n📄 [${post.title}] 이미지 없음`);
-        continue;
-      }
+    console.log("━".repeat(60));
 
-      // 기존 매핑에 없는 새 이미지만 필터링
-      const newImageUrls = imageUrls.filter((url) => !existingMapping.has(url));
-      const existingImageUrls = imageUrls.filter((url) => existingMapping.has(url));
+    // 각 포스트의 이미지 변환 (병렬 처리)
+    const imageConversionResults = await Promise.all(
+      postImageData.map(async ({ post, imageUrls }) => {
+        if (imageUrls.length === 0) {
+          console.log(`\n📄 [${post.title}] 이미지 없음`);
+          return { post, newCount: 0, skippedCount: 0, totalCount: 0 };
+        }
 
-      if (newImageUrls.length > 0) {
-        console.log(`\n📸 [${post.title}] ${newImageUrls.length}개의 새 이미지 변환 중...\n`);
+        // 기존 매핑에 없는 새 이미지만 필터링
+        const newImageUrls = imageUrls.filter((url) => !existingMapping.has(url));
+        const existingImageUrls = imageUrls.filter((url) => existingMapping.has(url));
 
-        // 새 이미지만 변환
-        const postMapping = await convertPostImages(post.slug, newImageUrls, 85);
+        if (newImageUrls.length > 0) {
+          console.log(`\n📸 [${post.title}] ${newImageUrls.length}개의 새 이미지 변환 중...\n`);
 
-        // 전체 매핑에 추가
-        postMapping.forEach((localPath, url) => {
-          allImageMapping.set(url, localPath);
-        });
+          // 새 이미지만 변환
+          const postMapping = await convertPostImages(post.slug, newImageUrls, 85);
 
-        newImageCount += newImageUrls.length;
-        console.log(`  ✨ ${newImageUrls.length}개 새로 변환 완료`);
-      } else {
-        console.log(`\n📄 [${post.title}] 모든 이미지가 이미 변환됨 (${existingImageUrls.length}개 스킵)`);
-      }
+          // 전체 매핑에 추가
+          postMapping.forEach((localPath, url) => {
+            allImageMapping.set(url, localPath);
+          });
 
-      totalImageCount += imageUrls.length;
-      skippedImageCount += existingImageUrls.length;
-    }
+          console.log(`  ✨ [${post.title}] ${newImageUrls.length}개 새로 변환 완료`);
+          return {
+            post,
+            newCount: newImageUrls.length,
+            skippedCount: existingImageUrls.length,
+            totalCount: imageUrls.length,
+          };
+        } else {
+          console.log(`\n📄 [${post.title}] 모든 이미지가 이미 변환됨 (${existingImageUrls.length}개 스킵)`);
+          return { post, newCount: 0, skippedCount: existingImageUrls.length, totalCount: imageUrls.length };
+        }
+      })
+    );
+
+    // 통계 집계
+    imageConversionResults.forEach((result) => {
+      totalImageCount += result.totalCount;
+      newImageCount += result.newCount;
+      skippedImageCount += result.skippedCount;
+    });
 
     // 4. 매핑 정보 저장
     console.log("\n" + "━".repeat(60));

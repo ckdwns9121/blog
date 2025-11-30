@@ -13,7 +13,7 @@ interface PostContentProps {
  * 포스트 콘텐츠를 렌더링하는 메인 컴포넌트
  * Notion 블록 배열을 받아서 HTML로 변환
  */
-export default function PostContent({ blocks, className = "" }: PostContentProps) {
+      export default function PostContent({ blocks, className = "" }: PostContentProps) {
   // 헤딩 카운터 (목차 ID 생성용)
   let headingCounter = 0;
 
