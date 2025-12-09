@@ -1,0 +1,25 @@
+name: Review Bot Hello
+
+on:
+  issue_comment:
+    types: [created] # 코멘트가 새로 달렸을 때만 실행
+
+permissions:
+  pull-requests: write # PR에 댓글을 달 권한
+  issues: write        # (GitHub 내부적으로 PR 댓글도 이슈 권한이 필요할 수 있음)
+
+jobs:
+  hello-reply:
+    # 1. PR에 달린 댓글이면서
+    # 2. 내용에 '@review-bot'이 포함되어 있을 때만 실행
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '@review-bot')
+    
+    runs-on: ubuntu-latest
+    steps:
+      - name: Reply to PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 별도 설정 없이 기본 제공되는 토큰
+          PR_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          # gh CLI를 사용해 댓글 달기
+          gh issue comment $PR_NUMBER --body "안녕하세요 리뷰봇입니다. 🤖 (호출 확인 완료!)"
