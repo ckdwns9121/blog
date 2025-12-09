@@ -2,24 +2,25 @@ name: Review Bot Hello
 
 on:
   issue_comment:
-    types: [created] # 코멘트가 새로 달렸을 때만 실행
+    types: [created]
 
 permissions:
-  pull-requests: write # PR에 댓글을 달 권한
-  issues: write        # (GitHub 내부적으로 PR 댓글도 이슈 권한이 필요할 수 있음)
+  pull-requests: write
+  issues: write
+  contents: read # 코드를 읽어오기 위해 추가
 
 jobs:
   hello-reply:
-    # 1. PR에 달린 댓글이면서
-    # 2. 내용에 '@review-bot'이 포함되어 있을 때만 실행
     if: github.event.issue.pull_request && contains(github.event.comment.body, '@review-bot')
-    
     runs-on: ubuntu-latest
     steps:
+      # 👇 [중요] 이 단계가 없어서 에러가 난 겁니다. 코드를 체크아웃 받아야 .git 폴더가 생깁니다.
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
       - name: Reply to PR
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 별도 설정 없이 기본 제공되는 토큰
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_NUMBER: ${{ github.event.issue.number }}
         run: |
-          # gh CLI를 사용해 댓글 달기
-          gh issue comment $PR_NUMBER --body "안녕하세요 리뷰봇입니다. 🤖 (호출 확인 완료!)"
+          gh issue comment $PR_NUMBER --body "안녕하세요 리뷰봇입니다. 🤖 (git 에러 해결 완료!)"
