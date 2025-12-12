@@ -19,7 +19,7 @@ jobs:
       - uses: ckdwns9121/shared-actions/actions/autonomous-pr-review@v2.0.2
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ secrets.BOT_TOKEN }} # ✅ PAT(또는 App token) 권장
+          github_token: ${{ secrets.REVIEW_BOT_TOKEN }} # ✅ PAT(또는 App token) 권장
           repo: ${{ github.repository }}
           pr_number: ${{ github.event.issue.number }}
           reply_style: "요약 / 중요한 이슈 / 개선 제안 / 테스트 제안"
