@@ -1,18 +1,23 @@
-name: Review Bot Hello
+name: Autonomous PR Review
 
 on:
   issue_comment:
     types: [created]
 
 jobs:
-  call-shared:
+  review:
     if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '@review-bot') }}
+    runs-on: ubuntu-latest
     permissions:
-      issues: write
-      pull-requests: read
-    uses: ckdwns9121/shared-actions/.github/workflows/main.yml@v1.0.8
-    with:
-      mention: "@review-bot"
-      reply: "안녕하세요 리뷰봇입니다. 🤖 (호출 확인 완료!)"
-    secrets:
-      bot_token: ${{ secrets.REVIEW_BOT_TOKEN }}
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run agent
+        uses: ckdwns9121/shared-actions/actions/autonomous-pr-review@v2.0.0
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.REVIEW_BOT_TOKEN }} # (너가 만든 PAT)
+          repo: ${{ github.repository }}
+          pr_number: ${{ github.event.issue.number }}
