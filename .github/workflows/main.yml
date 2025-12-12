@@ -4,13 +4,15 @@ on:
   issue_comment:
     types: [created]
 
-permissions:
-  issues: write
-  pull-requests: read
-
 jobs:
   call-shared:
-    uses: ckdwns9121/shared-actions/.github/workflows/main.yml@v1.0.6
+    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '@review-bot') }}
+    permissions:
+      issues: write
+      pull-requests: read
+    uses: ckdwns9121/shared-actions/.github/workflows/main.yml@v1.0.5
     with:
       mention: "@review-bot"
       reply: "안녕하세요 리뷰봇입니다. 🤖 (호출 확인 완료!)"
+    secrets:
+      bot_token: ${{ github.token }}
