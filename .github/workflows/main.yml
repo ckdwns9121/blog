@@ -10,9 +10,9 @@ jobs:
     permissions:
       issues: write
       pull-requests: read
-    uses: ckdwns9121/shared-actions/.github/workflows/main.yml@v1.0.7
+    uses: ckdwns9121/shared-actions/.github/workflows/main.yml@v1.0.8
     with:
       mention: "@review-bot"
       reply: "안녕하세요 리뷰봇입니다. 🤖 (호출 확인 완료!)"
     secrets:
-      bot_token: ${{ github.token }}
+      bot_token: ${{ secrets.REVIEW_BOT_TOKEN }}
