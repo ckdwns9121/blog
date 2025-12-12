@@ -1,23 +1,25 @@
-name: Autonomous PR Review
+name: PR Review Agent
 
 on:
   issue_comment:
     types: [created]
 
+permissions:
+  issues: write
+  pull-requests: read
+  contents: read
+
 jobs:
   review:
-    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '@review-bot') }}
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '@review-bot')
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run agent
-        uses: ckdwns9121/shared-actions/actions/autonomous-pr-review@v2.0.1
+      - uses: ckdwns9121/shared-actions/actions/autonomous-pr-review@v2.0.2
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ secrets.REVIEW_BOT_TOKEN }}
+          github_token: ${{ secrets.BOT_TOKEN }} # ✅ PAT(또는 App token) 권장
           repo: ${{ github.repository }}
           pr_number: ${{ github.event.issue.number }}
+          reply_style: "요약 / 중요한 이슈 / 개선 제안 / 테스트 제안"
