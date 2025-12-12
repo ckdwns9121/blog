@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   call-shared:
-    uses: ckdwns9121/shared-actions/.github/workflows/main.yml@v1.0.3
+    uses: ckdwns9121/shared-actions/.github/workflows/main.yml@v1.0.6
     with:
       mention: "@review-bot"
       reply: "안녕하세요 리뷰봇입니다. 🤖 (호출 확인 완료!)"
