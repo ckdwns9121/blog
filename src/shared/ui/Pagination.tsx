@@ -4,6 +4,8 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
+const getRange = (start: number, end: number) => Array.from({ length: end - start + 1 }, (_, i) => start + i);
+
 export function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
   const getPageNumbers = () => {
     const maxVisiblePages = 5;
@@ -18,7 +20,6 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
     }
 
     // 복잡한 경우: 페이지 범위 계산
-    const getRange = (start: number, end: number) => Array.from({ length: end - start + 1 }, (_, i) => start + i);
 
     const startPage = Math.max(2, currentPage - 1);
     const endPage = Math.min(totalPages - 1, currentPage + 1);
