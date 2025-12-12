@@ -15,9 +15,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Run agent
-        uses: ckdwns9121/shared-actions/actions/autonomous-pr-review@v2.0.0
+        uses: ckdwns9121/shared-actions/actions/autonomous-pr-review@v2.0.1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ secrets.REVIEW_BOT_TOKEN }} # (너가 만든 PAT)
+          github_token: ${{ secrets.REVIEW_BOT_TOKEN }}
           repo: ${{ github.repository }}
           pr_number: ${{ github.event.issue.number }}
