@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ckdwns9121/shared-actions/actions/autonomous-pr-review@v2.0.5
+      - uses: ckdwns9121/shared-actions/actions/autonomous-pr-review@v2.0.6
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.REVIEW_BOT_TOKEN }}
