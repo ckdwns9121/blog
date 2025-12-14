@@ -16,12 +16,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ckdwns9121/shared-actions/actions/autonomous-pr-review@v2.0.7
+      - uses: ckdwns9121/shared-actions/actions/autonomous-pr-review@v2.0.9
         with:
+          mcp_token: ${{ secrets.MCP_TOKEN }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.REVIEW_BOT_TOKEN }}
           repo: ${{ github.repository }}
           pr_number: ${{ github.event.issue.number }}
-          # ✅ 너 계정에서 실제로 쓸 수 있는 모델 ID로 교체(중요)
           model: "claude-sonnet-4-20250514"
+
           reply_style: "요약 / 중요한 이슈 / 개선 제안 / 테스트 제안"
