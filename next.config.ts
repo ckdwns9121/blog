@@ -3,7 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // 이미지 최적화
   images: {
-    unoptimized: true,
+    unoptimized: false, // 이미지 최적화 활성화
+    formats: ["image/webp", "image/avif"], // 최신 포맷 지원
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840], // 반응형 이미지 사이즈
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384], // 아바타 등 작은 이미지용 사이즈
     // Notion 이미지 도메인 허용
     remotePatterns: [
       {

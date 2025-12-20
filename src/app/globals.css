@@ -34,3 +34,27 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Responsive image sizing */
+.prose img {
+  max-width: 100%;
+  height: auto;
+}
+
+@media (min-width: 768px) {
+  .prose img {
+    max-width: 90%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .prose img {
+    max-width: 80%;
+  }
+}
+
+@media (min-width: 1280px) {
+  .prose img {
+    max-width: 70%;
+  }
+}
