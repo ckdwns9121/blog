@@ -26,8 +26,8 @@ export function ImageBlock({ url, caption, enableModal = false, onImageClick }: 
         alt={caption || ""}
         width={0}
         height={0}
-        sizes="100vw"
-        className={`w-full h-auto rounded-lg ${enableModal && onImageClick ? "cursor-pointer hover:opacity-90 transition-opacity" : ""}`}
+        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 80vw, 60vw"
+        className={`w-full max-w-3xl h-auto rounded-lg mx-auto block ${enableModal && onImageClick ? "cursor-pointer hover:opacity-90 transition-opacity" : ""}`}
         onClick={onImageClick}
       />
       {caption && (
