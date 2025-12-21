@@ -58,3 +58,16 @@ body {
     max-width: 70%;
   }
 }
+
+/* Search result highlight styles */
+mark {
+  background-color: #fef3c7;
+  color: #78350f;
+  padding: 0 0.125rem;
+  border-radius: 0.125rem;
+}
+
+.dark mark {
+  background-color: #451a03;
+  color: #fef3c7;
+}

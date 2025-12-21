@@ -1,9 +1,14 @@
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/shared/providers/ThemeProvider";
-import { Header } from "@/shared/ui/Header";
+import { HeaderWithSearch } from "@/shared/ui/HeaderWithSearch";
 import { Footer } from "@/shared/ui/Footer";
+import type { Metadata } from "next";
+import { getAllPosts } from "@/entities/post/api";
+import { BlogPost } from "@/entities/post/model";
+
+// Post API 어댑터 초기화
+import "@/app/init-post-api";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -81,11 +86,14 @@ const personSchema = {
   knowsAbout: ["프론트엔드 개발", "React", "Next.js", "TypeScript", "JavaScript", "웹 개발"],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Fetch posts for search functionality
+  const posts = await getAllPosts();
+
   return (
     <html lang="ko" suppressHydrationWarning>
       <body
@@ -93,7 +101,7 @@ export default function RootLayout({
       >
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }} />
         <Providers>
-          <Header />
+          <HeaderWithSearch posts={posts as BlogPost[]} />
           <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 w-full">{children}</main>
           <Footer />
         </Providers>
