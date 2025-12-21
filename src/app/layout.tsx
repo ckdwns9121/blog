@@ -1,8 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/shared/providers/ThemeProvider";
-import { Header } from "@/shared/ui/Header";
 import { Footer } from "@/shared/ui/Footer";
+import { ClientLayout } from "./ClientLayout";
 import type { Metadata } from "next";
 import { getAllPosts } from "@/entities/post/api";
 import { BlogPost } from "@/entities/post/model";
@@ -101,8 +101,9 @@ export default async function RootLayout({
       >
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }} />
         <Providers>
-          <Header posts={posts as BlogPost[]} />
-          <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 w-full">{children}</main>
+          <ClientLayout posts={posts as BlogPost[]}>
+            {children}
+          </ClientLayout>
           <Footer />
         </Providers>
       </body>
