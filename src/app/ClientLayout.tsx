@@ -1,15 +1,16 @@
-'use client';
+"use client";
 
-import { HeaderPlugin } from '@/shared/ui/Header/types';
-import { BlogPost } from '@/entities/post/model';
-import { Header } from '@/shared/ui/Header';
+import { useMemo } from "react";
+import { HeaderPlugin } from "@/shared/ui/Header/types";
+import { BlogPost } from "@/entities/post/model";
+import { Header } from "@/shared/ui/Header";
 import {
   createLogoPlugin,
   createNavigationPlugin,
   createSearchPlugin,
   createMobileSearchPlugin,
   createThemeTogglePlugin,
-} from '@/shared/ui/Header';
+} from "@/shared/ui/Header/index";
 
 interface ClientLayoutProps {
   children: React.ReactNode;
@@ -18,17 +19,13 @@ interface ClientLayoutProps {
 
 export function ClientLayout({ children, posts }: ClientLayoutProps) {
   // 헤더 플러그인 생성
-  const headerPlugins: HeaderPlugin[] = useMemo(() => [
-    createLogoPlugin(),
-    createNavigationPlugin(),
-    createSearchPlugin(posts),
-    createThemeTogglePlugin(),
-  ], [posts]);
+  const headerPlugins: HeaderPlugin[] = useMemo(
+    () => [createLogoPlugin(), createNavigationPlugin(), createSearchPlugin(posts), createThemeTogglePlugin()],
+    [posts]
+  );
 
   // 모바일 전용 플러그인
-  const mobileHeaderPlugins: HeaderPlugin[] = useMemo(() => [
-    createMobileSearchPlugin(posts),
-  ], [posts]);
+  const mobileHeaderPlugins: HeaderPlugin[] = useMemo(() => [createMobileSearchPlugin(posts)], [posts]);
 
   return (
     <>
