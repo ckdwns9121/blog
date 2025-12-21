@@ -18,17 +18,17 @@ interface ClientLayoutProps {
 
 export function ClientLayout({ children, posts }: ClientLayoutProps) {
   // 헤더 플러그인 생성
-  const headerPlugins: HeaderPlugin[] = [
+  const headerPlugins: HeaderPlugin[] = useMemo(() => [
     createLogoPlugin(),
     createNavigationPlugin(),
     createSearchPlugin(posts),
     createThemeTogglePlugin(),
-  ];
+  ], [posts]);
 
   // 모바일 전용 플러그인
-  const mobileHeaderPlugins: HeaderPlugin[] = [
+  const mobileHeaderPlugins: HeaderPlugin[] = useMemo(() => [
     createMobileSearchPlugin(posts),
-  ];
+  ], [posts]);
 
   return (
     <>
