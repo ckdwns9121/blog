@@ -16,9 +16,9 @@ export function Header({ plugins, mobilePlugins = [], className }: HeaderProps) 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // 플러그인을 포지션별로 분리
-  const leftPlugins = plugins.filter(p => p.position === 'left');
-  const centerPlugins = plugins.filter(p => p.position === 'center');
-  const rightPlugins = plugins.filter(p => p.position === 'right');
+  const leftPlugins = useMemo(() => plugins.filter(p => p.position === 'left'), [plugins]);
+  const centerPlugins = useMemo(() => plugins.filter(p => p.position === 'center'), [plugins]);
+  const rightPlugins = useMemo(() => plugins.filter(p => p.position === 'right'), [plugins]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
