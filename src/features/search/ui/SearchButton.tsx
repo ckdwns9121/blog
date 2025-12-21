@@ -8,9 +8,10 @@ import { BlogPost } from '@/entities/post/model';
 interface SearchButtonProps {
   posts: BlogPost[];
   className?: string;
+  children?: React.ReactNode;
 }
 
-export function SearchButton({ posts, className }: SearchButtonProps) {
+export function SearchButton({ posts, className, children }: SearchButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Keyboard shortcut to open search modal
@@ -23,19 +24,21 @@ export function SearchButton({ posts, className }: SearchButtonProps) {
         className={className}
         aria-label="검색"
       >
-        <svg
-          className="h-5 w-5 text-gray-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
+        {children || (
+          <svg
+            className="h-5 w-5 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        )}
       </button>
 
       <SearchModal

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { BlogPost } from '@/entities/post/model';
 import { BlogSearch, SearchResult } from '@/shared/utils/search';
 import { cn } from '@/shared/lib/cn';
@@ -213,9 +214,11 @@ function SearchResultItem({
       <div className="flex items-start gap-3">
         {post.coverImage && (
           <div className="flex-shrink-0 w-12 h-12 rounded-md overflow-hidden">
-            <img
+            <Image
               src={post.coverImage}
               alt={post.title}
+              width={48}
+              height={48}
               className="w-full h-full object-cover"
             />
           </div>

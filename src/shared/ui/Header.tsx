@@ -1,12 +1,17 @@
-"use client";
+'use client';
 
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { SunIcon, MoonIcon, Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
-import { SearchInput } from "@/features/search/ui/SearchInput";
+import { BlogPost } from "@/entities/post/model";
+import { SearchButton } from "@/features/search/ui/SearchButton";
 
-export function Header() {
+interface HeaderProps {
+  posts: BlogPost[];
+}
+
+export function Header({ posts }: HeaderProps) {
   const { theme, setTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -60,14 +65,19 @@ export function Header() {
             </Link>
           </nav>
 
-          {/* 검색창 및 다크모드 토글 */}
+          {/* 검색 및 다크모드 토글 */}
           <div className="flex items-center gap-3">
-            {/* 데스크톱 검색창 */}
+            {/* 데스크톱 검색 버튼 */}
             <div className="hidden lg:block">
-              <SearchInput
-                placeholder="검색..."
-                className="w-64"
-              />
+              <div className="relative group">
+                <SearchButton
+                  posts={posts}
+                  className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                />
+                <div className="absolute right-0 top-full mt-1 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                  검색 (Ctrl+K)
+                </div>
+              </div>
             </div>
 
             {/* 다크모드 토글 */}
@@ -84,12 +94,27 @@ export function Header() {
         {/* 모바일 메뉴 */}
         {isMenuOpen && (
           <div className="md:hidden border-t border-gray-200 dark:border-dark-border py-4">
-            {/* 모바일 검색창 */}
+            {/* 모바일 검색 버튼 */}
             <div className="mb-4">
-              <SearchInput
-                placeholder="검색..."
-                onSearch={() => setIsMenuOpen(false)}
-              />
+              <SearchButton
+                posts={posts}
+                className="w-full flex items-center justify-center gap-2 p-3 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <span>검색</span>
+              </SearchButton>
             </div>
 
             <nav className="flex flex-col space-y-2">
@@ -98,7 +123,7 @@ export function Header() {
                 onClick={() => setIsMenuOpen(false)}
                 className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 text-sm font-medium transition-colors"
               >
-                검색
+                검색 페이지
               </Link>
               <Link
                 href="/"
