@@ -43,10 +43,8 @@ export function Header({ plugins, mobilePlugins = [], className }: HeaderProps) 
             {/* 좌측 플러그인들 */}
             <HeaderSection plugins={leftPlugins} position="left" className="hidden md:flex" />
           </div>
-
           {/* 중앙 섹션 */}
           <HeaderSection plugins={centerPlugins} position="center" />
-
           {/* 우측 섹션 */}
           <HeaderSection plugins={rightPlugins} position="right" />
         </div>
