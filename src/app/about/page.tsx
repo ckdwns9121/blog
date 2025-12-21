@@ -59,7 +59,7 @@ export default function About() {
             {/* 왼쪽: 프로필 이미지 */}
             <div className="flex-shrink-0 flex justify-center md:justify-start">
               <div className="relative w-40 h-40 md:w-48 md:h-48 overflow-hidden">
-                <Image src="/profile.jpeg" alt="박창준 프로필" fill className="object-cover" priority />
+                <Image src="/logo.png" alt="박창준 프로필" fill className="object-cover" priority />
               </div>
             </div>
 
