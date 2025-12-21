@@ -3,7 +3,7 @@ import { cn } from '@/shared/lib/cn';
 
 export function HeaderSection({ plugins, className }: HeaderSectionProps) {
   // priority에 따라 정렬 (높은 순일수록 먼저 표시)
-  const sortedPlugins = [...plugins].sort((a, b) => (b.priority || 0) - (a.priority || 0));
+  const sortedPlugins = useMemo(() => [...plugins].sort((a, b) => (b.priority || 0) - (a.priority || 0)), [plugins]);
 
   if (sortedPlugins.length === 0) return null;
 
