@@ -9,7 +9,7 @@ import {
   createSearchPlugin,
   createMobileSearchPlugin,
   createThemeTogglePlugin,
-} from './plugins';
+} from '@/shared/ui/Header';
 
 interface ClientLayoutProps {
   children: React.ReactNode;
