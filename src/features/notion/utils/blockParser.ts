@@ -101,6 +101,41 @@ export function isSimpleText(content: NotionBlock["content"]): content is string
 }
 
 /**
+ * Table 블록 데이터 추출
+ */
+export function extractTableData(content: NotionBlock["content"]): {
+  width?: number;
+  hasColumnHeader: boolean;
+  hasRowHeader: boolean;
+  rows?: Array<{
+    type: "table_row";
+    cells: Array<Array<{ plain_text: string; href?: string | null; annotations?: Record<string, unknown> }>>;
+  }>;
+} {
+  if (typeof content === "object" && content !== null) {
+    const block = content as Record<string, unknown>;
+
+    if ("type" in block && block.type === "table") {
+      return {
+        width: block.width as number | undefined,
+        hasColumnHeader: (block.has_column_header as boolean) ?? false,
+        hasRowHeader: (block.has_row_header as boolean) ?? false,
+        rows: block.rows as
+          | Array<{
+              type: "table_row";
+              cells: Array<Array<{ plain_text: string; href?: string | null; annotations?: Record<string, unknown> }>>;
+            }>
+          | undefined,
+      };
+    }
+  }
+  return {
+    hasColumnHeader: false,
+    hasRowHeader: false,
+  };
+}
+
+/**
  * Content가 객체 타입인지 확인
  */
 export function isContentObject(content: NotionBlock["content"]): content is TextContent {

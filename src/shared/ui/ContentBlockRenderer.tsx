@@ -2,6 +2,7 @@
 
 import { createElement } from "react";
 import type { ContentBlockWithChildren } from "@/shared/types/content";
+import type { TableCell } from "@/shared/types/content";
 import { RichTextRenderer } from "@/features/notion/ui/RichTextRenderer";
 import { CodeBlock } from "@/features/notion/ui/blocks/CodeBlock";
 import { ImageBlock } from "@/features/notion/ui/blocks/ImageBlock";
@@ -94,6 +95,49 @@ export function ContentBlockRenderer({ block, headingId }: ContentBlockRendererP
           </a>
         </div>
       );
+
+    case "table": {
+      const rows = block.rows || [];
+      const hasColumnHeader = block.hasColumnHeader || false;
+      if (rows.length === 0) {
+        return null;
+      }
+      return (
+        <div className="my-5 overflow-x-auto">
+          <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600">
+            <tbody>
+              {rows.map((row, rowIndex) => {
+                const isHeaderRow = hasColumnHeader && rowIndex === 0;
+                return (
+                  <tr
+                    key={rowIndex}
+                    className={isHeaderRow ? "bg-gray-100 dark:bg-gray-800" : "border-t border-gray-300 dark:border-gray-600"}
+                  >
+                    {row.cells.map((cell: TableCell, cellIndex: number) => {
+                      const CellTag = isHeaderRow ? "th" : "td";
+                      return (
+                        <CellTag
+                          key={cellIndex}
+                          className={`px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 ${
+                            isHeaderRow ? "font-semibold" : ""
+                          }`}
+                        >
+                          {cell.richText && cell.richText.length > 0 ? (
+                            <RichTextRenderer items={cell.richText} />
+                          ) : (
+                            <span>{cell.fallbackText || ""}</span>
+                          )}
+                        </CellTag>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
 
     default:
       // 타입 안전성을 위한 exhaustive check

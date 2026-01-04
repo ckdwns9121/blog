@@ -103,6 +103,33 @@ export interface BookmarkBlock {
 }
 
 /**
+ * 테이블 셀 타입
+ */
+export interface TableCell {
+  richText: RichTextItem[];
+  fallbackText: string;
+}
+
+/**
+ * 테이블 행 타입
+ */
+export interface TableRow {
+  type: "table_row";
+  cells: TableCell[];
+  isHeader?: boolean;
+}
+
+/**
+ * 테이블 블록
+ */
+export interface TableBlock {
+  type: "table";
+  rows: TableRow[];
+  hasColumnHeader: boolean;
+  hasRowHeader: boolean;
+}
+
+/**
  * 공통 콘텐츠 블록 타입
  * 다양한 CMS에서 변환 가능한 표준 블록 구조
  */
@@ -115,7 +142,8 @@ export type ContentBlock =
   | QuoteBlock
   | ListItemBlock
   | DividerBlock
-  | BookmarkBlock;
+  | BookmarkBlock
+  | TableBlock;
 
 /**
  * 중첩 가능한 콘텐츠 블록 (children 포함)
@@ -133,4 +161,8 @@ export interface ContentBlockWithChildren {
   caption?: string;
   listType?: "bulleted" | "numbered";
   children?: ContentBlockWithChildren[];
+  // Table-related properties
+  rows?: TableRow[];
+  hasColumnHeader?: boolean;
+  hasRowHeader?: boolean;
 }

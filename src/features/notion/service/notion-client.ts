@@ -444,6 +444,30 @@ function extractBlockContent(block: NotionBlockType): BlockContent {
         caption: extractText(block.bookmark.caption || []),
       };
     }
+    case "table": {
+      return {
+        type: "table" as const,
+        width: block.table.table_width,
+        has_column_header: block.table.has_column_header,
+        has_row_header: block.table.has_row_header,
+      };
+    }
+    case "table_row": {
+      return {
+        type: "table_row" as const,
+        cells: block.table_row.cells.map((cell) =>
+          cell.map((rt) => ({
+            rich_text: [
+              {
+                plain_text: rt.plain_text,
+                href: rt.href,
+                annotations: rt.annotations,
+              },
+            ],
+          })),
+        ),
+      };
+    }
     default:
       // TypeScript exhaustiveness check - 모든 블록 타입이 처리됨
       const _exhaustiveCheck: never = block;

@@ -3,10 +3,21 @@ import type { NotionBlock } from "../types";
 import { parseNotionBlock } from "../utils/blockMapper";
 import { RichTextRenderer } from "./RichTextRenderer";
 import { CodeBlock, ImageWithModal, VideoBlock } from "./blocks";
+import type { TableCell } from "@/shared/types/content";
 
 interface NotionBlockRendererProps {
   block: NotionBlock;
   headingId?: string;
+}
+
+/**
+ * 테이블 셀 렌더링 헬퍼 함수
+ */
+function renderTableCell(cell: TableCell): React.ReactNode {
+  if (cell.richText.length > 0) {
+    return <RichTextRenderer items={cell.richText} />;
+  }
+  return cell.fallbackText;
 }
 
 /**
@@ -131,6 +142,44 @@ export function NotionBlockRenderer({ block, headingId }: NotionBlockRendererPro
           </div>
         </a>
       );
+
+    case "table": {
+      const { rows, hasColumnHeader } = parsed;
+      if (!rows || rows.length === 0) {
+        return null;
+      }
+      return (
+        <div className="my-5 overflow-x-auto">
+          <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600">
+            <tbody>
+              {rows.map((row, rowIndex) => {
+                const isHeaderRow = hasColumnHeader && rowIndex === 0;
+                return (
+                  <tr
+                    key={rowIndex}
+                    className={isHeaderRow ? "bg-gray-100 dark:bg-gray-800" : "border-t border-gray-300 dark:border-gray-600"}
+                  >
+                    {row.cells.map((cell, cellIndex) => {
+                      const CellTag = isHeaderRow ? "th" : "td";
+                      return (
+                        <CellTag
+                          key={cellIndex}
+                          className={`px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 ${
+                            isHeaderRow ? "font-semibold" : ""
+                          }`}
+                        >
+                          {renderTableCell(cell)}
+                        </CellTag>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
 
     case "default":
       return <div className="mb-4 text-gray-700 dark:text-gray-300">{renderContent()}</div>;

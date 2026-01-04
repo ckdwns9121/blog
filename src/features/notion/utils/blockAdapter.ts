@@ -1,6 +1,6 @@
 import type { NotionBlock } from "../types";
-import type { ContentBlockWithChildren, RichTextItem } from "@/shared/types/content";
-import { extractText, extractLanguage, extractImageData, extractRichTextArray } from "./blockParser";
+import type { ContentBlockWithChildren, RichTextItem, TableRow } from "@/shared/types/content";
+import { extractText, extractLanguage, extractImageData, extractRichTextArray, extractTableData } from "./blockParser";
 
 /**
  * NotionBlock을 공통 ContentBlock으로 변환하는 어댑터
@@ -131,6 +131,54 @@ export function adaptNotionBlockToContentBlock(block: NotionBlock): ContentBlock
       break;
     }
 
+    case "table": {
+      const tableData = extractTableData(content);
+      // Process children blocks to extract table rows
+      const rows: TableRow[] = [];
+      if (children) {
+        for (const child of children) {
+          if (child.type === "table_row") {
+            // child.content is now TableRowContent with cells property
+            const rowContent = child.content as { type: string; cells: Array<Array<{ rich_text: RichTextItem[] }>> };
+            if (rowContent.cells) {
+              const cells = rowContent.cells.map((cell) => {
+                // cell is an array of objects with rich_text property
+                const richText = cell.flatMap((c) => c.rich_text || []);
+                return {
+                  richText,
+                  fallbackText: richText.map((item) => item.plain_text || "").join(""),
+                };
+              });
+              rows.push({
+                type: "table_row",
+                cells,
+              });
+            }
+          }
+        }
+      }
+      contentBlock = {
+        id,
+        type: "table",
+        rows,
+        hasColumnHeader: tableData.hasColumnHeader,
+        hasRowHeader: tableData.hasRowHeader,
+      };
+      break;
+    }
+
+    case "table_row": {
+      // table_row is handled within the table case above
+      // This is a fallback for orphaned table rows
+      contentBlock = {
+        id,
+        type: "text",
+        richText: adaptedRichText,
+        fallbackText: fallbackText || `[Unknown block type: ${type}]`,
+      };
+      break;
+    }
+
     default:
       // 알 수 없는 타입은 텍스트 블록으로 처리
       contentBlock = {
@@ -141,8 +189,8 @@ export function adaptNotionBlockToContentBlock(block: NotionBlock): ContentBlock
       };
   }
 
-  // 자식 블록이 있으면 재귀적으로 변환
-  if (children && children.length > 0) {
+  // 자식 블록이 있으면 재귀적으로 변환 (단, table은 제외 - 이미 rows로 처리함)
+  if (children && children.length > 0 && type !== "table" && type !== "table_row") {
     contentBlock.children = children.map(adaptNotionBlockToContentBlock);
   }
 
