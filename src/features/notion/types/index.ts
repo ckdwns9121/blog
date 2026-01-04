@@ -210,6 +210,22 @@ export interface NotionBookmarkBlock extends NotionBlockBase {
   };
 }
 
+export interface NotionTableBlock extends NotionBlockBase {
+  type: "table";
+  table: {
+    table_width: number;
+    has_column_header: boolean;
+    has_row_header: boolean;
+  };
+}
+
+export interface NotionTableRowBlock extends NotionBlockBase {
+  type: "table_row";
+  table_row: {
+    cells: NotionRichText[][];
+  };
+}
+
 export type NotionBlockType =
   | NotionParagraphBlock
   | NotionHeading1Block
@@ -222,7 +238,9 @@ export type NotionBlockType =
   | NotionImageBlock
   | NotionVideoBlock
   | NotionDividerBlock
-  | NotionBookmarkBlock;
+  | NotionBookmarkBlock
+  | NotionTableBlock
+  | NotionTableRowBlock;
 
 // Notion 블록의 content 타입들
 export interface RichTextItem {
@@ -265,7 +283,30 @@ export interface BookmarkContent {
   caption?: string;
 }
 
-export type BlockContent = string | TextContent | CodeContent | ImageContent | BookmarkContent;
+export interface TableCellContent {
+  rich_text: RichTextItem[];
+}
+
+export interface TableContent {
+  type: "table";
+  width?: number;
+  has_column_header: boolean;
+  has_row_header: boolean;
+}
+
+export interface TableRowContent {
+  type: "table_row";
+  cells: TableCellContent[][];
+}
+
+export type BlockContent =
+  | string
+  | TextContent
+  | CodeContent
+  | ImageContent
+  | BookmarkContent
+  | TableContent
+  | TableRowContent;
 
 export interface NotionBlock {
   id: string;
