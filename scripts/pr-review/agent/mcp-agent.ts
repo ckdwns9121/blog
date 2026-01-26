@@ -145,10 +145,22 @@ ${this.reviewRules}
 
 - **즉시 실행**: "준비됨" 같은 불필요한 말 대신 바로 도구 호출 시작
 - **도구 사용**: PR 정보 조회, 파일 목록 조회, 코드 검색에만 도구 사용
-- **리뷰 반환**: create_pull_request_review 같은 리뷰 생성 도구는 호출하지 말고 JSON으로만 반환
+- **리뷰 반환**: create_pull_request_review, create_review, submitReview 등 모든 리뷰 생성 도구는 절대 호출하지 말고 JSON으로만 반환
+- **승인 금지**: PR을 APPROVE하거나 REQUEST_CHANGES하는 도구는 절대 호출하지 말기
 - **라인 코멘트**: comments 배열의 라인 번호는 diff에서 +로 시작하는 라인의 번호 사용
 - **한국어 응답**: 모든 리뷰는 한국어로 작성
 - **규칙 기반 리뷰**: 위 프로젝트 리뷰 규칙을 우선적으로 적용
+
+## 절대 호출하지 말아야 할 도구
+
+다음 도구들은 절대 호출하지 말고 JSON 응답만 반환하세요:
+- create_pull_request_review (승인/거절/코멘트 생성)
+- create_review
+- submitReview
+- createReviewComment
+- pull_requests.create_review
+
+대신 JSON 형식으로 리뷰를 반환하면 시스템이 처리합니다.
 
 ## diff 기반 정확한 리뷰를 위한 필수 규칙
 
@@ -267,29 +279,76 @@ Head SHA: ${this.context.headSha}
       const functionResponses: any[] = [];
 
       // 차단할 도구 목록 (GitHub Actions에서 PR 승인/코멘트 작성 불가)
+      // GitHub MCP 서버는 'pull_requests' 또는 'Pull_Request' 같은 네임스페이스를 사용할 수 있음
       const BLOCKED_TOOLS = [
         'create_pull_request_review',
         'create_review_comment',
-        'pull_requests.create_review_comment',
-        'pull_requests.create_review',
+        'createReview',
+        'createComment',
+        'submitReview',
+        'review',
       ];
 
       for (const call of toolCalls) {
         const toolName = call.functionCall.name;
+        const toolNameLower = toolName.toLowerCase();
 
-        // 차단된 도구인 경우 건너뛰기
-        if (BLOCKED_TOOLS.some(blocked => toolName.includes(blocked))) {
-          console.log(`[Agent] ⚠️ Tool '${toolName}' is blocked - returning JSON instead`);
+        console.log(`[Agent] 🔍 Checking tool: "${toolName}"`);
+
+        // 차단된 도구인 경우 건너뛰기 (대소문자 무시)
+        if (BLOCKED_TOOLS.some(blocked => toolNameLower.includes(blocked.toLowerCase()))) {
+          console.log(`[Agent] ⚠️ Tool '${toolName}' is BLOCKED - returning mock success`);
           functionResponses.push({
             functionResponse: {
               name: toolName,
               response: {
-                content: 'This tool is blocked. Please return the review as JSON format instead.',
+                content: 'Review completed successfully. Please return your final review as JSON format.',
                 blocked: true,
+                _mock: true,
               },
             },
           });
           continue;
+        }
+
+        // 추가 안전장치: toolName에 'review'가 포함되어 있으면 인자를 확인
+        if (toolNameLower.includes('review')) {
+          const args = call.functionCall.args || {};
+          console.log(`[Agent] ⚠️ Review tool detected, args:`, JSON.stringify(args));
+
+          // event 파라미터가 있고 APPROVE 또는 REQUEST_CHANGES이면 차단
+          if (args.event && ['APPROVE', 'REQUEST_CHANGES', 'approve', 'request_changes'].includes(args.event)) {
+            console.log(`[Agent] ⚠️ Blocking ${args.event} event - changing to COMMENT`);
+            // COMMENT로 변경하여 재시도
+            const modifiedArgs = { ...args, event: 'COMMENT' };
+            try {
+              const mcpResult = await this.mcpClient.callTool({
+                name: toolName,
+                arguments: modifiedArgs,
+              });
+              functionResponses.push({
+                functionResponse: {
+                  name: toolName,
+                  response: { content: mcpResult.content },
+                },
+              });
+              continue;
+            } catch (error) {
+              console.error(`[Agent] ❌ Modified tool call still failed:`, error);
+              // 실패하면 가짜 성공 반환
+              functionResponses.push({
+                functionResponse: {
+                  name: toolName,
+                  response: {
+                    content: 'Review completed. Please return your final review as JSON format.',
+                    blocked: true,
+                    _mock: true,
+                  },
+                },
+              });
+              continue;
+            }
+          }
         }
 
         try {
