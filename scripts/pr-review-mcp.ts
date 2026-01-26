@@ -2,7 +2,7 @@ import { GoogleGenAI, mcpToTool } from '@google/genai';
 import { Client } from '@modelcontextprotocol/sdk/client';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
-const PR_NUMBER = process.env.PR_NUMBER!;
+const PR_NUMBER = Number(process.env.PR_NUMBER!);
 const REPO_OWNER = process.env.REPO_OWNER!;
 const REPO_NAME = process.env.REPO_NAME!;
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN!;
@@ -13,15 +13,25 @@ async function main() {
 
   // MCP 연결
   const mcp = new Client({ name: 'pr-review-bot', version: '1.0.0' });
-  await mcp.connect(new StdioClientTransport({
-    command: 'npx',
-    args: ['-y', '@modelcontextprotocol/server-github'],
-    env: { ...process.env, GITHUB_PERSONAL_ACCESS_TOKEN: GITHUB_TOKEN },
-  }));
-  console.log('[MCP] Connected');
+  try {
+    await mcp.connect(new StdioClientTransport({
+      command: 'npx',
+      args: ['-y', '@modelcontextprotocol/server-github'],
+      env: { ...process.env, GITHUB_PERSONAL_ACCESS_TOKEN: GITHUB_TOKEN },
+    }));
+    console.log('[MCP] ✅ Connected');
+  } catch(e) {
+    console.error('[MCP] ❌ Failed:', e);
+    process.exit(1);
+  }
 
-  // GenAI + MCP 도구
+  // GenAI 멀티턴 채팅
   const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-2.5-flash-exp',
+    tools: [mcpToTool(mcp)]
+  });
+
   const systemInstruction = `
 너는 PR 리뷰 전문가다.
 
@@ -47,17 +57,10 @@ PR #${PR_NUMBER}를 리뷰해라.
 }
 `;
 
-  // AI가 MCP 스스로 호출
-  const result = await genAI.models.generateContent({
-    model: 'gemini-2.5-flash',
-    systemInstruction,
-    tools: [mcpToTool(mcp)],
-    contents: [
-      { role: 'user', parts: [{ text: `Review PR #${PR_NUMBER} in ${REPO_OWNER}/${REPO_NAME}` }] },
-    ],
-  });
+  const chat = model.startChat({ systemInstruction });
+  const result = await chat.sendMessage(`Review PR #${PR_NUMBER} in ${REPO_OWNER}/${REPO_NAME}`);
 
-  console.log('[Bot] Review completed');
+  console.log('[Bot] ✅ Review completed');
   await mcp.close();
 }
 
