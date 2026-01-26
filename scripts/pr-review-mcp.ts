@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, mcpToTool, FunctionCallingConfigMode } from '@google/genai';  
+import { GoogleGenAI, mcpToTool, FunctionCallingConfigMode, ThinkingLevel } from '@google/genai';  
 import { Client } from '@modelcontextprotocol/sdk/client';  
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';  
 import { readFile } from 'fs/promises';  
@@ -38,7 +38,6 @@ async function main() {
     await mcp.connect(serverParams);  
     console.log('[MCP] ✅ Connected');  
     const tools = await mcp.listTools();  
-    console.log(tools);
   } catch(e) {  
     console.error('[MCP] ❌ Connection failed:', e);  
     process.exit(1);  
@@ -154,7 +153,11 @@ MCP 도구를 정확히 2회만 사용: 1)get_pull_request_files 2)create_pull_r
         tools: [mcpToTool(mcp)],  
         automaticFunctionCalling: {  
           maximumRemoteCalls: 2  
-        },  
+        }, 
+        thinkingConfig: {  
+          includeThoughts: true,        // 생각 과정 보기  
+          thinkingLevel: ThinkingLevel.LOW, // 빠른 리뷰를 위해 LOW 설정  
+        }, 
         toolConfig: {  
           functionCallingConfig: {  
             mode: FunctionCallingConfigMode.ANY  
