@@ -19,6 +19,7 @@ export interface FileDiff {
 export interface ReviewComment {
   path: string;
   line: number;
+  code?: string;  // 변경된 코드 일부 (근거 명시용)
   comment: string;
   severity?: 'info' | 'warning' | 'error';
 }

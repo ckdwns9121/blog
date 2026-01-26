@@ -41,6 +41,9 @@ function formatReviewMarkdown(summary: ReviewSummary, thoughts: string[]): strin
     summary.comments.forEach((c) => {
       const icon = c.severity === 'error' ? '🚫' : c.severity === 'warning' ? '⚠️' : '💬';
       sections.push(`${icon} **\`${c.path}:${c.line}\`**`);
+      if (c.code) {
+        sections.push(`   \`\`\`\n   ${c.code}\n   \`\`\``);
+      }
       sections.push(`   ${c.comment}\n`);
     });
   }
