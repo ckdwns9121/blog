@@ -76,9 +76,9 @@ MCP 도구를 정확히 2회만 사용: 1)get_pull_request_files 2)create_pull_r
     ],
     config: {
       systemInstruction: systemInstruction,
-      thinkingConfig: {
-        thinkingLevel: ThinkingLevel.LOW,
-      },  
+      // thinkingConfig: {
+      //   thinkingLevel: ThinkingLevel.LOW,
+      // },  
       tools: [mcpToTool(mcp)],
       toolConfig: {
         functionCallingConfig: {
