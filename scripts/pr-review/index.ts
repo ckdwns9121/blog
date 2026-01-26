@@ -188,6 +188,10 @@ async function main() {
     console.log('\n=== Review Output ===\n');
     console.log(markdown);
 
+    // PR에 코멘트 게시
+    console.log('\n=== Posting Review to PR ===');
+    await agent.postReviewComment(markdown);
+
   } finally {
     // MCP 연결 종료
     await agent.close();

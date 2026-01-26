@@ -240,6 +240,27 @@ PR #${this.context.prNumber} in ${this.context.owner}/${this.context.repo}
   }
 
   /**
+   * PR에 리뷰 코멘트 게시
+   */
+  async postReviewComment(markdown: string): Promise<void> {
+    try {
+      await this.mcpClient.callTool({
+        name: 'add_issue_comment',
+        arguments: {
+          owner: this.context.owner,
+          repo: this.context.repo,
+          issue_number: this.context.prNumber,
+          body: markdown,
+        },
+      });
+      console.log('[MCP] ✅ Review comment posted to PR');
+    } catch (error) {
+      console.error('[MCP] ❌ Failed to post review comment:', error);
+      throw error;
+    }
+  }
+
+  /**
    * 연결 종료
    */
   async close(): Promise<void> {
