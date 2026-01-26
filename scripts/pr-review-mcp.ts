@@ -21,7 +21,7 @@ async function main() {
     }));
     console.log('[MCP] ✅ Connected');
     const tools = await mcp.listTools();
-    console.log('[MCP] Tools:', tools.length);
+    console.log('[MCP] Tools:', tools);
   } catch(e) {
     console.error('[MCP] ❌ Failed:', e);
     process.exit(1);
