@@ -1,4 +1,4 @@
-import { GoogleGenAI, mcpToTool, FunctionCallingConfigMode } from '@google/genai';  
+import { GoogleGenAI, mcpToTool, FunctionCallingConfigMode, ThinkingLevel } from '@google/genai';  
 import { Client } from '@modelcontextprotocol/sdk/client';  
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';  
 import { readFile } from 'fs/promises';  
@@ -153,6 +153,10 @@ MCP 도구를 정확히 2회만 사용: 1)get_pull_request_files 2)create_pull_r
         automaticFunctionCalling: {  
           maximumRemoteCalls: 2  
         },  
+        thinkingConfig: {  
+          includeThoughts: true,        // 생각 과정 포함  
+          thinkingLevel: ThinkingLevel.MEDIUM // 균형 잡힌 추론  
+        },  
         toolConfig: {  
           functionCallingConfig: {  
             mode: FunctionCallingConfigMode.ANY  
@@ -160,6 +164,13 @@ MCP 도구를 정확히 2회만 사용: 1)get_pull_request_files 2)create_pull_r
         }  
       }  
     });  
+
+       // Thinking 과정 확인  
+    const part = response.candidates?.[0]?.content?.parts?.[0];  
+    if (part?.thought) {  
+      console.log('\n🧠 Thinking Process:');  
+      console.log(part.text);  
+    }  
   
     // 함수 호출 결과 확인  
     if (response.functionCalls && response.functionCalls.length > 0) {  
