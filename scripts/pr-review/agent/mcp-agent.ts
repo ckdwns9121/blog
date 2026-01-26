@@ -102,24 +102,42 @@ export class MCPAgent {
     // 루프 감지: 동일한 도구 호출 반복 확인
     const recentToolCalls: string[] = [];
 
-    const systemInstruction = `
-너는 코드 리뷰어다. 제공된 PR 정보와 diff를 분석하여 JSON 형식으로만 응답해라.
+    const systemInstruction = `너는 코드 리뷰 전문가다. PR diff를 분석해서 JSON으로 리뷰를 반환해라.
 
 ## 리뷰 규칙
 ${this.reviewRules}
 
-## 출력 형식 - JSON ONLY
-반드시 아래 JSON 형식으로만 출력해라. 마크다운, 설명, 코드 블록 없이 JSON 문자열만 출력:
+## 중요: 라인별 코멘트 필수 작성
+전체 요약보다 라인별 코멘트가 더 중요하다. diff에서 실제 변경된 코드를 보고 구체적인 코멘트를 작성해라.
 
-{"overall":"요약","strengths":[],"concerns":[],"suggestions":[],"comments":[]}
+- 변경된 파일마다 최소 1개 이상의 코멘트 작성
+- 실제로 문제가 있는 코드를 찾아서 지적
+- 좋은 코드도 언급 (info 레벨)
+- security, performance, 타입 안전성等重点 확인
 
-- overall: 전체 요약 (2-3문장)
-- strengths: 좋은 점 배열
-- concerns: 우려되는 점 배열
-- suggestions: 개선 제안 배열
-- comments: 라인별 코멘트 배열 (path, line, code, comment, severity)
+## diff 분석 방법
+patch 필드를 확인해라:
+- @@ -old, +new @@ 형식이 diff 헤더다
+- +로 시작하는 라인은 추가된 코드 (이 라인 번호 사용)
+- -로 시작하는 라인은 삭제된 코드
+- @@ ... @@ 바로 다음 + 라인부터 line number 시작
 
-comments는 실제 diff에서 변경된 라인에만 작성. severity는 info/warning/error.
+## 출력 형식 (JSON ONLY)
+코드 블록이나 마크다운 없이 JSON 문자열만 출력:
+
+{
+  "overall": "전체 요약 2-3문장",
+  "strengths": ["좋은 점"],
+  "concerns": ["우려되는 점"],
+  "suggestions": ["개선 제안"],
+  "comments": [
+    {"path": "파일경로", "line": 숫자, "code": "변경된코드", "comment": "코멘트", "severity": "info|warning|error"}
+  ]
+}
+
+comments 예시:
+{"path":"src/app.ts","line":15,"code":"const data:any = fetch()","comment":"any 타입 사용은 지양하세요. 구체적인 타입을 정의해야 합니다.","severity":"warning"}
+{"path":"src/utils.ts","line":42,"code":"process.env.API_KEY","comment":"시크릿이 직접 노출되고 있습니다. 환경 변수 검증 후 사용하세요.","severity":"error"}
 `;
 
     const userPrompt = `
@@ -177,11 +195,20 @@ PR #${this.context.prNumber} in ${this.context.owner}/${this.context.repo}
       if (loopCount === 2) {
         console.log('[Agent] 📝 Step 2: Requesting JSON review from AI (NO TOOLS)');
 
-        // 명시적으로 JSON 요청 메시지 추가
+        // 명시적으로 JSON 요청 메시지 추가 - diff 분석 강조
         history.push({
           role: 'user',
           parts: [{
-            text: '위 정보를 바탕으로 리뷰를 완료하세요. 반드시 JSON 형식으로만 출력하세요. 코드 블록이나 마크다운 없이 JSON 문자열만 출력해야 합니다.'
+            text: `이제 리뷰를 생성해라. 중요한 점:
+
+1. pull_requests.listFiles 결과의 각 파일에 있는 patch 필드를 확인해라
+2. patch는 diff 형식이다: @@ -old +new @@ 헤더 다음에 +로 시작하는 추가된 라인들이 있다
+3. +로 시작하는 라인들 중에서 문제가 있는 코드를 찾아라
+4. 찾은 문제마다 comments 배열에 추가해라: path, line, code, comment, severity
+
+comments 배열을 비워두지 마라. 최소 3개 이상의 라인별 코멘트를 작성해라.
+
+반드시 JSON 형식으로만 출력해라. 코드 블록이나 마크다운 없이 JSON 문자열만 출력해야 한다.`
           }]
         });
 
