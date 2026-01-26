@@ -44,8 +44,8 @@ ${reviewRules}
 
 **PR #${PR_NUMBER} 단일 리뷰 워크플로우:**
 
-1. get_pull_request_files 호출 (per_page:100)
-2. patch 분석 → 최소 5개 라인 코멘트 작성
+1. get_pull_request_files 호출 (1회만)
+2. patch 분석 → 최소 3개 라인 코멘트 작성
 3. create_pull_request_review 호출 (1회만!)
 
 **중복 호출 금지!**
