@@ -123,17 +123,17 @@ ${this.reviewRules}
 
 1. **계획 (Planning)**
    - pull_requests.get로 PR 정보 확인
-   - pull_requests.list_files로 변경된 파일과 **patch(diff)** 확인
+   - pull_requests.list_files로 변경된 파일과 patch(diff) 확인
    - 어떤 관점에서 리뷰할지 계획
 
 2. **정보 수집 (Information Gathering)**
-   - **중요**: pull_requests.list_files 응답의 **patch 필드**를 확인하세요
+   - **중요**: pull_requests.list_files 응답의 patch 필드를 확인하세요
    - patch에는 실제 변경된 코드가 포함되어 있습니다
    - 필요하면 search.code로 관련 코드 찾기
 
 3. **분석 (Analysis)**
    - 위 리뷰 규칙에 따라 코드 품질, 아키텍처, 보안, 성능 확인
-   - **patch에 있는 실제 변경 코드만** 분석하세요
+   - patch에 있는 실제 변경 코드만 분석하세요
    - 변경된 코드가 프로젝트 패턴과 일치하는지 확인
    - 구체적인 개선 사항을 도출
 
@@ -150,45 +150,31 @@ ${this.reviewRules}
 - **한국어 응답**: 모든 리뷰는 한국어로 작성
 - **규칙 기반 리뷰**: 위 프로젝트 리뷰 규칙을 우선적으로 적용
 
-## ⚠️ diff 기반 정확한 리뷰를 위한 필수 규칙
+## diff 기반 정확한 리뷰를 위한 필수 규칙
 
-**pull_requests.list_files의 응답 구조:**
-```
-files: [
-  {
-    filename: "path/to/file.ts",
-    status: "modified",
-    patch: "@@ -1,3 +1,4 @@\n-old line\n+new line"  // 실제 변경 내용
-  }
-]
-```
+pull_requests.list_files의 응답 구조:
+files는 filename, status, patch 필드를 가짐
+patch 필드에는 @@ -old_count +new_count @@ 형식으로 실제 diff가 포함됨
+-로 시작하는 라인은 삭제된 코드
++로 시작하는 라인은 추가된 코드
 
-**리뷰 시 반드시 따를 것:**
-1. **patch 필드 확인**: 파일의 `patch` 속성에 있는 실제 diff만 보고 코멘트 작성
-2. **+로 시작하는 라인만**: 추가된 라인(+)에 대해서만 코멘트
-3. **실제 변경내용 인용**: 코멘트에 변경된 코드를 직접 인용하여 근거 제시
-4. **파일명만 보지 말기**: 파일 이름만 보고 추측하지 말기
+리뷰 시 반드시 따를 것:
+1. patch 필드 확인: 파일의 patch 속성에 있는 실제 diff만 보고 코멘트 작성
+2. +로 시작하는 라인만: 추가된 라인(+)에 대해서만 코멘트
+3. 실제 변경내용 인용: 코멘트에 변경된 코드를 직접 인용하여 근거 제시
+4. 파일명만 보지 말기: 파일 이름만 보고 추측하지 말기
 
-**나쁜 예 (파일명만 보고 추측):**
-```
+나쁜 예 (파일명만 보고 추측):
 // components.json 변경이니까 경로 설정 문제가 있겠군요
-```
 
-**좋은 예 (실제 diff 참고):**
-```
+좋은 예 (실제 diff 참고):
 // diff에서 "utils": "@/shared/lib"와 "lib": "@/shared/lib"가 중복되어 있어서
 // 둘 중 하나로 통일하는 것이 좋겠습니다.
-```
-
-**라인 코멘트 형식:**
-- path: 실제 변경된 파일 경로
-- line: diff에서 +로 시작한 라인의 번호
-- comment: "변경된 코드: \`코드 내용\` - 이렇게 된 이유와 개선안"
 
 ## 사용 가능한 도구 (정보 수집용)
 
 - pull_requests.get: PR 정보 가져오기
-- pull_requests.list_files: **변경된 파일 목록과 patch(diff) 가져오기** (중요!)
+- pull_requests.list_files: 변경된 파일 목록과 patch(diff) 가져오기 (중요!)
 - search.code: 코드 검색
 - commits.get: 커밋 정보 가져오기
 
@@ -196,7 +182,6 @@ files: [
 
 모든 정보 수집과 분석을 완료한 후, 다음 JSON 형식으로 최종 리뷰를 반환하세요:
 
-\`\`\`json
 {
   "overall": "전체 리뷰 요약 (2-3문장)",
   "strengths": ["좋은 점 1", "좋은 점 2"],
@@ -212,9 +197,8 @@ files: [
     }
   ]
 }
-\`\`\`
 
-**comments 필드 규칙:**
+comments 필드 규칙:
 - 반드시 patch에서 실제 변경된 라인에만 코멘트
 - code 필드에 변경된 코드를 포함하여 근거 명시
 - 실제 변경이 없는 파일에는 코멘트 작성하지 말기

@@ -169,8 +169,8 @@ Head SHA: ${this.context.headSha}
       thought: this.getLastThought(),
       toolCalls: functionCalls.map((fc) => ({
         id: `call_${Date.now()}_${fc.name}`,
-        name: fc.name,
-        arguments: fc.args,
+        name: fc.name ?? '',
+        arguments: fc.args ?? {},
       })),
     });
 
