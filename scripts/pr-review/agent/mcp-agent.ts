@@ -1,6 +1,8 @@
 import { GoogleGenAI, mcpToTool } from '@google/genai';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import type { ThoughtLog } from './types';
 
 export interface MCPAgentContext {
@@ -33,17 +35,34 @@ export class MCPAgent {
   private context: MCPAgentContext;
   private thoughtLogs: ThoughtLog[] = [];
   private model: string;
+  private reviewRules: string;
 
   constructor(apiKey: string, context: MCPAgentContext, model: string = 'gemini-2.5-flash') {
     this.ai = new GoogleGenAI({ apiKey });
     this.context = context;
     this.model = model;
+    this.reviewRules = this.loadReviewRules();
 
     // MCP Client 초기화
     this.mcpClient = new Client(
       { name: 'pr-review-agent', version: '1.0.0' },
       { capabilities: { tools: {} } }
     );
+  }
+
+  /**
+   * 리뷰 규칙 파일 로드
+   */
+  private loadReviewRules(): string {
+    try {
+      const rulesPath = join(__dirname, '../review-rules.md');
+      const rules = readFileSync(rulesPath, 'utf-8');
+      console.log('[Agent] 📋 Review rules loaded');
+      return rules;
+    } catch (error) {
+      console.warn('[Agent] ⚠️ Could not load review rules, using defaults');
+      return '';
+    }
   }
 
   /**
@@ -82,6 +101,14 @@ export class MCPAgent {
     const systemInstruction = `
 너는 **Agentic AI 코드 리뷰어**다.
 
+## 프로젝트 리뷰 규칙
+
+아래 규칙을 참고하여 코드를 리뷰하세요:
+
+---
+${this.reviewRules}
+---
+
 ## 리뷰 절차
 
 1. **계획 (Planning)**
@@ -94,8 +121,9 @@ export class MCPAgent {
    - commits.get으로 특정 커밋 확인
 
 3. **분석 (Analysis)**
-   - 코드 품질, 유지보수성, 잠재적 버그 확인
-   - 보안 문제, 성능 저하 가능성 확인
+   - 위 리뷰 규칙에 따라 코드 품질, 아키텍처, 보안, 성능 확인
+   - 변경된 코드가 프로젝트 패턴과 일치하는지 확인
+   - 구체적인 개선 사항을 도출
 
 4. **결론 (Conclusion)**
    - 전체 요약, 잘한 점, 우려되는 점, 개선 제안
@@ -108,6 +136,7 @@ export class MCPAgent {
 - **리뷰 반환**: create_pull_request_review 같은 리뷰 생성 도구는 호출하지 말고 JSON으로만 반환
 - **라인 코멘트**: comments 배열의 라인 번호는 diff에서 +로 시작하는 라인의 번호 사용
 - **한국어 응답**: 모든 리뷰는 한국어로 작성
+- **규칙 기반 리뷰**: 위 프로젝트 리뷰 규칙을 우선적으로 적용
 
 ## 사용 가능한 도구 (정보 수집용)
 
