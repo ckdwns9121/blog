@@ -1,4 +1,4 @@
-import { GoogleGenAI, mcpToTool ,FunctionCallingConfigMode} from '@google/genai';
+import { GoogleGenAI, mcpToTool, FunctionCallingConfigMode } from '@google/genai';
 import { Client } from '@modelcontextprotocol/sdk/client';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
@@ -20,51 +20,59 @@ async function main() {
       env: { ...process.env, GITHUB_PERSONAL_ACCESS_TOKEN: GITHUB_TOKEN },
     }));
     console.log('[MCP] ✅ Connected');
+    const tools = await mcp.listTools();
+    console.log('[MCP] Tools:', tools.length);
   } catch(e) {
     console.error('[MCP] ❌ Failed:', e);
     process.exit(1);
   }
 
-  // GenAI 단일 호출
-  const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+  // 개선된 프롬프트
   const systemInstruction = `
 너는 PR 리뷰 전문가다.
 
-PR #${PR_NUMBER}를 리뷰해라.
+**PR #${PR_NUMBER} 단일 리뷰 워크플로우:**
 
-사용 가능한 MCP 도구:
-- get_pull_request: PR 정보
-- get_pull_request_files: 파일 목록과 patch (diff)
-- create_pull_request_review: 리뷰 게시
+1. get_pull_request_files 호출 (1회만)
+2. patch 분석 → 최소 3개 라인 코멘트 작성
+3. create_pull_request_review 호출 (1회만!)
 
-중요:
-1. patch의 @@ 헤더에서 +로 시작하는 라인 번호를 정확히 계산해라
-2. create_pull_request_review의 event는 'COMMENT'만 사용해라 (APPROVE/REQUEST_CHANGES 금지)
-3. 최소 3개 이상의 라인 코멘트를 작성해라
+**중복 호출 금지!**
 
-출력 형식:
-{
-  "event": "COMMENT",
-  "body": "전체 요약",
-  "comments": [
-    {"path": "파일경로", "line": 숫자, "body": "코멘트"}
-  ]
-}
+create_pull_request_review 인자:
+- event: "COMMENT" (반드시!)
+- body: 전체 요약
+- comments: [{path, line(숫자), body}]
 `;
 
+  const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+
   const response = await genAI.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-2.5-flash-exp',  // tool 최적화
     contents: [
       { role: 'model', parts: [{ text: systemInstruction }] },
-      { role: 'user', parts: [{ text: `Review PR #${PR_NUMBER} in ${REPO_OWNER}/${REPO_NAME}` }] }],
+      { role: 'user', parts: [{ 
+        text: `Review PR #${PR_NUMBER} in ${REPO_OWNER}/${REPO_NAME}. 
+MCP 도구를 정확히 2회만 사용: 1)get_pull_request_files 2)create_pull_request_review` 
+      }] }
+    ],
     config: {
       tools: [mcpToTool(mcp)],
-      toolConfig: { functionCallingConfig:{mode:FunctionCallingConfigMode.ANY} }
+      toolConfig: {
+        functionCallingConfig: {
+          mode: FunctionCallingConfigMode.AUTO  // 자연 호출 + 중복 방지
+        }
+      }
     }
   });
 
-  console.log(response.functionCalls);
-  console.log(response.text)
+  console.log('Function Calls:', response.functionCalls);
+  if (response.functionCalls?.length) {
+    console.log('✅ MCP 도구 호출 성공!');
+  } else {
+    console.log('⚠️ 텍스트 응답:', response.text?.substring(0, 200));
+  }
+  
   console.log('[Bot] ✅ Review completed');
   await mcp.close();
 }
