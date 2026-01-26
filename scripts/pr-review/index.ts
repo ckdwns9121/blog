@@ -1,11 +1,19 @@
 import { GitHubClient } from './github';
-import { GeminiReviewer } from './gemini';
+import { PRAgent } from './agent/agent';
+import { parseDiffPatch } from './diff-parser';
 import type { ReviewSummary } from './types';
 
-function formatReviewMarkdown(summary: ReviewSummary): string {
+function formatReviewMarkdown(summary: ReviewSummary, thoughts: string[]): string {
   const sections: string[] = [];
 
-  sections.push('## 🤖 AI 코드 리뷰\n');
+  sections.push('## 🤖 AI 코드 리뷰 (Agentic)\n');
+
+  // AI의 사고 과정 포함
+  if (thoughts.length > 0) {
+    sections.push('### 🧠 사고 과정\n');
+    thoughts.slice(0, 5).forEach((t) => sections.push(`- ${t}\n`));
+    sections.push('');
+  }
 
   if (summary.overall) {
     sections.push(`### 📋 요약\n${summary.overall}\n`);
@@ -38,9 +46,44 @@ function formatReviewMarkdown(summary: ReviewSummary): string {
     });
   }
 
-  sections.push('\n---\n*리뷰는 [Gemini AI](https://ai.google.dev/)에 의해 생성되었습니다.*');
+  sections.push('\n---\n*리뷰는 [Gemini AI](https://ai.google.dev/) Agent에 의해 생성되었습니다.*');
 
   return sections.join('\n');
+}
+
+function parseJSONResponse(text: string): ReviewSummary {
+  try {
+    // Extract JSON from markdown code blocks if present
+    const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) ||
+                     text.match(/\{[\s\S]*\}/);
+
+    if (!jsonMatch) {
+      throw new Error('No JSON found in response');
+    }
+
+    const jsonStr = jsonMatch[1] || jsonMatch[0];
+    const parsed = JSON.parse(jsonStr);
+
+    return {
+      overall: parsed.overall || '리뷰를 생성했습니다.',
+      strengths: parsed.strengths || [],
+      concerns: parsed.concerns || [],
+      suggestions: parsed.suggestions || [],
+      comments: (parsed.comments || []).map((c: any) => ({
+        ...c,
+        severity: c.severity || 'info',
+      })),
+    };
+  } catch (error) {
+    console.error('Failed to parse response:', error);
+    return {
+      overall: text.substring(0, 500),
+      strengths: [],
+      concerns: [],
+      suggestions: [],
+      comments: [],
+    };
+  }
 }
 
 async function main() {
@@ -79,14 +122,13 @@ async function main() {
     prNumber: parseInt(PR_NUMBER, 10),
     baseSha: BASE_SHA || '',
     headSha: HEAD_SHA || '',
-    title: '',
-    description: '',
   };
 
   console.log('\n=== Context ===');
   console.log('Owner:', context.owner);
   console.log('Repo:', context.repo);
   console.log('PR Number:', context.prNumber);
+  console.log('Agent Mode: Agentic (AI가 스스로 도구를 선택하고 실행)');
 
   // GitHub App 인증이 있으면 사용, 없으면 기본 토큰 사용
   let github: GitHubClient;
@@ -96,23 +138,16 @@ async function main() {
     console.log('App ID:', APP_ID);
     console.log('Installation ID:', APP_INSTALLATION_ID);
 
-    // Private Key 처리: \n 문자열을 실제 개행으로 변환하거나 Base64 디코딩
     let privateKey = APP_PRIVATE_KEY;
-
-    // Base64로 인코딩된 경우 디코딩
     if (!privateKey.includes('BEGIN RSA PRIVATE KEY')) {
       console.log('Private Key format: Base64 encoded, decoding...');
       try {
         privateKey = Buffer.from(privateKey, 'base64').toString('utf-8');
         console.log('Private Key decoded successfully');
       } catch {
-        console.log('Base64 decode failed, trying \\n replacement');
-        // Base64 디코딩 실패 시 \n을 개행으로 변환 시도
         privateKey = privateKey.replace(/\\n/g, '\n');
       }
     } else {
-      // 이미 PEM 형식이지만 \n 문자열이 포함된 경우
-      console.log('Private Key format: PEM format');
       privateKey = privateKey.replace(/\\n/g, '\n');
     }
 
@@ -131,28 +166,32 @@ async function main() {
     throw new Error('Either GITHUB_TOKEN or GitHub App credentials are required');
   }
 
-  const reviewer = new GeminiReviewer(GEMINI_API_KEY, 'gemini-2.5-flash');
+  // Agent 실행
+  const agent = new PRAgent(GEMINI_API_KEY, { ...context, github }, 'gemini-2.5-flash');
+  const { review, thoughts } = await agent.run(10);
 
-  // Get PR details
-  console.log('\n=== Step 1: Fetching PR Details ===');
-  const prDetails = await github.getPRDetails();
-  context.title = prDetails.title;
-  context.description = prDetails.description;
-  console.log('PR Title:', context.title);
-  console.log('PR Description length:', context.description.length);
+  console.log('\n=== Parsing Review ===');
+  const summary = parseJSONResponse(review);
 
-  // Get diff
-  console.log('\n=== Step 2: Fetching PR Diff ===');
+  // 라인 번호 유효성 검사
   const diffs = await github.getDiff();
-  console.log(`Total files changed: ${diffs.length}`);
-  diffs.forEach((d) => {
-    console.log(`  - ${d.path} (${d.status}): +${d.additions} -${d.deletions}`);
-  });
+  const validComments = [];
 
-  // Review with Gemini
-  console.log('\n=== Step 3: Generating Review with Gemini ===');
-  console.log('Model: gemini-2.5-flash');
-  const summary: ReviewSummary = await reviewer.reviewPR(context, diffs);
+  for (const comment of summary.comments) {
+    const fileDiff = diffs.find((d) => d.path === comment.path);
+    if (!fileDiff || !fileDiff.patch) continue;
+
+    const changedLines = parseDiffPatch(fileDiff.patch);
+    const isValidLine = changedLines.some((l) => l.line === comment.line);
+
+    if (isValidLine) {
+      validComments.push(comment);
+    } else {
+      console.log(`Skipping invalid line comment: ${comment.path}:${comment.line}`);
+    }
+  }
+
+  summary.comments = validComments;
 
   console.log('\n=== Review Summary ===');
   console.log('Overall:', summary.overall?.substring(0, 100) + '...');
@@ -160,18 +199,14 @@ async function main() {
   console.log('Concerns:', summary.concerns.length);
   console.log('Suggestions:', summary.suggestions.length);
   console.log('Line comments:', summary.comments.length);
-  if (summary.comments.length > 0) {
-    summary.comments.forEach((c) => {
-      console.log(`  - ${c.path}:${c.line} [${c.severity}]`);
-    });
-  }
+  console.log('Thoughts logged:', thoughts.length);
 
   // Post review comment
-  console.log('\n=== Step 4: Posting Review ===');
-  const markdown = formatReviewMarkdown(summary);
+  console.log('\n=== Posting Review ===');
+  const thoughtSummaries = thoughts.map((t) => `[${t.type}] ${t.content}`);
+  const markdown = formatReviewMarkdown(summary, thoughtSummaries);
   console.log('Review markdown length:', markdown.length);
 
-  // 라인별 코멘트가 있으면 createReviewComment 사용 (diff에 직접 코멘트)
   if (summary.comments.length > 0) {
     console.log(`Posting ${summary.comments.length} line comments with review body...`);
     const lineComments = summary.comments.map((c) => ({
@@ -180,12 +215,10 @@ async function main() {
       body: `${c.severity === 'error' ? '🚫' : c.severity === 'warning' ? '⚠️' : '💬'} ${c.comment}`,
     }));
 
-    // 전체 리뷰를 body로, 라인별 코멘트를 comments로 전달
     await github.createReviewComment(markdown, lineComments);
     console.log('Review with line comments posted successfully');
   } else {
     console.log('No line comments, posting review as general comment...');
-    // 라인별 코멘트가 없으면 일반 댓글로 전체 리뷰만
     await github.createReviewReply(markdown);
     console.log('Review comment posted successfully');
   }
