@@ -77,8 +77,22 @@ async function main() {
   let github: GitHubClient;
   if (APP_ID && APP_PRIVATE_KEY && APP_INSTALLATION_ID) {
     console.log('Using GitHub App authentication...');
-    // Private Key의 \n 문자열을 실제 개행 문자로 변환
-    const privateKey = APP_PRIVATE_KEY.replace(/\\n/g, '\n');
+    // Private Key 처리: \n 문자열을 실제 개행으로 변환하거나 Base64 디코딩
+    let privateKey = APP_PRIVATE_KEY;
+
+    // Base64로 인코딩된 경우 디코딩
+    if (!privateKey.includes('BEGIN RSA PRIVATE KEY')) {
+      try {
+        privateKey = Buffer.from(privateKey, 'base64').toString('utf-8');
+      } catch {
+        // Base64 디코딩 실패 시 \n을 개행으로 변환 시도
+        privateKey = privateKey.replace(/\\n/g, '\n');
+      }
+    } else {
+      // 이미 PEM 형식이지만 \n 문자열이 포함된 경우
+      privateKey = privateKey.replace(/\\n/g, '\n');
+    }
+
     github = await GitHubClient.createFromGitHubApp(
       APP_ID,
       privateKey,
