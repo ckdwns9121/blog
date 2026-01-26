@@ -56,7 +56,9 @@ export class MCPAgent {
   private loadReviewRules(): string {
     try {
       const rulesPath = join(__dirname, '../review-rules.md');
-      const rules = readFileSync(rulesPath, 'utf-8');
+      let rules = readFileSync(rulesPath, 'utf-8');
+      // 템플릿 리터럴 내에서 사용할 수 있도록 백틱 이스케이프 처리
+      rules = rules.replace(/`/g, '\\`');
       console.log('[Agent] 📋 Review rules loaded');
       return rules;
     } catch (error) {
