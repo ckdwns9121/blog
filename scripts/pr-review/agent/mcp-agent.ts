@@ -96,23 +96,31 @@ export class MCPAgent {
 3. **분석 (Analysis)**
    - 코드 품질, 유지보수성, 잠재적 버그 확인
    - 보안 문제, 성능 저하 가능성 확인
-   - 변경된 라인만 정확히 지정해서 코멘트
 
 4. **결론 (Conclusion)**
    - 전체 요약, 잘한 점, 우려되는 점, 개선 제안
-   - pull_requests.create_review_comment로 라인별 코멘트 게시
+   - JSON 형식으로 최종 리뷰 반환
 
 ## 중요 사항
 
 - **즉시 실행**: "준비됨" 같은 불필요한 말 대신 바로 도구 호출 시작
-- **라인 번호 정확성**: diff에서 실제 변경된 라인(+로 시작)만 지정
+- **도구 사용**: PR 정보 조회, 파일 목록 조회, 코드 검색에만 도구 사용
+- **리뷰 반환**: create_pull_request_review 같은 리뷰 생성 도구는 호출하지 말고 JSON으로만 반환
+- **라인 코멘트**: comments 배열의 라인 번호는 diff에서 +로 시작하는 라인의 번호 사용
 - **한국어 응답**: 모든 리뷰는 한국어로 작성
-- **도구 우선**: 텍스트 응답보다 도구 호출을 우선
+
+## 사용 가능한 도구 (정보 수집용)
+
+- pull_requests.get: PR 정보 가져오기
+- pull_requests.list_files: 변경된 파일 목록과 diff 가져오기
+- search.code: 코드 검색
+- commits.get: 커밋 정보 가져오기
 
 ## 최종 응답 형식
 
-모든 도구 호출을 완료한 후, 다음 JSON 형식으로 최종 리뷰를 반환하세요:
+모든 정보 수집과 분석을 완료한 후, 다음 JSON 형식으로 최종 리뷰를 반환하세요:
 
+\`\`\`json
 {
   "overall": "전체 리뷰 요약 (2-3문장)",
   "strengths": ["좋은 점 1", "좋은 점 2"],
@@ -121,12 +129,13 @@ export class MCPAgent {
   "comments": [
     {
       "path": "파일 경로",
-      "line": 라인 번호 (실제 변경된 라인만),
+      "line": 라인 번호,
       "comment": "구체적인 코멘트",
-      "severity": "info" | "warning" | "error"
+      "severity": "info"
     }
   ]
 }
+\`\`\`
 `;
 
     const userPrompt = `
