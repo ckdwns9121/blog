@@ -5,6 +5,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import type { ThoughtLog } from './types';
+import { buildAnnotatedDiff, parseDiffPatch } from '../diff-parser';
 
 export interface MCPAgentContext {
   owner: string;
@@ -183,8 +184,37 @@ PR #${this.context.prNumber} in ${this.context.owner}/${this.context.repo}
           arguments: { owner: this.context.owner, repo: this.context.repo, pull_number: this.context.prNumber }
         });
 
-        // 결과를 히스토리에 추가
+        // PR 정보를 히스토리에 추가
         history.push({ role: 'user', parts: [{ functionResponse: { name: 'get_pull_request', response: { content: prResult.content } } }] });
+
+        // 파일 목록에서 diff 파싱 - AI가 정확한 라인 번호를 알 수 있도록
+        let diffSummary = '\n## Changed Files with Diff:\n\n';
+        const filesData = filesResult.content as any[];
+
+        for (const item of filesData) {
+          if (item.type === 'text') {
+            const file = item.text;
+            try {
+              const fileData = JSON.parse(file);
+              if (fileData.patch) {
+                const parsed = parseDiffPatch(fileData.patch);
+                diffSummary += `\n### ${fileData.filename}\n`;
+                diffSummary += `- Status: ${fileData.status}\n`;
+                diffSummary += `- Changed lines: ${parsed.map(l => `L${l.line}`).join(', ')}\n`;
+                diffSummary += `\n\`\`\`diff\n${fileData.patch}\n\`\`\`\n`;
+              }
+            } catch {
+              // 파싱 실패 시 원본 텍스트 사용
+            }
+          }
+        }
+
+        console.log(`[Agent] 📊 Parsed ${filesData.length} files with diffs`);
+
+        // diff 요약을 별도 메시지로 추가
+        history.push({ role: 'user', parts: [{ text: diffSummary }] });
+
+        // 원본 filesResult도 추가
         history.push({ role: 'user', parts: [{ functionResponse: { name: 'get_pull_request_files', response: { content: filesResult.content } } }] });
 
         console.log('[Agent] ✅ PR information gathered');
@@ -195,20 +225,25 @@ PR #${this.context.prNumber} in ${this.context.owner}/${this.context.repo}
       if (loopCount === 2) {
         console.log('[Agent] 📝 Step 2: Requesting JSON review from AI (NO TOOLS)');
 
-        // 명시적으로 JSON 요청 메시지 추가 - diff 분석 강조
+        // diff 요약을 보내면서 정확한 라인 번호 사용 강조
         history.push({
           role: 'user',
           parts: [{
-            text: `이제 리뷰를 생성해라. 중요한 점:
+            text: `위 diff 정보를 바탕으로 리뷰를 생성해라.
 
-1. pull_requests.listFiles 결과의 각 파일에 있는 patch 필드를 확인해라
-2. patch는 diff 형식이다: @@ -old +new @@ 헤더 다음에 +로 시작하는 추가된 라인들이 있다
-3. +로 시작하는 라인들 중에서 문제가 있는 코드를 찾아라
-4. 찾은 문제마다 comments 배열에 추가해라: path, line, code, comment, severity
+중요: 각 파일에서 "Changed lines: L10, L25, L42"처럼 명시된 라인 번호를 사용해라.
+이 라인 번호들은 diff의 @@ 헤더에서 정확히 계산된 것이다.
 
-comments 배열을 비워두지 마라. 최소 3개 이상의 라인별 코멘트를 작성해라.
+리뷰 방법:
+1. 각 파일의 diff를 확인해라
+2. 문제가 있는 코드를 찾아라 (타입, 보안, 성능, 코드 스타일 등)
+3. comments 배열에 추가해라: {"path":"파일경로","line":정확한라인번호,"code":"코드","comment":"코멘트","severity":"info|warning|error"}
 
-반드시 JSON 형식으로만 출력해라. 코드 블록이나 마크다운 없이 JSON 문자열만 출력해야 한다.`
+라인 번호는 반드시 "Changed lines"에 명시된 번호만 사용해라. 다른 번호를 쓰면 GitHub가 거부한다.
+
+최소 3개 이상의 라인별 코멘트를 작성해라.
+
+JSON 형식으로만 출력해라.`
           }]
         });
 
