@@ -188,9 +188,29 @@ async function main() {
     console.log('\n=== Review Output ===\n');
     console.log(markdown);
 
-    // PR에 코멘트 게시
+    // PR에 리뷰 게시
     console.log('\n=== Posting Review to PR ===');
-    await agent.postReviewComment(markdown);
+
+    // 라인별 코멘트가 있으면 create_pull_request_review 사용
+    if (summary.comments.length > 0) {
+      const overall = [
+        summary.overall,
+        summary.strengths.length > 0 ? '\n### ✅ 잘한 점\n' + summary.strengths.map(s => `- ${s}`).join('\n') : '',
+        summary.concerns.length > 0 ? '\n### ⚠️ 주의사항\n' + summary.concerns.map(c => `- ${c}`).join('\n') : '',
+        summary.suggestions.length > 0 ? '\n### 💡 개선 제안\n' + summary.suggestions.map(s => `- ${s}`).join('\n') : '',
+      ].filter(Boolean).join('\n');
+
+      const lineComments = summary.comments.map(c => ({
+        path: c.path,
+        line: c.line,
+        body: `${c.severity === 'error' ? '🚫' : c.severity === 'warning' ? '⚠️' : '💬'} ${c.comment}${c.code ? `\n\`\`\`\n${c.code}\n\`\`\`` : ''}`,
+      }));
+
+      await agent.postLineComments(overall, lineComments);
+    } else {
+      // 라인별 코멘트가 없으면 전체 코멘트만
+      await agent.postReviewComment(markdown);
+    }
 
   } finally {
     // MCP 연결 종료

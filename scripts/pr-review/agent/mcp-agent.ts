@@ -240,7 +240,37 @@ PR #${this.context.prNumber} in ${this.context.owner}/${this.context.repo}
   }
 
   /**
-   * PR에 리뷰 코멘트 게시
+   * PR에 라인별 리뷰 코멘트 게시
+   */
+  async postLineComments(
+    overallComment: string,
+    lineComments: Array<{ path: string; line: number; body: string }>
+  ): Promise<void> {
+    try {
+      await this.mcpClient.callTool({
+        name: 'create_pull_request_review',
+        arguments: {
+          owner: this.context.owner,
+          repo: this.context.repo,
+          pull_number: this.context.prNumber,
+          body: overallComment,
+          comments: lineComments.map(c => ({
+            path: c.path,
+            line: c.line,
+            body: c.body,
+          })),
+          event: 'COMMENT',  // APPROVE, REQUEST_CHANGES, COMMENT
+        },
+      });
+      console.log(`[MCP] ✅ Review posted with ${lineComments.length} line comments`);
+    } catch (error) {
+      console.error('[MCP] ❌ Failed to post review:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * PR에 전체 코멘트만 게시 (폴백)
    */
   async postReviewComment(markdown: string): Promise<void> {
     try {
