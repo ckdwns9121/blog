@@ -1,4 +1,5 @@
 import { Octokit } from '@octokit/rest';
+import { createAppAuth } from '@octokit/auth-app';
 import type { PullRequestContext, FileDiff } from './types';
 
 export class GitHubClient {
@@ -11,6 +12,28 @@ export class GitHubClient {
       userAgent: 'changjun-test-bot/1.0.0',
     });
     this.context = context;
+  }
+
+  /**
+   * GitHub App 인증으로 Octokit 생성
+   * GitHub App의 APP_ID, PRIVATE_KEY, INSTALLATION_ID이 필요합니다
+   */
+  static async createFromGitHubApp(
+    appId: string,
+    privateKey: string,
+    installationId: string,
+    context: PullRequestContext
+  ): Promise<GitHubClient> {
+    const auth = createAppAuth({
+      appId,
+      privateKey,
+      installationId,
+    });
+
+    const installationAuth = await auth({ type: 'installation' });
+    const token = installationAuth.token;
+
+    return new GitHubClient(token, context);
   }
 
   async getPRDetails(): Promise<PullRequestContext> {

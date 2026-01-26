@@ -52,9 +52,12 @@ async function main() {
     REPO_NAME,
     BASE_SHA,
     HEAD_SHA,
+    APP_ID,
+    APP_PRIVATE_KEY,
+    APP_INSTALLATION_ID,
   } = process.env;
 
-  if (!GITHUB_TOKEN || !GEMINI_API_KEY || !PR_NUMBER || !REPO_OWNER || !REPO_NAME) {
+  if (!GEMINI_API_KEY || !PR_NUMBER || !REPO_OWNER || !REPO_NAME) {
     throw new Error('Missing required environment variables');
   }
 
@@ -70,8 +73,26 @@ async function main() {
 
   console.log(`Starting PR review for ${REPO_OWNER}/${REPO_NAME}#${PR_NUMBER}`);
 
-  const github = new GitHubClient(GITHUB_TOKEN, context);
-  const reviewer = new GeminiReviewer(GEMINI_API_KEY, 'gemini-2.0-flash-exp');
+  // GitHub App 인증이 있으면 사용, 없으면 기본 토큰 사용
+  let github: GitHubClient;
+  if (APP_ID && APP_PRIVATE_KEY && APP_INSTALLATION_ID) {
+    console.log('Using GitHub App authentication...');
+    // Private Key의 \n 문자열을 실제 개행 문자로 변환
+    const privateKey = APP_PRIVATE_KEY.replace(/\\n/g, '\n');
+    github = await GitHubClient.createFromGitHubApp(
+      APP_ID,
+      privateKey,
+      APP_INSTALLATION_ID,
+      context
+    );
+  } else if (GITHUB_TOKEN) {
+    console.log('Using GitHub Token authentication...');
+    github = new GitHubClient(GITHUB_TOKEN, context);
+  } else {
+    throw new Error('Either GITHUB_TOKEN or GitHub App credentials are required');
+  }
+
+  const reviewer = new GeminiReviewer(GEMINI_API_KEY, 'gemini-2.5-flash');
 
   // Get PR details
   console.log('Fetching PR details...');
