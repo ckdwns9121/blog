@@ -15,7 +15,7 @@ async function main() {
   
   // 환경 변수 확인  
   if (!GEMINI_API_KEY) {  
-    console.error('[Error] GEMINI_API_KEY is missing.');  
+    console.error('[Error] GEMINI_API_KEY is missing. Please check your .env file or GitHub Secrets.');  
     process.exit(1);  
   }  
   
@@ -51,7 +51,7 @@ async function main() {
     reviewRules = '기본적인 코드 품질 검사를 수행하세요.';  
   }  
   
-  // 시스템 명령어  
+  // 프로젝트 특화 시스템 명령어  
   const systemInstruction = `  
 너는 Next.js 15 + Notion CMS 기반 블로그 프로젝트의 PR 리뷰 전문가다.   
 다음 프로젝트 특화 규칙을 엄격히 준수하여 리뷰를 수행해라.  
@@ -96,6 +96,20 @@ ${reviewRules}
    - 🟢 LOW: 코드 품질 개선 제안 (최소 1개 이상)  
 4. create_pull_request_review 호출  
   
+**핵심 검증 항목:**  
+- **아키텍처**: entities/에 Notion 의존성 없는지 확인  
+- **타입**: any 대신 unknown + 타입 가드 사용  
+- **React**: Server Component 우선, Client Component 최소화  
+- **성능**: next/image 사용, Promise.all 병렬 요청  
+- **보안**: dangerouslySetInnerHTML sanitize, 환경변수만 사용  
+- **Notion**: 이미지 URL 만료 처리, 페이지네이션 준수  
+  
+**diff 파싱 규칙:**  
+- @@ -old,old +new,new @@: 변경된 라인 범위  
+- +로 시작: 새로 추가된 코드  
+- -로 시작: 삭제된 코드  
+- 공백으로 시작: 변경 없는 컨텍스트 라인  
+  
 **리뷰 코멘트 형식:**  
 각 라인 코멘트는 다음 형식을 따라야 함:  
 \`\`\`  
@@ -106,16 +120,24 @@ ${reviewRules}
 제안: 개선 방안 구체적 제시  
 관련 규칙: 해당 TOML 규칙 섹션  
 \`\`\`  
+  
+**중요:**   
+- 반드시 실제 변경된 라인 번호를 사용해야 함  
+- 프로젝트 특화 규칙을 우선적으로 적용해야 함  
+- CRITICAL 이슈가 있다면 가장 먼저 언급해야 함  
+  
+create_pull_request_review 인자:  
+- event: "COMMENT" (반드시!)  
+- body: 전체 요약 (프로젝트 규칙 준수 여부 포함)  
+- comments: [{path, line(실제 변경 라인 번호), body}]  
 `;  
   
   // GenAI 클라이언트 초기화  
   const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });  
   
   try {  
-    console.log('\n🔄 Starting streaming PR review...');  
-      
-    // 스트리밍 PR 리뷰 요청  
-    const response = await genAI.models.generateContentStream({  
+    // PR 리뷰 요청  
+    const response = await genAI.models.generateContent({  
       model: 'gemini-2.5-flash',  
       contents: [  
         { role: 'user', parts: [{   
@@ -139,32 +161,19 @@ MCP 도구를 정확히 2회만 사용: 1)get_pull_request_files 2)create_pull_r
       }  
     });  
   
-    // 스트리밍 응답 처리  
-    let functionCalls: any[] = [];  
-    let reviewText = '';  
-      
-    for await (const chunk of response) {  
-      if (chunk.text) {  
-        reviewText += chunk.text;  
-        console.log('📝 Analysis:', chunk.text);  
-      }  
+    // 함수 호출 결과 확인  
+    if (response.functionCalls && response.functionCalls.length > 0) {  
+      console.log('✅ Function calls executed:', response.functionCalls.map(fc => fc.name));  
         
-      if (chunk.functionCalls) {  
-        functionCalls.push(...chunk.functionCalls);  
-        console.log('🔧 Function executed:', chunk.functionCalls.map((fc: any) => fc.name));  
-      }  
-    }  
-  
-    // 리뷰 통계  
-    if (functionCalls.length > 0) {  
-      for (const fc of functionCalls) {  
+      // 프로젝트 특화 리뷰 통계  
+      for (const fc of response.functionCalls) {  
         if (fc.name === 'create_pull_request_review') {  
           const comments = (fc.args?.comments as any[]) || [];  
           const critical = comments.filter((c: any) => c.body.includes('[CRITICAL]')).length;  
           const medium = comments.filter((c: any) => c.body.includes('[MEDIUM]')).length;  
           const low = comments.filter((c: any) => c.body.includes('[LOW]')).length;  
             
-          console.log(`\n📊 Blog Project Review Summary:`);  
+          console.log(`📊 Blog Project Review Summary:`);  
           console.log(`  🔴 CRITICAL: ${critical}개 (FSD/보안/타입)`);  
           console.log(`  🟡 MEDIUM: ${medium}개 (React/성능/스타일)`);  
           console.log(`  🟢 LOW: ${low}개 (코드 품질)`);  
@@ -172,11 +181,13 @@ MCP 도구를 정확히 2회만 사용: 1)get_pull_request_files 2)create_pull_r
         }  
       }  
         
-      console.log('\n✅ Review completed successfully');  
+      console.log('📝 Review completed successfully');  
     } else {  
-      console.log('\n⚠️ No function calls made');  
-      console.log('Response:', reviewText?.substring(0, 200));  
+      console.log('⚠️ No function calls made');  
+      console.log('Response:', response.text?.substring(0, 200));  
     }  
+  
+    console.log(response.text);  
       
   } catch (error) {  
     console.error('[Error] Failed to generate review:', error);  
@@ -184,7 +195,7 @@ MCP 도구를 정확히 2회만 사용: 1)get_pull_request_files 2)create_pull_r
   } finally {  
     // MCP 연결 종료  
     await mcp.close();  
-    console.log('\n[Bot] ✅ Review completed');  
+    console.log('[Bot] ✅ Review completed');  
   }  
 }  
   
