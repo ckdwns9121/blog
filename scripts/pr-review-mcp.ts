@@ -1,7 +1,7 @@
 import { GoogleGenAI, mcpToTool, FunctionCallingConfigMode, ThinkingLevel } from '@google/genai';
 import { Client } from '@modelcontextprotocol/sdk/client';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { readFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
 const PR_NUMBER = Number(process.env.PR_NUMBER!);
@@ -19,15 +19,19 @@ async function main() {
       env: { ...process.env, GITHUB_PERSONAL_ACCESS_TOKEN: GITHUB_TOKEN },
     });
 
+  if (!GEMINI_API_KEY) {
+    console.error('[Error] GEMINI_API_KEY is missing. Please check your .env file or GitHub Secrets.');
+    process.exit(1);
+  }
+
   // MCP 연결
   const mcp = new Client({ name: 'pr-review-bot', version: '1.0.0' });
   try {
     await mcp.connect(serverParams);
     console.log('[MCP] ✅ Connected');
     const tools = await mcp.listTools();
-    console.log('::group::MCP Available Tools');
-    console.log(JSON.stringify(tools, null, 2));
-    console.log('::endgroup::');
+    console.log(tools);
+
   } catch(e) {
     console.error('[MCP] ❌ Failed:', e);
     process.exit(1);
@@ -49,7 +53,7 @@ ${reviewRules}
 **PR #${PR_NUMBER} 단일 리뷰 워크플로우:**
 
 1. get_pull_request_files 호출 (1회만)
-2. patch 분석 → 라인 코멘트 작성
+2. patch 분석 → 최소 3개 라인 코멘트 작성
 3. create_pull_request_review 호출 (1회만!)
 
 **중복 호출 금지!**
