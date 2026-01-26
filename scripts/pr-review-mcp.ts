@@ -48,7 +48,7 @@ create_pull_request_review 인자:
   const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
   const response = await genAI.models.generateContent({
-    model: 'gemini-2.5-flash-exp',  // tool 최적화
+    model: 'gemini-2.5-flash',  // tool 최적화
     contents: [
       { role: 'model', parts: [{ text: systemInstruction }] },
       { role: 'user', parts: [{ 
