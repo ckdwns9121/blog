@@ -1,6 +1,8 @@
 import { GoogleGenAI, mcpToTool, FunctionCallingConfigMode } from '@google/genai';
 import { Client } from '@modelcontextprotocol/sdk/client';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 
 const PR_NUMBER = Number(process.env.PR_NUMBER!);
 const REPO_OWNER = process.env.REPO_OWNER!;
@@ -27,9 +29,18 @@ async function main() {
     process.exit(1);
   }
 
+
+  // 리뷰 규칙 가져오기
+  const reviewRules = await readFile(join(process.cwd(), 'scripts/pr-review/review-rules.toml'), 'utf-8');
+
   // 개선된 프롬프트
   const systemInstruction = `
-너는 PR 리뷰 전문가다.
+너는 PR 리뷰 전문가다. 다음 리뷰 규칙을 엄격히 준수해라.
+
+---
+[리뷰 규칙 및 프로젝트 설정]
+${reviewRules}
+---
 
 **PR #${PR_NUMBER} 단일 리뷰 워크플로우:**
 
