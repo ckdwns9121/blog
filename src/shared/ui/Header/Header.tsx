@@ -6,6 +6,7 @@ import Link from "next/link";
 import { HeaderPlugin } from "./types";
 import { HeaderSection } from "./HeaderSection";
 import { cn } from "@/shared/lib/cn";
+import { Button } from "@/shared/ui/button";
 
 interface HeaderProps {
   plugins: HeaderPlugin[];
@@ -32,13 +33,17 @@ export function Header({ plugins, mobilePlugins = [], className }: HeaderProps) 
           {/* 좌측 섹션 */}
           <div className="flex items-center gap-4">
             {/* 모바일 메뉴 버튼 */}
-            <button
+            <Button
               onClick={toggleMenu}
-              className="md:hidden p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
               aria-label="메뉴 토글"
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-menu"
             >
               {isMenuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
-            </button>
+            </Button>
 
             {/* 좌측 플러그인들 */}
             <HeaderSection plugins={leftPlugins} position="left" className="hidden md:flex" />
@@ -51,7 +56,7 @@ export function Header({ plugins, mobilePlugins = [], className }: HeaderProps) 
 
         {/* 모바일 메뉴 */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 dark:border-dark-border py-4">
+          <div id="mobile-menu" className="md:hidden border-t border-gray-200 dark:border-dark-border py-4" role="menu">
             {/* 모바일 플러그인들 */}
             {mobilePlugins.map((plugin) => (
               <div key={plugin.id} className="mb-4 last:mb-0">

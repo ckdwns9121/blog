@@ -2,6 +2,7 @@
 
 import { useEffect, ReactNode } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { Button } from "@/shared/ui/button";
 
 interface ModalProps {
   isOpen: boolean;
@@ -51,13 +52,15 @@ export function Modal({ isOpen, onClose, children, maxWidth = "max-w-7xl" }: Mod
         onClick={(e) => e.stopPropagation()}
       >
         {/* 닫기 버튼 */}
-        <button
+        <Button
           onClick={onClose}
-          className="absolute -top-12 right-0 p-2 text-white hover:text-gray-300 transition-colors"
+          variant="ghost"
+          size="icon"
+          className="absolute -top-12 right-0 text-white hover:text-gray-300 hover:bg-transparent"
           aria-label="닫기"
         >
           <XMarkIcon className="h-6 w-6" />
-        </button>
+        </Button>
 
         {/* 컨텐츠 */}
         {children}

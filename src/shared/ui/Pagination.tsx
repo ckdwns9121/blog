@@ -1,3 +1,6 @@
+import { Button } from "@/shared/ui/button";
+import { cn } from "@/shared/lib/cn";
+
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
@@ -39,44 +42,50 @@ export function Pagination({ currentPage, totalPages, onPageChange }: Pagination
   const pageNumbers = getPageNumbers();
 
   return (
-    <nav className="flex items-center justify-center space-x-2 mt-8">
+    <nav className="flex items-center justify-center space-x-2 mt-8" aria-label="페이지네이션">
       {/* 이전 페이지 */}
-      <button
+      <Button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="cursor-pointer px-3 py-2 text-sm font-medium text-gray-500 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-gray-800"
+        variant="outline"
+        size="sm"
+        aria-label="이전 페이지"
       >
         이전
-      </button>
+      </Button>
 
       {/* 페이지 번호들 */}
       {pageNumbers.map((page, index) => (
         <div key={index}>
           {page === -1 ? (
-            <span className="px-3 py-2 text-sm font-medium text-gray-500">...</span>
+            <span className="px-3 py-2 text-sm font-medium text-muted-foreground">...</span>
           ) : (
-            <button
+            <Button
               onClick={() => onPageChange(page)}
-              className={`cursor-pointer px-3 py-2 text-sm font-medium rounded-md ${
-                currentPage === page
-                  ? "text-primary-700 bg-primary-50 dark:bg-primary-900 dark:text-primary-200 border border-primary-300 dark:border-primary-700"
-                  : "text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
-              }`}
+              variant={currentPage === page ? "default" : "outline"}
+              size="sm"
+              className={cn(
+                currentPage === page && "pointer-events-none"
+              )}
+              aria-label={`페이지 ${page}`}
+              aria-current={currentPage === page ? "page" : undefined}
             >
               {page}
-            </button>
+            </Button>
           )}
         </div>
       ))}
 
       {/* 다음 페이지 */}
-      <button
+      <Button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="cursor-pointer px-3 py-2 text-sm font-medium text-gray-500 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white dark:disabled:hover:bg-gray-800"
+        variant="outline"
+        size="sm"
+        aria-label="다음 페이지"
       >
         다음
-      </button>
+      </Button>
     </nav>
   );
 }

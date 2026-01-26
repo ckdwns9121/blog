@@ -1,28 +1,28 @@
-name: PR Review Agent
+# name: PR Review Agent
 
-on:
-  issue_comment:
-    types: [created]
+# on:
+#   issue_comment:
+#     types: [created]
 
-permissions:
-  issues: write
-  pull-requests: write
-  contents: read
+# permissions:
+#   issues: write
+#   pull-requests: write
+#   contents: read
 
-jobs:
-  review:
-    if: github.event.issue.pull_request && contains(github.event.comment.body, '@review-bot')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+# jobs:
+#   review:
+#     if: github.event.issue.pull_request && contains(github.event.comment.body, '@review-bot')
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - uses: ckdwns9121/shared-actions/actions/autonomous-pr-review@v2.0.9
-        with:
-          mcp_token: ${{ secrets.MCP_TOKEN }}
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          github_token: ${{ secrets.REVIEW_BOT_TOKEN }}
-          repo: ${{ github.repository }}
-          pr_number: ${{ github.event.issue.number }}
-          model: "claude-sonnet-4-20250514"
+#       - uses: ckdwns9121/shared-actions/actions/autonomous-pr-review@v2.0.9
+#         with:
+#           mcp_token: ${{ secrets.MCP_TOKEN }}
+#           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+#           github_token: ${{ secrets.REVIEW_BOT_TOKEN }}
+#           repo: ${{ github.repository }}
+#           pr_number: ${{ github.event.issue.number }}
+#           model: "claude-sonnet-4-20250514"
 
-          reply_style: "요약 / 중요한 이슈 / 개선 제안 / 테스트 제안"
+#           reply_style: "요약 / 중요한 이슈 / 개선 제안 / 테스트 제안"
