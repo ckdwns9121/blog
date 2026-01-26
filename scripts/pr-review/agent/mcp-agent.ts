@@ -109,7 +109,7 @@ export class MCPAgent {
 ${this.reviewRules}
 
 ## 출력 형식 - JSON ONLY
-반드시 아래 JSON 형식으로만 출력해라. 마크다운, 설명, ```json 블록 없이 JSON 문자열만 출력:
+반드시 아래 JSON 형식으로만 출력해라. 마크다운, 설명, 코드 블록 없이 JSON 문자열만 출력:
 
 {"overall":"요약","strengths":[],"concerns":[],"suggestions":[],"comments":[]}
 
@@ -181,7 +181,7 @@ PR #${this.context.prNumber} in ${this.context.owner}/${this.context.repo}
         history.push({
           role: 'user',
           parts: [{
-            text: '위 정보를 바탕으로 리뷰를 완료하세요. 반드시 JSON 형식으로만 출력하세요. ```json 블록이나 마크다운 없이 JSON 문자열만 출력해야 합니다.'
+            text: '위 정보를 바탕으로 리뷰를 완료하세요. 반드시 JSON 형식으로만 출력하세요. 코드 블록이나 마크다운 없이 JSON 문자열만 출력해야 합니다.'
           }]
         });
 
