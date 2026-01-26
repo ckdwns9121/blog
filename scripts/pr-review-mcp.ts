@@ -25,13 +25,8 @@ async function main() {
     process.exit(1);
   }
 
-  // GenAI 멀티턴 채팅
+  // GenAI 단일 호출
   const genAI = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-  const model = genAI.getGenerativeModel({
-    model: 'gemini-2.5-flash-exp',
-    tools: [mcpToTool(mcp)]
-  });
-
   const systemInstruction = `
 너는 PR 리뷰 전문가다.
 
@@ -57,8 +52,12 @@ PR #${PR_NUMBER}를 리뷰해라.
 }
 `;
 
-  const chat = model.startChat({ systemInstruction });
-  const result = await chat.sendMessage(`Review PR #${PR_NUMBER} in ${REPO_OWNER}/${REPO_NAME}`);
+  const result = await genAI.models.generateContent({
+    model: 'gemini-2.5-flash-exp',
+    contents: [{ role: 'user', parts: [{ text: `Review PR #${PR_NUMBER} in ${REPO_OWNER}/${REPO_NAME}` }] }],
+    tools: [mcpToTool(mcp)],
+    systemInstruction
+  });
 
   console.log('[Bot] ✅ Review completed');
   await mcp.close();
