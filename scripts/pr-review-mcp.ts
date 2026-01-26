@@ -138,7 +138,7 @@ create_pull_request_review 인자:
   try {  
     // PR 리뷰 요청  
     const response = await genAI.models.generateContent({  
-      model: 'gemini-3-pro-preview',  
+      model: 'gemini-2.5-flash',  
       contents: [  
         { role: 'user', parts: [{   
           text: `Review PR #${PR_NUMBER} in ${REPO_OWNER}/${REPO_NAME}.   
@@ -152,10 +152,6 @@ MCP 도구를 정확히 2회만 사용: 1)get_pull_request_files 2)create_pull_r
         tools: [mcpToTool(mcp)],  
         automaticFunctionCalling: {  
           maximumRemoteCalls: 2  
-        },  
-        thinkingConfig: {  
-          includeThoughts: true,        // 생각 과정 포함  
-          thinkingLevel: ThinkingLevel.LOW // 균형 잡힌 추론  
         },  
         toolConfig: {  
           functionCallingConfig: {  
