@@ -1,4 +1,4 @@
-import { GoogleGenAI, mcpToTool } from '@google/genai';
+import { GoogleGenAI, mcpToTool ,FunctionCallingConfigMode} from '@google/genai';
 import { Client } from '@modelcontextprotocol/sdk/client';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
@@ -58,7 +58,8 @@ PR #${PR_NUMBER}를 리뷰해라.
       { role: 'model', parts: [{ text: systemInstruction }] },
       { role: 'user', parts: [{ text: `Review PR #${PR_NUMBER} in ${REPO_OWNER}/${REPO_NAME}` }] }],
     config: {
-      tools: [mcpToTool(mcp)]
+      tools: [mcpToTool(mcp)],
+      toolConfig: { functionCallingConfig:{mode:FunctionCallingConfigMode.ANY} }
     }
   });
 
