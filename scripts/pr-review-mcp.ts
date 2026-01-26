@@ -138,7 +138,7 @@ create_pull_request_review 인자:
   try {  
     // PR 리뷰 요청  
     const response = await genAI.models.generateContent({  
-      model: 'gemini-2.5-flash',  
+      model: 'gemini-3-pro-preview',  
       contents: [  
         { role: 'user', parts: [{   
           text: `Review PR #${PR_NUMBER} in ${REPO_OWNER}/${REPO_NAME}.   
