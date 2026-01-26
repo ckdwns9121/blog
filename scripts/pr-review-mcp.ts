@@ -52,13 +52,18 @@ PR #${PR_NUMBER}를 리뷰해라.
 }
 `;
 
-  const result = await genAI.models.generateContent({
+  const response = await genAI.models.generateContent({
     model: 'gemini-2.5-flash-exp',
-    contents: [{ role: 'user', parts: [{ text: `Review PR #${PR_NUMBER} in ${REPO_OWNER}/${REPO_NAME}` }] }],
-    tools: [mcpToTool(mcp)],
-    systemInstruction
+    contents: [
+      { role: 'model', parts: [{ text: systemInstruction }] },
+      { role: 'user', parts: [{ text: `Review PR #${PR_NUMBER} in ${REPO_OWNER}/${REPO_NAME}` }] }],
+    config: {
+      tools: [mcpToTool(mcp)]
+    }
   });
 
+  console.log(response.functionCalls);
+  console.log(response.text)
   console.log('[Bot] ✅ Review completed');
   await mcp.close();
 }
