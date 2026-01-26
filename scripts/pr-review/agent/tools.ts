@@ -156,13 +156,48 @@ export const PR_REVIEW_TOOLS: Tool[] = [
  * Google Gen AI SDK에 전달할 Function Declaration 형식으로 변환
  */
 export function toFunctionDeclarations(tools: Tool[]) {
-  return tools.map((tool) => ({
-    name: tool.name,
-    description: tool.description,
-    parameters: {
-      type: Type.OBJECT,
-      properties: tool.parameters.properties,
-      required: tool.parameters.required,
-    },
-  }));
+  const mapType = (type: string): Type => {
+    switch (type) {
+      case 'string': return Type.STRING;
+      case 'number': return Type.NUMBER;
+      case 'boolean': return Type.BOOLEAN;
+      case 'array': return Type.ARRAY;
+      case 'object': return Type.OBJECT;
+      default: return Type.STRING;
+    }
+  };
+
+  const mapProperty = (prop: any): any => {
+    const schema: any = {
+      type: mapType(prop.type),
+      description: prop.description,
+    };
+    
+    if (prop.enum) {
+      schema.enum = prop.enum;
+    }
+    
+    if (prop.items) {
+      schema.items = mapProperty(prop.items);
+    }
+    
+    return schema;
+  };
+
+  return tools.map((tool) => {
+    const properties: Record<string, any> = {};
+    for (const [key, prop] of Object.entries(tool.parameters.properties)) {
+      properties[key] = mapProperty(prop);
+    }
+
+    return {
+      name: tool.name,
+      description: tool.description,
+      parameters: {
+        type: Type.OBJECT,
+        properties: properties,
+        required: tool.parameters.required,
+      },
+    };
+  });
 }

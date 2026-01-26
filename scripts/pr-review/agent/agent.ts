@@ -184,7 +184,7 @@ Head SHA: ${this.context.headSha}
 
       try {
         console.log(`  → Executing ${fc.name}...`);
-        const result = await tool.handler(fc.args, this.context);
+        const result = await tool.handler(fc.args ?? {}, this.context);
 
         // log_thought 도구 결과는 별도 처리
         if (fc.name === 'log_thought') {
@@ -231,7 +231,7 @@ Head SHA: ${this.context.headSha}
   /**
    * 사고 추출
    */
-  private extractThoughts(response: ReturnType<typeof GoogleGenAI.prototype.models.generateContent>): void {
+  private extractThoughts(response: Awaited<ReturnType<typeof GoogleGenAI.prototype.models.generateContent>>): void {
     // response.candidates[0].content.parts에서 thought 부분 추출
     const candidates = (response as any).candidates;
     if (!candidates || candidates.length === 0) return;

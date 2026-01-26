@@ -1,3 +1,4 @@
+import type { GitHubClient } from '../github';
 export interface AgentMessage {
   role: 'user' | 'assistant' | 'system' | 'tool';
   content: string;
@@ -18,16 +19,19 @@ export interface ToolResult {
   error?: string;
 }
 
+export interface ToolProperty {
+  type: string;
+  description?: string;
+  enum?: string[];
+  items?: ToolProperty;
+}
+
 export interface Tool {
   name: string;
   description: string;
   parameters: {
     type: 'object';
-    properties: Record<string, {
-      type: string;
-      description: string;
-      enum?: string[];
-    }>;
+    properties: Record<string, ToolProperty>;
     required: string[];
   };
   handler: (params: Record<string, unknown>, context: AgentContext) => Promise<unknown>;
@@ -39,7 +43,7 @@ export interface AgentContext {
   prNumber: number;
   baseSha: string;
   headSha: string;
-  github: any; // GitHubClient
+  github: GitHubClient; // GitHubClient
   maxIterations?: number;
 }
 
