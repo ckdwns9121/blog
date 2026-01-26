@@ -53,7 +53,7 @@ PR #${PR_NUMBER}를 리뷰해라.
 `;
 
   const response = await genAI.models.generateContent({
-    model: 'gemini-2.5-flash-exp',
+    model: 'gemini-2.5-flash',
     contents: [
       { role: 'model', parts: [{ text: systemInstruction }] },
       { role: 'user', parts: [{ text: `Review PR #${PR_NUMBER} in ${REPO_OWNER}/${REPO_NAME}` }] }],
