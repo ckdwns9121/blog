@@ -48,17 +48,14 @@ PR #${PR_NUMBER}를 리뷰해라.
 `;
 
   // AI가 MCP 스스로 호출
-  const chat = genAI.chats.create({
+  const result = await genAI.models.generateContent({
     model: 'gemini-2.5-flash',
-    history: [],
     systemInstruction,
-  });
-
-  const result = await chat.sendMessage({
     tools: [mcpToTool(mcp)],
-  }, [
-    { role: 'user', parts: [{ text: `Review PR #${PR_NUMBER} in ${REPO_OWNER}/${REPO_NAME}` }] },
-  ]);
+    contents: [
+      { role: 'user', parts: [{ text: `Review PR #${PR_NUMBER} in ${REPO_OWNER}/${REPO_NAME}` }] },
+    ],
+  });
 
   console.log('[Bot] Review completed');
   await mcp.close();
