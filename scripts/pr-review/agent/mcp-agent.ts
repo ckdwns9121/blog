@@ -147,62 +147,14 @@ ${this.reviewRules}
 
 ## 중요 사항
 
-- **즉시 실행**: "준비됨" 같은 불필요한 말 대신 바로 도구 호출 시작
-- **도구 사용**: PR 정보 조회, 파일 목록 조회, 코드 검색에만 도구 사용
-- **리뷰 반환**: create_pull_request_review, create_review, submitReview 등 모든 리뷰 생성 도구는 절대 호출하지 말고 JSON으로만 반환
-- **승인 금지**: PR을 APPROVE하거나 REQUEST_CHANGES하는 도구는 절대 호출하지 말기
-- **라인 코멘트**: comments 배열의 라인 번호는 diff에서 +로 시작하는 라인의 번호 사용
+- **JSON만 반환**: 최종 리뷰는 반드시 JSON 형식으로 반환하세요
+- **도구 사용 안 함**: 이미 PR 정보와 diff가 제공됩니다
 - **한국어 응답**: 모든 리뷰는 한국어로 작성
 - **규칙 기반 리뷰**: 위 프로젝트 리뷰 규칙을 우선적으로 적용
 
-## 절대 호출하지 말아야 할 도구
+## 최종 응답 형식 (JSON만 반환)
 
-다음 도구들은 절대 호출하지 말고 JSON 응답만 반환하세요:
-- create_pull_request_review (승인/거절/코멘트 생성)
-- add_issue_comment (이슈/PR 코멘트 생성)
-- create_review, submitReview
-- createReviewComment, create_comment
-- 모든 'review', 'comment', 'approve' 키워드가 포함된 도구
-
-**허용된 도구만 사용** (읽기 전용):
-- get_* (정보 가져오기)
-- list_* (목록 가져오기)
-- search_* (검색)
-- commits.* (커밋 정보)
-
-**중요**: 리뷰 결과는 반드시 JSON 형식으로만 반환하세요. 절대 GitHub API에 직접 코멘트나 리뷰를 남기지 마세요.
-
-## diff 기반 정확한 리뷰를 위한 필수 규칙
-
-pull_requests.list_files의 응답 구조:
-files는 filename, status, patch 필드를 가짐
-patch 필드에는 @@ -old_count +new_count @@ 형식으로 실제 diff가 포함됨
--로 시작하는 라인은 삭제된 코드
-+로 시작하는 라인은 추가된 코드
-
-리뷰 시 반드시 따를 것:
-1. patch 필드 확인: 파일의 patch 속성에 있는 실제 diff만 보고 코멘트 작성
-2. +로 시작하는 라인만: 추가된 라인(+)에 대해서만 코멘트
-3. 실제 변경내용 인용: 코멘트에 변경된 코드를 직접 인용하여 근거 제시
-4. 파일명만 보지 말기: 파일 이름만 보고 추측하지 말기
-
-나쁜 예 (파일명만 보고 추측):
-// components.json 변경이니까 경로 설정 문제가 있겠군요
-
-좋은 예 (실제 diff 참고):
-// diff에서 "utils": "@/shared/lib"와 "lib": "@/shared/lib"가 중복되어 있어서
-// 둘 중 하나로 통일하는 것이 좋겠습니다.
-
-## 사용 가능한 도구 (정보 수집용)
-
-- pull_requests.get: PR 정보 가져오기
-- pull_requests.list_files: 변경된 파일 목록과 patch(diff) 가져오기 (중요!)
-- search.code: 코드 검색
-- commits.get: 커밋 정보 가져오기
-
-## 최종 응답 형식
-
-모든 정보 수집과 분석을 완료한 후, 다음 JSON 형식으로 최종 리뷰를 반환하세요:
+제공된 PR 정보와 diff를 분석하여 다음 JSON 형식으로 리뷰를 반환하세요:
 
 {
   "overall": "전체 리뷰 요약 (2-3문장)",
@@ -254,195 +206,66 @@ Head SHA: ${this.context.headSha}
     let getPullRequestFilesCalled = false;
     let jsonRequestSent = false;  // JSON 요청 메시지 전송 여부
 
-    // 수동 멀티턴 루프
-    while (loopCount < maxLoops) {
+    // 단 2단계만 실행: 1) 정보 수집, 2) JSON 리뷰 반환
+    while (loopCount < maxLoops && loopCount <= 2) {
       loopCount++;
       console.log(`[Agent] --- Iteration ${loopCount} ---`);
 
-      // 정보 수집 완료 후에는 도구 없이 JSON만 요청
-      let useTools = true;
-      if (hasGatheredInfo) {
-        useTools = false;
-        console.log('[Agent] 📊 Info gathering complete, requesting JSON response');
-      }
+      let result: any;
+      let response: any;
 
-      const result = await this.ai.models.generateContent({
-        model: this.model,
-        systemInstruction,
-        contents: history,
-        config: useTools ? {
-          tools: [mcpToTool(this.mcpClient)],
-          // 첫 턴에는 도구 사용 강제
-          toolConfig: {
-            functionCallingConfig: {
-              mode: loopCount === 1 ? 'ANY' : 'AUTO',
-            },
-          },
-        } : {
-          // 도구 없이 JSON만 반환 요청
-          toolConfig: {
-            functionCallingConfig: {
-              mode: 'NONE',
-            },
-          },
-        },
-      });
+      // 1단계: PR 정보와 파일 목록 가져오기
+      if (loopCount === 1) {
+        console.log('[Agent] 📋 Step 1: Gathering PR information...');
 
-      const response = result.candidates[0].content;
-      history.push({ role: 'model', parts: response.parts });
-
-      // 사고 추출
-      this.extractThoughts(response);
-
-      // 함수 호출 확인
-      const toolCalls = response.parts.filter((p: any) => p.functionCall);
-
-      if (toolCalls.length === 0) {
-        // 더 이상 호출할 도구가 없으면 종료
-        finalResponseText = result.text || '';
-        break;
-      }
-
-      console.log(`[Agent] 🔧 Tool calls: ${toolCalls.map((tc: any) => tc.functionCall.name).join(', ')}`);
-
-      // 정보 수집 완료 확인
-      for (const call of toolCalls) {
-        const toolName = call.functionCall.name.toLowerCase();
-        if (toolName.includes('get_pull_request') || toolName.includes('pulls.get')) {
-          getPullRequestCalled = true;
-        }
-        if (toolName.includes('get_pull_request_files') || toolName.includes('pulls.list_files')) {
-          getPullRequestFilesCalled = true;
-        }
-      }
-
-      // PR 정보와 파일 목록을 모두 가져왔으면 정보 수집 완료로 표시
-      if (getPullRequestCalled && getPullRequestFilesCalled && !hasGatheredInfo) {
-        hasGatheredInfo = true;
-        console.log('[Agent] ✅ Info gathering complete (PR + files obtained)');
-      }
-
-      // 루프 감지: 동일한 도구가 3번 이상 반복되면 종료
-      const currentToolNames = toolCalls.map((tc: any) => tc.functionCall.name).sort().join(',');
-      recentToolCalls.push(currentToolNames);
-      if (recentToolCalls.length > 3) {
-        recentToolCalls.shift(); // 최근 3개만 유지
-      }
-      if (recentToolCalls.length === 3 && new Set(recentToolCalls).size === 1) {
-        console.log('[Agent] ⚠️ Detected repetitive tool calls, stopping early');
-        finalResponseText = result.text || '리뷰가 완료되었습니다.';
-        break;
-      }
-
-      // 도구 실행 및 결과 수집
-      const functionResponses: any[] = [];
-
-      // 절대 차단할 도구 목록 (정확히 일치 또는 포함)
-      // GitHub Actions에서 PR 승인/리뷰 생성/코멘트 작성 불가
-      const BLOCKED_PATTERNS = [
-        'create_pull_request_review',
-        'create_review',
-        'createReview',
-        'submitReview',
-        'create_review_comment',
-        'createReviewComment',
-        'add_issue_comment',
-        'addIssueComment',
-        'create_comment',
-        'createComment',
-        'post_comment',
-        'postComment',
-      ];
-
-      for (const call of toolCalls) {
-        const toolName = call.functionCall.name;
-        const toolNameLower = toolName.toLowerCase();
-
-        console.log(`[Agent] 🔍 Checking tool: "${toolName}"`);
-
-        // 1단계: 정확히 일치하는지 확인
-        const isExactMatch = BLOCKED_PATTERNS.some(
-          blocked => blocked.toLowerCase() === toolNameLower
-        );
-
-        // 2단계: 차단 패턴이 포함되어 있는지 확인
-        const isBlocked = BLOCKED_PATTERNS.some(
-          blocked => toolNameLower.includes(blocked.toLowerCase())
-        );
-
-        // 3단계: 'review', 'comment', 'approval' 관련 키워드 확인
-        const hasForbiddenKeyword = toolNameLower.match(/(review|comment|approve|approval)/);
-
-        if (isExactMatch || isBlocked || hasForbiddenKeyword) {
-          console.log(`[Agent] 🚫 BLOCKED tool '${toolName}' - returning mock success`);
-          functionResponses.push({
-            functionResponse: {
-              name: toolName,
-              response: {
-                content: 'Operation completed successfully. Please return your final review as JSON format.',
-                blocked: true,
-                _mock: true,
-              },
-            },
-          });
-          continue;
-        }
-
-        // 허용된 도구만 실행: get, list, search, commits 등 읽기 전용
-        const allowedPrefixes = ['get_', 'list_', 'search_', 'commits.', 'pulls.', 'issues.', 'repos.'];
-        const isAllowed = allowedPrefixes.some(prefix => toolNameLower.startsWith(prefix.toLowerCase()));
-
-        if (!isAllowed) {
-          console.log(`[Agent] ⚠️ Unknown tool '${toolName}' - blocking for safety`);
-          functionResponses.push({
-            functionResponse: {
-              name: toolName,
-              response: {
-                content: 'Unknown tool. Please use only read-only tools (get, list, search).',
-                blocked: true,
-                _mock: true,
-              },
-            },
-          });
-          continue;
-        }
-
-        try {
-          const mcpResult = await this.mcpClient.callTool({
-            name: toolName,
-            arguments: call.functionCall.args,
-          });
-          functionResponses.push({
-            functionResponse: {
-              name: toolName,
-              response: { content: mcpResult.content },
-            },
-          });
-        } catch (error) {
-          console.error(`[Agent] ❌ Tool ${toolName} failed:`, error);
-          functionResponses.push({
-            functionResponse: {
-              name: toolName,
-              response: { error: error instanceof Error ? error.message : 'Unknown error' },
-            },
-          });
-        }
-      }
-
-      // 도구 결과를 히스토리에 추가
-      history.push({ role: 'user', parts: functionResponses });
-
-      // 정보 수집 완료 후 JSON 요청 메시지 전송
-      if (hasGatheredInfo && !jsonRequestSent) {
-        history.push({
-          role: 'user',
-          parts: [{
-            text: '정보 수집이 완료되었습니다. 이제 수집한 PR 정보와 diff를 바탕으로 분석한 뒤, JSON 형식으로 최종 리뷰를 반환해주세요. 더 이상 도구를 호출하지 말고 JSON만 반환하세요.'
-          }]
+        // 명시적으로 get_pull_request와 get_pull_request_files만 호출
+        const prResult = await this.mcpClient.callTool({
+          name: 'get_pull_request',
+          arguments: { owner: this.context.owner, repo: this.context.repo, pull_number: this.context.prNumber }
         });
-        jsonRequestSent = true;
-        console.log('[Agent] 📝 Sent JSON request to AI');
+
+        const filesResult = await this.mcpClient.callTool({
+          name: 'get_pull_request_files',
+          arguments: { owner: this.context.owner, repo: this.context.repo, pull_number: this.context.prNumber }
+        });
+
+        // 결과를 히스토리에 추가
+        history.push({ role: 'user', parts: [{ functionResponse: { name: 'get_pull_request', response: { content: prResult.content } } }] });
+        history.push({ role: 'user', parts: [{ functionResponse: { name: 'get_pull_request_files', response: { content: filesResult.content } } }] });
+
+        console.log('[Agent] ✅ PR information gathered');
+        continue;
       }
+
+      // 2단계: AI에게 JSON 리뷰 요청 (도구 없음)
+      if (loopCount === 2) {
+        console.log('[Agent] 📝 Step 2: Requesting JSON review from AI (NO TOOLS)');
+
+        result = await this.ai.models.generateContent({
+          model: this.model,
+          systemInstruction,
+          contents: history,
+          config: {
+            // 도구 전혀 제공하지 않음
+            toolConfig: {
+              functionCallingConfig: {
+                mode: 'NONE',
+              },
+            },
+          },
+        });
+
+        response = result.candidates[0].content;
+        history.push({ role: 'model', parts: response.parts });
+
+        // AI가 반환한 텍스트가 최종 리뷰
+        finalResponseText = result.text || '';
+        console.log('[Agent] ✅ Review received:', finalResponseText.substring(0, 100) + '...');
+        break;
+      }
+
+      /* 더 이상 실행되지 않음 */
+      break;
     }
 
     console.log('\n=== 🤖 MCP Agent Completed ===\n');
