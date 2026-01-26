@@ -55,11 +55,9 @@ export class MCPAgent {
    */
   private loadReviewRules(): string {
     try {
-      const rulesPath = join(__dirname, '../review-rules.md');
-      let rules = readFileSync(rulesPath, 'utf-8');
-      // 템플릿 리터럴 내에서 사용할 수 있도록 백틱 이스케이프 처리
-      rules = rules.replace(/`/g, '\\`');
-      console.log('[Agent] 📋 Review rules loaded');
+      const rulesPath = join(__dirname, '../review-rules.toml');
+      const rules = readFileSync(rulesPath, 'utf-8');
+      console.log('[Agent] 📋 Review rules loaded (TOML)');
       return rules;
     } catch (error) {
       console.warn('[Agent] ⚠️ Could not load review rules, using defaults');
@@ -103,9 +101,19 @@ export class MCPAgent {
     const systemInstruction = `
 너는 **Agentic AI 코드 리뷰어**다.
 
-## 프로젝트 리뷰 규칙
+## 프로젝트 리뷰 규칙 (TOML 형식)
 
-아래 규칙을 참고하여 코드를 리뷰하세요:
+아래 규칙은 TOML 형식으로 되어 있으며, 각 섹션별로 리뷰 기준을 정의합니다:
+- [architecture]: FSD 패턴, 레이어 규칙
+- [typescript]: 타입 안전성, any 금지
+- [react]: Server/Client Component, Hooks, State 관리
+- [performance]: 이미지, 데이터 fetching, 번들 크기
+- [security]: 입력 검증, 시크릿 관리, XSS 방지
+- [code_style]: 명명 규칙, 파일 구조
+- [error_handling]: 에러 처리 패턴
+- [quality]: 테스트, 품질 기준
+- [notion_api]: Notion API 특이사항
+- [checklist]: 리뷰 체크리스트
 
 ---
 ${this.reviewRules}

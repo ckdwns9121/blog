@@ -1,0 +1,200 @@
+# PR 리뷰 규칙 (Review Rules)
+# 이 프로젝트는 Next.js 15 기반 블로그로 Notion을 CMS로 사용합니다
+
+[project]
+name = "blog"
+description = "Next.js 15 기반 개인 기술 블로그, Notion CMS 사용"
+tech_stack = ["Next.js 15", "React 19", "TypeScript", "Notion API", "Redis"]
+
+# ============================================
+# 1. 아키텍처 규칙
+# ============================================
+
+[architecture]
+pattern = "Feature-Sliced Design (FSD)"
+description = "순환 의존성 금지, 상위 레이어가 하위 레이어 import 금지"
+
+[architecture.layers]
+entities = "도메인 엔티티 (CMS-agnostic, Notion 의존성 없음)"
+features = "기능 모듈 (notion, search, page-views 등)"
+shared = "공유 UI, 타입, 유틸리티"
+widgets = "복합 UI 컴포넌트"
+
+[architecture.rules]
+entities_agnostic = "entities/는 Notion 의존성 없이 범용적이어야 함"
+notion_integration = "features/notion/에만 Notion API 연동"
+types_location = "shared/types/에 CMS-agnostic 타입 정의"
+adapter_pattern = "Notion 전용 타입 → 공용 타입 변환은 features/notion/utils/blockAdapter.ts에서"
+
+# ============================================
+# 2. TypeScript 규칙
+# ============================================
+
+[typescript]
+strict_mode = true
+
+[typescript.rules]
+type_safety = [
+  "any 타입 사용 금지 (명백한 이유 없는 경우)",
+  "unknown 사용 후 타입 가드 prefer",
+  "인터페이스는 shared/types/에 정의",
+  "제네릭 타입은 명확한 제약 조건 포함"
+]
+
+bad_examples = [
+  "function process(data: any) { ... }"
+]
+
+good_examples = [
+  "function process<T extends Record<string, unknown>>(data: T): Processed<T> { ... }"
+]
+
+# ============================================
+# 3. React/Next.js 규칙
+# ============================================
+
+[react]
+server_components_priority = true
+client_components = '"use client" 지정 필요'
+
+[react.rules]
+component_preference = "가능한 Server Component 사용 우선"
+client_separation = "use client가 필요한 최소한의 컴포넌트로 분리"
+
+[react.hooks]
+location = "hooks/ 또는 use* 파일에"
+purity = "Hook은 순수 함수로 사이드 이펙트 최소화"
+dependencies = "의존성 배열은 빠짐없이 명시"
+
+[react.state_management]
+server = "React Query (@tanstack/react-query)"
+local = "useState, useReducer"
+global = "Context API (필요한 경우만)"
+
+# ============================================
+# 4. 성능 규칙
+# ============================================
+
+[performance]
+
+[performance.images]
+notion_s3_expiry = "만료되므로 로컬 변환 필수"
+optimization = "buildImages.ts로 빌드 시 최적화"
+formats = ["WebP", "AVIF"]
+component = "next/image 사용"
+
+[performance.data_fetching]
+parallel = "Promise.all로 병렬 요청"
+caching = "React Query 캐싱 활용"
+rendering = "SSG/ISR 우선, SSR 최소화"
+
+[performance.bundle]
+code_splitting = "동적 import 사용"
+subpath_import = "라이브러리 서브패스 import 고려"
+
+bad_imports = ["import * as Radix from '@radix-ui/react-slot'"]
+good_imports = ["import { Button } from '@radix-ui/react-slot'"]
+
+# ============================================
+# 5. 보안 규칙
+# ============================================
+
+[security]
+
+[security.input_validation]
+user_input = "항상 검증 및 이스케이프"
+notion_api = "응답도 신뢰하지 말고 처리"
+
+[security.secrets]
+storage = "환경변수만 사용 (.env는 .gitignore)"
+hardcoding = "코드에 하드코딩 금지"
+github_actions = "GitHub Secrets 사용"
+
+[security.content]
+xss_prevention = "React의 자동 이스케이프 의존"
+dangerous_html = "dangerouslySetInnerHTML 사용 시 sanitize 필수"
+
+# ============================================
+# 6. 코드 스타일
+# ============================================
+
+[code_style]
+
+[code_style.naming]
+component = "PascalCase (예: PostList.tsx)"
+function = "camelCase (예: fetchPostData)"
+type = "PascalCase (예: PostData, FetchFn)"
+constant = "UPPER_SNAKE_CASE (예: API_BASE_URL)"
+private = "접두사 _ 사용 (예: _internalMethod)"
+
+[code_style.file_structure]
+one_export = "하나의 파일 = 하나의 주요 export"
+grouping = "관련 파일은 같은 디렉토리"
+barrel = "index.ts로 public API 노출"
+
+[code_style.examples]
+barrel_export = """
+// features/notion/ui/blocks/index.ts
+export { CodeBlock } from './CodeBlock';
+export { ImageBlock } from './ImageBlock';
+"""
+
+# ============================================
+# 7. 에러 처리
+# ============================================
+
+[error_handling]
+
+[error_handling.rules]
+api_calls = "try-catch로 감싸"
+user_messages = "에러는 사용자에게 친숙한 메시지로 변환"
+logging = "에러 로깅은 일관되게"
+
+good_examples = """
+try {
+  const data = await fetchData();
+} catch (error) {
+  console.error('[FetchError] Failed to fetch:', error);
+  return { error: '데이터를 불러올 수 없습니다.' };
+}
+"""
+
+# ============================================
+# 8. 테스트 & 품질
+# ============================================
+
+[quality]
+unit_tests = "복잡한 로직은 유닛 테스트 작성"
+console_logs = "불필요한 console.log는 커밋 전 제거"
+eslint = "ESLint 경고는 해결 후 커밋"
+
+# ============================================
+# 9. Notion API 특이사항
+# ============================================
+
+[notion_api]
+pagination = "블록 조회는 페이지네이션 (100개씩)"
+image_expiry = "이미지 URL은 만료되므로 프록시 또는 다운로드 필요"
+rate_limit = "초당 요청 제한 주의"
+
+# ============================================
+# 10. PR 작성 가이드
+# ============================================
+
+[pr_guidelines]
+commit_message = "명확하게 (무엇을, 왜)"
+large_changes = "변경사항이 많으면 여러 PR로 분할"
+breaking_changes = "Breaking Change가 있으면 명시"
+testing = "테스트 방법 포함 (관련된 경우)"
+
+# ============================================
+# 리뷰 체크리스트 (AI가 참고용)
+# ============================================
+
+[checklist]
+architecture = ["FSD 레이어 준수", "순환 의존성 없음", "Adapter Pattern 사용"]
+typescript = ["any 사용 없음", "타입 정의 적절", "제네릭 제약 조건 명확"]
+react = ["Server Component 우선", "Client Component 최소화", "Hooks 규칙 준수"]
+performance = ["이미지 최적화", "병렬 요청 사용", "불필요한 import 없음"]
+security = ["입력 검증", "시크릿 하드코딩 없음", "XSS 방지"]
+style = ["명명 규칙 준수", "파일 구조 적절", "에러 처리 완비"]
