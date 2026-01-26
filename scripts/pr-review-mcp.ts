@@ -25,7 +25,9 @@ async function main() {
     await mcp.connect(serverParams);
     console.log('[MCP] ✅ Connected');
     const tools = await mcp.listTools();
-    console.log('[MCP] Tools:', JSON.stringify(tools, null, 2));
+    console.log('::group::MCP Available Tools');
+    console.log(JSON.stringify(tools, null, 2));
+    console.log('::endgroup::');
   } catch(e) {
     console.error('[MCP] ❌ Failed:', e);
     process.exit(1);
