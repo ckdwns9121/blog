@@ -38,6 +38,7 @@ export class MCPAgent {
   private thoughtLogs: ThoughtLog[] = [];
   private model: string;
   private reviewRules: string;
+  private validLineNumbers: Record<string, number[]> = {};  // 유효한 라인 번호
 
   constructor(apiKey: string, context: MCPAgentContext, model: string = 'gemini-2.5-flash') {
     this.ai = new GoogleGenAI({ apiKey });
@@ -188,8 +189,9 @@ PR #${this.context.prNumber} in ${this.context.owner}/${this.context.repo}
         history.push({ role: 'user', parts: [{ functionResponse: { name: 'get_pull_request', response: { content: prResult.content } } }] });
 
         // 파일 목록에서 diff 파싱 - AI가 정확한 라인 번호를 알 수 있도록
-        let diffSummary = '\n## Changed Files with Diff:\n\n';
         const filesData = filesResult.content as any[];
+        const validLineNumbers: Record<string, number[]> = {};  // 유효한 라인 번호 매핑
+        let diffSummary = '\n## Changed Files with Diff:\n\n';
 
         for (const item of filesData) {
           if (item.type === 'text') {
@@ -198,8 +200,8 @@ PR #${this.context.prNumber} in ${this.context.owner}/${this.context.repo}
               const fileData = JSON.parse(file);
               if (fileData.patch) {
                 const parsed = parseDiffPatch(fileData.patch);
+                validLineNumbers[fileData.filename] = parsed.map(l => l.line);
                 diffSummary += `\n### ${fileData.filename}\n`;
-                diffSummary += `- Status: ${fileData.status}\n`;
                 diffSummary += `- Changed lines: ${parsed.map(l => `L${l.line}`).join(', ')}\n`;
                 diffSummary += `\n\`\`\`diff\n${fileData.patch}\n\`\`\`\n`;
               }
@@ -210,6 +212,7 @@ PR #${this.context.prNumber} in ${this.context.owner}/${this.context.repo}
         }
 
         console.log(`[Agent] 📊 Parsed ${filesData.length} files with diffs`);
+        console.log(`[Agent] ✅ Valid line numbers:`, JSON.stringify(validLineNumbers, null, 2));
 
         // diff 요약을 별도 메시지로 추가
         history.push({ role: 'user', parts: [{ text: diffSummary }] });
@@ -229,19 +232,11 @@ PR #${this.context.prNumber} in ${this.context.owner}/${this.context.repo}
         history.push({
           role: 'user',
           parts: [{
-            text: `위 diff 정보를 바탕으로 리뷰를 생성해라.
+            text: `리뷰 생성 방법:
 
-중요: 각 파일에서 "Changed lines: L10, L25, L42"처럼 명시된 라인 번호를 사용해라.
-이 라인 번호들은 diff의 @@ 헤더에서 정확히 계산된 것이다.
-
-리뷰 방법:
-1. 각 파일의 diff를 확인해라
-2. 문제가 있는 코드를 찾아라 (타입, 보안, 성능, 코드 스타일 등)
-3. comments 배열에 추가해라: {"path":"파일경로","line":정확한라인번호,"code":"코드","comment":"코멘트","severity":"info|warning|error"}
-
-라인 번호는 반드시 "Changed lines"에 명시된 번호만 사용해라. 다른 번호를 쓰면 GitHub가 거부한다.
-
-최소 3개 이상의 라인별 코멘트를 작성해라.
+1. 각 파일의 diff를 확인하고 문제가 있는 코드를 찾아라
+2. comments를 작성할 때 반드시 "Changed lines: L10, L25, L42"에 명시된 라인 번호만 사용해라
+3. 다른 라인 번호를 절대로 만들지 마라 - GitHub가 거부한다
 
 JSON 형식으로만 출력해라.`
           }]
