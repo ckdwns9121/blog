@@ -1,6 +1,7 @@
 import { GoogleGenAI, mcpToTool } from '@google/genai';
 import { Client } from '@modelcontextprotocol/sdk/client';
-import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio';
+// @ts-ignore - Check for module resolution issues with .js extension in imports
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import type { ThoughtLog } from './types';
@@ -247,21 +248,41 @@ Head SHA: ${this.context.headSha}
 
     console.log('[Agent] 🧠 Starting reasoning loop...\n');
 
+    // 정보 수집 단계 추적
+    let hasGatheredInfo = false;
+    let getPullRequestCalled = false;
+    let getPullRequestFilesCalled = false;
+    let jsonRequestSent = false;  // JSON 요청 메시지 전송 여부
+
     // 수동 멀티턴 루프
     while (loopCount < maxLoops) {
       loopCount++;
       console.log(`[Agent] --- Iteration ${loopCount} ---`);
 
+      // 정보 수집 완료 후에는 도구 없이 JSON만 요청
+      let useTools = true;
+      if (hasGatheredInfo) {
+        useTools = false;
+        console.log('[Agent] 📊 Info gathering complete, requesting JSON response');
+      }
+
       const result = await this.ai.models.generateContent({
         model: this.model,
         systemInstruction,
         contents: history,
-        config: {
+        config: useTools ? {
           tools: [mcpToTool(this.mcpClient)],
           // 첫 턴에는 도구 사용 강제
           toolConfig: {
             functionCallingConfig: {
               mode: loopCount === 1 ? 'ANY' : 'AUTO',
+            },
+          },
+        } : {
+          // 도구 없이 JSON만 반환 요청
+          toolConfig: {
+            functionCallingConfig: {
+              mode: 'NONE',
             },
           },
         },
@@ -283,6 +304,23 @@ Head SHA: ${this.context.headSha}
       }
 
       console.log(`[Agent] 🔧 Tool calls: ${toolCalls.map((tc: any) => tc.functionCall.name).join(', ')}`);
+
+      // 정보 수집 완료 확인
+      for (const call of toolCalls) {
+        const toolName = call.functionCall.name.toLowerCase();
+        if (toolName.includes('get_pull_request') || toolName.includes('pulls.get')) {
+          getPullRequestCalled = true;
+        }
+        if (toolName.includes('get_pull_request_files') || toolName.includes('pulls.list_files')) {
+          getPullRequestFilesCalled = true;
+        }
+      }
+
+      // PR 정보와 파일 목록을 모두 가져왔으면 정보 수집 완료로 표시
+      if (getPullRequestCalled && getPullRequestFilesCalled && !hasGatheredInfo) {
+        hasGatheredInfo = true;
+        console.log('[Agent] ✅ Info gathering complete (PR + files obtained)');
+      }
 
       // 루프 감지: 동일한 도구가 3번 이상 반복되면 종료
       const currentToolNames = toolCalls.map((tc: any) => tc.functionCall.name).sort().join(',');
@@ -393,6 +431,18 @@ Head SHA: ${this.context.headSha}
 
       // 도구 결과를 히스토리에 추가
       history.push({ role: 'user', parts: functionResponses });
+
+      // 정보 수집 완료 후 JSON 요청 메시지 전송
+      if (hasGatheredInfo && !jsonRequestSent) {
+        history.push({
+          role: 'user',
+          parts: [{
+            text: '정보 수집이 완료되었습니다. 이제 수집한 PR 정보와 diff를 바탕으로 분석한 뒤, JSON 형식으로 최종 리뷰를 반환해주세요. 더 이상 도구를 호출하지 말고 JSON만 반환하세요.'
+          }]
+        });
+        jsonRequestSent = true;
+        console.log('[Agent] 📝 Sent JSON request to AI');
+      }
     }
 
     console.log('\n=== 🤖 MCP Agent Completed ===\n');
