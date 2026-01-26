@@ -2,17 +2,10 @@ import { MCPAgent } from './agent/mcp-agent';
 import { parseDiffPatch } from './diff-parser';
 import type { ReviewSummary } from './types';
 
-function formatReviewMarkdown(summary: ReviewSummary, thoughts: string[]): string {
+function formatReviewMarkdown(summary: ReviewSummary): string {
   const sections: string[] = [];
 
   sections.push('## 🤖 AI 코드 리뷰 (MCP Agent)\n');
-
-  // AI의 사고 과정 포함
-  if (thoughts.length > 0) {
-    sections.push('### 🧠 사고 과정\n');
-    thoughts.slice(0, 5).forEach((t) => sections.push(`- ${t}\n`));
-    sections.push('');
-  }
 
   if (summary.overall) {
     sections.push(`### 📋 요약\n${summary.overall}\n`);
@@ -134,8 +127,8 @@ async function main() {
     // GitHub MCP 서버 연결
     await agent.connect();
 
-    // Agent 실행 (수동 멀티턴 루프)
-    const { review, thoughts } = await agent.run(15);
+    // Agent 실행 (수동 멀티턴 루프, 최대 10회)
+    const { review, thoughts } = await agent.run(10);
 
     console.log('\n=== Parsing Review ===');
     const summary = parseJSONResponse(review);
@@ -148,9 +141,8 @@ async function main() {
     console.log('Line comments:', summary.comments.length);
     console.log('Thoughts logged:', thoughts.length);
 
-    // 리뷰 출력
-    const thoughtSummaries = thoughts.map((t) => `[${t.type}] ${t.content}`);
-    const markdown = formatReviewMarkdown(summary, thoughtSummaries);
+    // 리뷰 출력 (사고 과정은 디버깅용으로만 출력)
+    const markdown = formatReviewMarkdown(summary);
     console.log('\n=== Review Output ===\n');
     console.log(markdown);
 

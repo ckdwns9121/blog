@@ -95,8 +95,11 @@ export class MCPAgent {
   /**
    * Agent 실행 - 수동 멀티턴 루프
    */
-  async run(maxLoops: number = 15): Promise<{ review: string; thoughts: ThoughtLog[] }> {
+  async run(maxLoops: number = 10): Promise<{ review: string; thoughts: ThoughtLog[] }> {
     console.log('\n=== 🤖 MCP Agent Starting ===\n');
+
+    // 루프 감지: 동일한 도구 호출 반복 확인
+    const recentToolCalls: string[] = [];
 
     const systemInstruction = `
 너는 **Agentic AI 코드 리뷰어**다.
@@ -274,6 +277,18 @@ Head SHA: ${this.context.headSha}
       }
 
       console.log(`[Agent] 🔧 Tool calls: ${toolCalls.map((tc: any) => tc.functionCall.name).join(', ')}`);
+
+      // 루프 감지: 동일한 도구가 3번 이상 반복되면 종료
+      const currentToolNames = toolCalls.map((tc: any) => tc.functionCall.name).sort().join(',');
+      recentToolCalls.push(currentToolNames);
+      if (recentToolCalls.length > 3) {
+        recentToolCalls.shift(); // 최근 3개만 유지
+      }
+      if (recentToolCalls.length === 3 && new Set(recentToolCalls).size === 1) {
+        console.log('[Agent] ⚠️ Detected repetitive tool calls, stopping early');
+        finalResponseText = result.text || '리뷰가 완료되었습니다.';
+        break;
+      }
 
       // 도구 실행 및 결과 수집
       const functionResponses: any[] = [];
