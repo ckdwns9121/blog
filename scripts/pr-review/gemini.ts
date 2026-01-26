@@ -1,7 +1,13 @@
 import { GoogleGenAI } from '@google/genai';
+import { buildAnnotatedDiff, parseDiffPatch, type ParsedDiff } from './diff-parser';
 import type { PullRequestContext, FileDiff, ReviewSummary, ReviewComment } from './types';
 
 const REVIEW_PROMPT = `You are an expert code reviewer. Analyze the following pull request and provide constructive feedback.
+
+**IMPORTANT - Line Number Accuracy:**
+- The "Review these lines" section shows EXACT line numbers that were changed in this PR
+- Your line-specific comments MUST use one of these exact line numbers
+- Do NOT guess or estimate line numbers - only use numbers from the "Review these lines" list
 
 Guidelines:
 - Focus on code quality, maintainability, and potential bugs
@@ -19,7 +25,7 @@ Respond in the following JSON format:
   "comments": [
     {
       "path": "파일 경로",
-      "line": 라인 번호,
+      "line": 변경된 라인 번호 (반드시 "Review these lines"에 있는 번호만 사용),
       "comment": "구체적인 코멘트",
       "severity": "info" | "warning" | "error"
     }
@@ -49,8 +55,8 @@ export class GeminiReviewer {
       return this.getEmptyReview();
     }
 
-    // Build context for the AI
-    const diffSummary = this.buildDiffSummary(relevantDiffs);
+    // Build context for the AI with annotated diffs
+    const diffSummary = this.buildAnnotatedDiffSummary(relevantDiffs);
 
     const prompt = `${REVIEW_PROMPT}
 
@@ -61,7 +67,8 @@ export class GeminiReviewer {
 ## Files Changed (${relevantDiffs.length} files)
 ${diffSummary}
 
-Please analyze these changes and provide your review in the requested JSON format.`;
+Please analyze these changes and provide your review in the requested JSON format.
+**IMPORTANT:** Only use line numbers that are explicitly listed in "Review these lines" for each file.`;
 
     try {
       const response = await this.ai.models.generateContent({
@@ -74,35 +81,21 @@ Please analyze these changes and provide your review in the requested JSON forma
         throw new Error('Empty response from Gemini');
       }
 
-      return this.parseResponse(text);
+      return this.parseResponse(text, relevantDiffs);
     } catch (error) {
       console.error('Gemini API error:', error);
       return this.getErrorReview(error);
     }
   }
 
-  private buildDiffSummary(diffs: FileDiff[]): string {
+  private buildAnnotatedDiffSummary(diffs: FileDiff[]): string {
     return diffs
-      .map((diff) => {
-        let summary = `\n### ${diff.path}\n`;
-        summary += `- Status: ${diff.status}\n`;
-        summary += `- Changes: +${diff.additions} -${diff.deletions}\n`;
-
-        if (diff.patch) {
-          // Truncate large patches
-          const maxLength = 3000;
-          const patch = diff.patch.length > maxLength
-            ? diff.patch.substring(0, maxLength) + '\n... (truncated)'
-            : diff.patch;
-          summary += `\n\`\`\`diff\n${patch}\n\`\`\`\n`;
-        }
-
-        return summary;
-      })
+      .filter((d) => d.patch) // patch가 있는 파일만
+      .map((diff) => buildAnnotatedDiff(diff.path, diff.patch!, 4000))
       .join('\n');
   }
 
-  private parseResponse(response: string): ReviewSummary {
+  private parseResponse(response: string, diffs: FileDiff[]): ReviewSummary {
     try {
       // Extract JSON from markdown code blocks if present
       const jsonMatch = response.match(/```json\n?([\s\S]*?)\n?```/) ||
@@ -115,12 +108,18 @@ Please analyze these changes and provide your review in the requested JSON forma
       const jsonStr = jsonMatch[1] || jsonMatch[0];
       const parsed = JSON.parse(jsonStr);
 
+      // 라인 번호 유효성 검사 및 필터링
+      const validComments = this.validateLineNumbers(
+        parsed.comments || [],
+        diffs
+      );
+
       return {
         overall: parsed.overall || '리뷰를 생성했습니다.',
         strengths: parsed.strengths || [],
         concerns: parsed.concerns || [],
         suggestions: parsed.suggestions || [],
-        comments: (parsed.comments || []).map((c: ReviewComment) => ({
+        comments: validComments.map((c: ReviewComment) => ({
           ...c,
           severity: c.severity || 'info',
         })),
@@ -135,6 +134,35 @@ Please analyze these changes and provide your review in the requested JSON forma
         comments: [],
       };
     }
+  }
+
+  /**
+   * AI가 반환한 라인 번호가 실제 변경된 라인인지 검증
+   */
+  private validateLineNumbers(comments: ReviewComment[], diffs: FileDiff[]): ReviewComment[] {
+    const validComments: ReviewComment[] = [];
+
+    for (const comment of comments) {
+      // 해당 파일의 diff를 찾기
+      const fileDiff = diffs.find((d) => d.path === comment.path);
+      if (!fileDiff || !fileDiff.patch) {
+        console.log(`Skipping comment for ${comment.path}:${comment.line} - no diff found`);
+        continue;
+      }
+
+      // 해당 라인이 실제 변경된 라인인지 확인
+      const changedLines = parseDiffPatch(fileDiff.patch);
+      const isValidLine = changedLines.some((l) => l.line === comment.line);
+
+      if (isValidLine) {
+        validComments.push(comment);
+      } else {
+        console.log(`Skipping comment for ${comment.path}:${comment.line} - not a changed line`);
+        console.log(`  Valid lines for this file: ${changedLines.map((l) => l.line).join(', ')}`);
+      }
+    }
+
+    return validComments;
   }
 
   private getEmptyReview(): ReviewSummary {
