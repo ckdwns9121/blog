@@ -103,91 +103,27 @@ export class MCPAgent {
     const recentToolCalls: string[] = [];
 
     const systemInstruction = `
-너는 **Agentic AI 코드 리뷰어**다.
+너는 코드 리뷰어다. 제공된 PR 정보와 diff를 분석하여 JSON 형식으로만 응답해라.
 
-## 프로젝트 리뷰 규칙 (TOML 형식)
-
-아래 규칙은 TOML 형식으로 되어 있으며, 각 섹션별로 리뷰 기준을 정의합니다:
-- [architecture]: FSD 패턴, 레이어 규칙
-- [typescript]: 타입 안전성, any 금지
-- [react]: Server/Client Component, Hooks, State 관리
-- [performance]: 이미지, 데이터 fetching, 번들 크기
-- [security]: 입력 검증, 시크릿 관리, XSS 방지
-- [code_style]: 명명 규칙, 파일 구조
-- [error_handling]: 에러 처리 패턴
-- [quality]: 테스트, 품질 기준
-- [notion_api]: Notion API 특이사항
-- [checklist]: 리뷰 체크리스트
-
----
+## 리뷰 규칙
 ${this.reviewRules}
----
 
-## 리뷰 절차
+## 출력 형식 - JSON ONLY
+반드시 아래 JSON 형식으로만 출력해라. 마크다운, 설명, ```json 블록 없이 JSON 문자열만 출력:
 
-1. **계획 (Planning)**
-   - pull_requests.get로 PR 정보 확인
-   - pull_requests.list_files로 변경된 파일과 patch(diff) 확인
-   - 어떤 관점에서 리뷰할지 계획
+{"overall":"요약","strengths":[],"concerns":[],"suggestions":[],"comments":[]}
 
-2. **정보 수집 (Information Gathering)**
-   - **중요**: pull_requests.list_files 응답의 patch 필드를 확인하세요
-   - patch에는 실제 변경된 코드가 포함되어 있습니다
-   - 필요하면 search.code로 관련 코드 찾기
+- overall: 전체 요약 (2-3문장)
+- strengths: 좋은 점 배열
+- concerns: 우려되는 점 배열
+- suggestions: 개선 제안 배열
+- comments: 라인별 코멘트 배열 (path, line, code, comment, severity)
 
-3. **분석 (Analysis)**
-   - 위 리뷰 규칙에 따라 코드 품질, 아키텍처, 보안, 성능 확인
-   - patch에 있는 실제 변경 코드만 분석하세요
-   - 변경된 코드가 프로젝트 패턴과 일치하는지 확인
-   - 구체적인 개선 사항을 도출
-
-4. **결론 (Conclusion)**
-   - 전체 요약, 잘한 점, 우려되는 점, 개선 제안
-   - JSON 형식으로 최종 리뷰 반환
-
-## 중요 사항
-
-- **JSON만 반환**: 최종 리뷰는 반드시 JSON 형식으로 반환하세요
-- **도구 사용 안 함**: 이미 PR 정보와 diff가 제공됩니다
-- **한국어 응답**: 모든 리뷰는 한국어로 작성
-- **규칙 기반 리뷰**: 위 프로젝트 리뷰 규칙을 우선적으로 적용
-
-## 최종 응답 형식 (JSON만 반환)
-
-제공된 PR 정보와 diff를 분석하여 다음 JSON 형식으로 리뷰를 반환하세요:
-
-{
-  "overall": "전체 리뷰 요약 (2-3문장)",
-  "strengths": ["좋은 점 1", "좋은 점 2"],
-  "concerns": ["우려되는 점 1", "우려되는 점 2"],
-  "suggestions": ["개선 제안 1", "개선 제안 2"],
-  "comments": [
-    {
-      "path": "파일 경로",
-      "line": 라인 번호,
-      "code": "실제 변경된 코드 일부",
-      "comment": "변경된 코드에 대한 구체적인 코멘트",
-      "severity": "info"
-    }
-  ]
-}
-
-comments 필드 규칙:
-- 반드시 patch에서 실제 변경된 라인에만 코멘트
-- code 필드에 변경된 코드를 포함하여 근거 명시
-- 실제 변경이 없는 파일에는 코멘트 작성하지 말기
-- severity: "info" (정보), "warning" (권장), "error" (심각한 문제)
+comments는 실제 diff에서 변경된 라인에만 작성. severity는 info/warning/error.
 `;
 
     const userPrompt = `
-PR #${this.context.prNumber} in ${this.context.owner}/${this.context.repo}를 리뷰해주세요.
-
-Repository: ${this.context.owner}/${this.context.repo}
-PR Number: ${this.context.prNumber}
-Base SHA: ${this.context.baseSha}
-Head SHA: ${this.context.headSha}
-
-단계별로 생각하면서 리뷰를 진행해주세요. 먼저 도구를 호출하여 PR 정보와 diff를 가져오세요.
+PR #${this.context.prNumber} in ${this.context.owner}/${this.context.repo}
 `;
 
     // 히스토리 초기화
@@ -240,6 +176,14 @@ Head SHA: ${this.context.headSha}
       // 2단계: AI에게 JSON 리뷰 요청 (도구 없음)
       if (loopCount === 2) {
         console.log('[Agent] 📝 Step 2: Requesting JSON review from AI (NO TOOLS)');
+
+        // 명시적으로 JSON 요청 메시지 추가
+        history.push({
+          role: 'user',
+          parts: [{
+            text: '위 정보를 바탕으로 리뷰를 완료하세요. 반드시 JSON 형식으로만 출력하세요. ```json 블록이나 마크다운 없이 JSON 문자열만 출력해야 합니다.'
+          }]
+        });
 
         result = await this.ai.models.generateContent({
           model: this.model,

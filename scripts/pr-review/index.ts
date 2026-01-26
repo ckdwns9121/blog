@@ -48,9 +48,51 @@ function formatReviewMarkdown(summary: ReviewSummary): string {
 
 function parseJSONResponse(text: string): ReviewSummary {
   try {
-    // Extract JSON from markdown code blocks if present
-    const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) ||
-                     text.match(/\{[\s\S]*\}/);
+    // Extract JSON from various formats
+    let jsonMatch: RegExpMatchArray | null = null;
+
+    // 1. ```json code block
+    jsonMatch = text.match(/```json\s*\n?([\s\S]*?)\n?```/);
+    if (jsonMatch) {
+      console.log('[Parse] Found JSON in ```json block');
+    }
+
+    // 2. ```javascript code block
+    if (!jsonMatch) {
+      jsonMatch = text.match(/```javascript\s*\n?([\s\S]*?)\n?```/);
+      if (jsonMatch) console.log('[Parse] Found JSON in ```javascript block');
+    }
+
+    // 3. ``` code block (no language)
+    if (!jsonMatch) {
+      jsonMatch = text.match(/```\s*\n?([\s\S]*?)\n?```/);
+      if (jsonMatch) console.log('[Parse] Found JSON in ``` block');
+    }
+
+    // 4. Direct JSON object in text (find first complete {...})
+    if (!jsonMatch) {
+      // Find first { and matching }
+      let startIdx = text.indexOf('{');
+      if (startIdx !== -1) {
+        let depth = 0;
+        let endIdx = startIdx;
+        for (let i = startIdx; i < text.length; i++) {
+          if (text[i] === '{') depth++;
+          if (text[i] === '}') depth--;
+          if (depth === 0) {
+            endIdx = i + 1;
+            break;
+          }
+        }
+        if (endIdx > startIdx) {
+          const jsonStr = text.substring(startIdx, endIdx);
+          // Validate it's actually JSON
+          JSON.parse(jsonStr); // Will throw if invalid
+          jsonMatch = [jsonStr, jsonStr];
+          console.log('[Parse] Found direct JSON object');
+        }
+      }
+    }
 
     if (!jsonMatch) {
       throw new Error('No JSON found in response');
