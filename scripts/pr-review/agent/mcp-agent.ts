@@ -198,23 +198,49 @@ Head SHA: ${this.context.headSha}
 
       // 도구 실행 및 결과 수집
       const functionResponses: any[] = [];
+
+      // 차단할 도구 목록 (GitHub Actions에서 PR 승인/코멘트 작성 불가)
+      const BLOCKED_TOOLS = [
+        'create_pull_request_review',
+        'create_review_comment',
+        'pull_requests.create_review_comment',
+        'pull_requests.create_review',
+      ];
+
       for (const call of toolCalls) {
+        const toolName = call.functionCall.name;
+
+        // 차단된 도구인 경우 건너뛰기
+        if (BLOCKED_TOOLS.some(blocked => toolName.includes(blocked))) {
+          console.log(`[Agent] ⚠️ Tool '${toolName}' is blocked - returning JSON instead`);
+          functionResponses.push({
+            functionResponse: {
+              name: toolName,
+              response: {
+                content: 'This tool is blocked. Please return the review as JSON format instead.',
+                blocked: true,
+              },
+            },
+          });
+          continue;
+        }
+
         try {
           const mcpResult = await this.mcpClient.callTool({
-            name: call.functionCall.name,
+            name: toolName,
             arguments: call.functionCall.args,
           });
           functionResponses.push({
             functionResponse: {
-              name: call.functionCall.name,
+              name: toolName,
               response: { content: mcpResult.content },
             },
           });
         } catch (error) {
-          console.error(`[Agent] ❌ Tool ${call.functionCall.name} failed:`, error);
+          console.error(`[Agent] ❌ Tool ${toolName} failed:`, error);
           functionResponses.push({
             functionResponse: {
-              name: call.functionCall.name,
+              name: toolName,
               response: { error: error instanceof Error ? error.message : 'Unknown error' },
             },
           });
