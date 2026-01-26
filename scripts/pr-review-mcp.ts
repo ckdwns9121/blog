@@ -155,7 +155,7 @@ MCP 도구를 정확히 2회만 사용: 1)get_pull_request_files 2)create_pull_r
         },  
         thinkingConfig: {  
           includeThoughts: true,        // 생각 과정 포함  
-          thinkingLevel: ThinkingLevel.MEDIUM // 균형 잡힌 추론  
+          thinkingLevel: ThinkingLevel.LOW // 균형 잡힌 추론  
         },  
         toolConfig: {  
           functionCallingConfig: {  
