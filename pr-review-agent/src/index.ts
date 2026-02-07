@@ -3,6 +3,17 @@ import { getConfigFromEnv, ReviewConfig } from './config.js';
 import { generateReview, formatReviewAsComment, FileComment } from './review.js';
 
 /**
+ * Check if PR should be reviewed
+ */
+export function shouldReview(prTitle: string, prBody: string): boolean {
+  const title = prTitle.toLowerCase();
+  const body = prBody?.toLowerCase() || '';
+
+  // Auto-review if "/review" is in title or body
+  return title.includes('/review') || body.includes('/review');
+}
+
+/**
  * Main function to review a pull request
  */
 export async function reviewPullRequest(config: ReviewConfig): Promise<void> {
@@ -24,6 +35,15 @@ export async function reviewPullRequest(config: ReviewConfig): Promise<void> {
     console.log(`PR 작성자: ${pr.user?.login}`);
     console.log(`변경된 파일: ${pr.changed_files}개`);
 
+    // Check if should review
+    if (!shouldReview(pr.title, pr.body || '')) {
+      console.log('ℹ️  "/review" 키워드가 없어 리뷰를 건너뜁니다.');
+      console.log('   리뷰를 원하시면 PR 제목이나 본문에 "/review"를 추가해주세요.');
+      return;
+    }
+
+    console.log('✅ "/review" 감지! 리뷰를 시작합니다...');
+
     // Get PR diff
     const diffResponse = await octokit.rest.pulls.get({
       owner: config.repoOwner,
@@ -38,8 +58,8 @@ export async function reviewPullRequest(config: ReviewConfig): Promise<void> {
     console.log(`Diff 크기: ${diffText.length} 문자`);
 
     // Generate review using Claude
-    console.log('Claude로 리뷰 생성 중...');
-    const { review, fileComments } = await generateReview(
+    console.log('Claude로 심측 리뷰 생성 중...');
+    const { review, fileComments, architectureDiagram } = await generateReview(
       diffText,
       pr.title,
       pr.body || '',
@@ -53,7 +73,7 @@ export async function reviewPullRequest(config: ReviewConfig): Promise<void> {
     console.log(`  - 파일별 코멘트: ${fileComments.length}개`);
 
     // Post review as a comment
-    const commentBody = formatReviewAsComment(review);
+    const commentBody = formatReviewAsComment(review, architectureDiagram);
     console.log('리뷰 코멘트 게시 중...');
 
     await octokit.rest.issues.createComment({
