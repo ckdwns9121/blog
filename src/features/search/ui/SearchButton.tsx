@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { SearchModal } from './SearchModal';
 import { useSearchShortcut } from '../hooks/useSearchShortcut';
 import { BlogPost } from '@/entities/post/model';
+import { Button } from '@/shared/ui/button';
+import { cn } from '@/shared/lib/cn';
 
 interface SearchButtonProps {
   posts: BlogPost[];
@@ -19,14 +21,16 @@ export function SearchButton({ posts, className, children }: SearchButtonProps) 
 
   return (
     <>
-      <button
+      <Button
         onClick={() => setIsModalOpen(true)}
-        className={className}
+        variant="ghost"
+        size="icon"
+        className={cn(className)}
         aria-label="검색"
       >
         {children || (
           <svg
-            className="h-5 w-5 text-gray-400"
+            className="h-5 w-5"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -39,7 +43,7 @@ export function SearchButton({ posts, className, children }: SearchButtonProps) 
             />
           </svg>
         )}
-      </button>
+      </Button>
 
       <SearchModal
         isOpen={isModalOpen}

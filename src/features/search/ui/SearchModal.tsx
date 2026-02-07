@@ -1,11 +1,12 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { BlogPost } from '@/entities/post/model';
-import { BlogSearch, SearchResult } from '@/shared/utils/search';
-import { cn } from '@/shared/lib/cn';
+import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { BlogPost } from "@/entities/post/model";
+import { BlogSearch, SearchResult } from "@/shared/utils/search";
+import { cn } from "@/shared/lib/cn";
+import { Button } from "@/shared/ui/button";
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -14,7 +15,7 @@ interface SearchModalProps {
 }
 
 export function SearchModal({ isOpen, onClose, posts }: SearchModalProps) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const router = useRouter();
@@ -33,7 +34,7 @@ export function SearchModal({ isOpen, onClose, posts }: SearchModalProps) {
     }
 
     if (!query.trim()) {
-      setSearchResults(posts.map(post => ({ post, score: 0 })));
+      setSearchResults(posts.map((post) => ({ post, score: 0 })));
       setSelectedIndex(-1);
       return;
     }
@@ -44,7 +45,7 @@ export function SearchModal({ isOpen, onClose, posts }: SearchModalProps) {
         setSearchResults(results);
         setSelectedIndex(-1);
       } catch (error) {
-        console.error('Search error:', error);
+        console.error("Search error:", error);
         setSearchResults([]);
       }
     }, 150); // Debounce search
@@ -54,17 +55,15 @@ export function SearchModal({ isOpen, onClose, posts }: SearchModalProps) {
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
+    if (e.key === "Escape") {
       onClose();
-    } else if (e.key === 'ArrowDown') {
+    } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIndex(prev =>
-        prev < searchResults.length - 1 ? prev + 1 : prev
-      );
-    } else if (e.key === 'ArrowUp') {
+      setSelectedIndex((prev) => (prev < searchResults.length - 1 ? prev + 1 : prev));
+    } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
-    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+      setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
+    } else if (e.key === "Enter" && selectedIndex >= 0) {
       e.preventDefault();
       const selectedPost = searchResults[selectedIndex]?.post;
       if (selectedPost) {
@@ -120,14 +119,17 @@ export function SearchModal({ isOpen, onClose, posts }: SearchModalProps) {
               autoFocus
             />
             {query && (
-              <button
-                onClick={() => setQuery('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              <Button
+                onClick={() => setQuery("")}
+                variant="ghost"
+                size="icon"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 h-6 w-6"
+                aria-label="검색어 지우기"
               >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -173,9 +175,7 @@ export function SearchModal({ isOpen, onClose, posts }: SearchModalProps) {
         {/* Footer */}
         <div className="px-4 py-3 border-t border-gray-200 dark:border-dark-border text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
           <div className="flex items-center justify-between">
-            <span>
-              {searchResults.length}개의 포스트
-            </span>
+            <span>{searchResults.length}개의 포스트</span>
             <div className="flex items-center gap-4">
               <span>↑↓ 탐색</span>
               <span>Enter 선택</span>
@@ -192,7 +192,7 @@ function SearchResultItem({
   post,
   isSelected,
   onClick,
-  onMouseEnter
+  onMouseEnter,
 }: {
   post: BlogPost;
   isSelected: boolean;
@@ -202,11 +202,11 @@ function SearchResultItem({
   return (
     <div
       className={cn(
-        'px-4 py-3 cursor-pointer transition-colors',
-        'border-b border-gray-100 dark:border-gray-800 last:border-b-0',
+        "px-4 py-3 cursor-pointer transition-colors",
+        "border-b border-gray-100 dark:border-gray-800 last:border-b-0",
         isSelected
-          ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800'
-          : 'hover:bg-gray-50 dark:hover:bg-gray-900/50'
+          ? "bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800"
+          : "hover:bg-gray-50 dark:hover:bg-gray-900/50"
       )}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
@@ -224,26 +224,26 @@ function SearchResultItem({
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <h3 className={cn(
-            'font-medium text-sm text-gray-900 dark:text-white truncate',
-            isSelected && 'text-primary-600 dark:text-primary-400'
-          )}>
+          <h3
+            className={cn(
+              "font-medium text-sm text-gray-900 dark:text-white truncate",
+              isSelected && "text-primary-600 dark:text-primary-400"
+            )}
+          >
             {post.title}
           </h3>
-          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-            {post.excerpt}
-          </p>
+          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">{post.excerpt}</p>
           <div className="flex items-center gap-3 mt-1">
             <time className="text-xs text-gray-500 dark:text-gray-500">
-              {post.publishedAt.toLocaleDateString('ko-KR', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
+              {post.publishedAt.toLocaleDateString("ko-KR", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
               })}
             </time>
             {post.tags.length > 0 && (
               <div className="flex gap-1">
-                {post.tags.slice(0, 2).map(tag => (
+                {post.tags.slice(0, 2).map((tag) => (
                   <span
                     key={tag.slug}
                     className="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded"
@@ -252,9 +252,7 @@ function SearchResultItem({
                   </span>
                 ))}
                 {post.tags.length > 2 && (
-                  <span className="px-2 py-0.5 text-xs text-gray-500 dark:text-gray-500">
-                    +{post.tags.length - 2}
-                  </span>
+                  <span className="px-2 py-0.5 text-xs text-gray-500 dark:text-gray-500">+{post.tags.length - 2}</span>
                 )}
               </div>
             )}

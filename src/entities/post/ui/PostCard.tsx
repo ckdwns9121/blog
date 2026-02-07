@@ -5,7 +5,6 @@ interface PostCardProps {
   post: PostMetadata;
 }
 
-// test
 export function PostCard({ post }: PostCardProps) {
   return (
     <article className="py-4 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
@@ -26,7 +25,7 @@ export function PostCard({ post }: PostCardProps) {
             {post.tags.map((tag) => (
               <span
                 key={tag.slug}
-                className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded"
+                className="px-2 py-1 bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-200 rounded"
               >
                 #{tag.name}
               </span>

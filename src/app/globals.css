@@ -3,6 +3,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  /* Shadcn/ui 호환 색상 확장 */
+  --color-primary-DEFAULT: oklch(0.64 0.05 151); /* #75A788 */
+  --color-primary-foreground: oklch(1 0 0);
+
   /* Primary Color Palette - #75A788 기반 */
   --color-primary-50: #f0f7f3;
   --color-primary-100: #daeee1;
@@ -16,10 +20,69 @@
   --color-primary-900: #283b31;
   --color-primary-950: #15211b;
 
+  /* Secondary Color Palette */
+  --color-secondary-DEFAULT: oklch(0.96 0.01 151);
+  --color-secondary-foreground: oklch(0.25 0.02 151);
+
+  /* Muted & Accent */
+  --color-muted: oklch(0.93 0.01 151);
+  --color-muted-foreground: oklch(0.50 0.01 151);
+  --color-accent: oklch(0.93 0.01 151);
+  --color-accent-foreground: oklch(0.25 0.02 151);
+
   /* Dark Mode Background Colors - 더 어두운 남색 계열 */
   --color-dark-bg: #070b14; /* 메인 배경 - 매우 어두운 남색 */
   --color-dark-bg-secondary: #0f1419; /* 보조 배경 - 어두운 남색 */
   --color-dark-border: #1a1f2e; /* 테두리 - 진한 남색 */
+}
+
+/* Shadcn/ui CSS 변수 - 기존 색상 시스템과 매핑 */
+/* #75A788 = HSL(151, 22%, 56%) */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 151 8% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 151 8% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 151 8% 15%;
+    --primary: 151 22% 56%; /* #75A788 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 151 30% 96%;
+    --secondary-foreground: 151 8% 15%;
+    --muted: 151 15% 90%;
+    --muted-foreground: 151 8% 45%;
+    --accent: 151 30% 96%;
+    --accent-foreground: 151 8% 15%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 151 15% 88%;
+    --input: 151 15% 88%;
+    --ring: 151 22% 56%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 215 25% 7%; /* #070b14 */
+    --foreground: 151 15% 95%;
+    --card: 215 20% 10%; /* #0f1419 */
+    --card-foreground: 151 15% 95%;
+    --popover: 215 20% 10%;
+    --popover-foreground: 151 15% 95%;
+    --primary: 151 22% 56%; /* #75A788 - 다크모드에서도 동일 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 20% 20%;
+    --secondary-foreground: 151 15% 95%;
+    --muted: 215 20% 20%;
+    --muted-foreground: 151 10% 60%;
+    --accent: 215 20% 20%;
+    --accent-foreground: 151 15% 95%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 151 15% 95%;
+    --border: 215 20% 18%; /* #1a1f2e */
+    --input: 215 20% 18%;
+    --ring: 151 22% 56%;
+  }
 }
 
 body {
