@@ -9,15 +9,21 @@ export interface ReviewResult {
   positives: string[];
 }
 
+export interface FileComment {
+  path: string;
+  line?: number;
+  body: string;
+}
+
 /**
- * Generate PR review using Claude
+ * Generate PR review using Claude (한글)
  */
 export async function generateReview(
   diffText: string,
   prTitle: string,
   prDescription: string,
   config: ReviewConfig
-): Promise<ReviewResult> {
+): Promise<{ review: ReviewResult; fileComments: FileComment[] }> {
   const anthropic = new Anthropic({
     apiKey: config.anthropicApiKey,
   });
@@ -25,51 +31,72 @@ export async function generateReview(
   const parsedDiff = parseDiff(diffText);
   const formattedDiff = formatDiffForReview(parsedDiff);
 
-  const systemPrompt = `You are an expert code reviewer. Your role is to:
-1. Analyze the pull request changes thoroughly
-2. Identify potential bugs, security issues, or problems
-3. Suggest improvements for code quality, readability, and maintainability
-4. Highlight positive aspects of the changes
-5. Be constructive and specific in your feedback
+  const systemPrompt = `당신은 전문 코드 리뷰어입니다. 다음 역할을 수행하세요:
+1. Pull Request 변경 사항을 철저히 분석하세요
+2. 잠재적인 버그, 보안 이슈, 문제점을 식별하세요
+3. 코드 품질, 가독성, 유지보수성을 위한 개선사항을 제안하세요
+4. 변경 사항의 긍정적인 측면을 강조하세요
+5. 피드백은 건설적이고 구체적으로 작성하세요
 
-Focus on:
-- Code correctness and potential bugs
-- Security vulnerabilities
-- Performance considerations
-- Code style and readability
-- Best practices adherence
-- Edge cases that might not be handled`;
+중점 사항:
+- 코드 정확성 및 잠재적 버그
+- 보안 취약점
+- 성능 고려사항
+- 코드 스타일 및 가독성
+- 모범 사례 준수
+- 처리되지 않은 엣지 케이스
 
-  const userMessage = `# Pull Request to Review
+**중요:** 모든 리뷰는 **한국어**로 작성하세요.`;
 
-**Title:** ${prTitle}
+  const userMessage = `# 리뷰할 Pull Request
 
-**Description:**
-${prDescription || 'No description provided.'}
+**제목:** ${prTitle}
 
-## Changes to Review
+**설명:**
+${prDescription || '설명 없음.'}
+
+## 변경 사항
 
 ${formattedDiff}
 
 ---
 
-Please provide a comprehensive review in the following format:
+다음 형식으로 종합 리뷰를 제공하세요:
 
-## Summary
-[Brief 2-3 sentence summary of what this PR does]
+## 📋 요약
+[이 PR이 무엇을 하는지 2-3문장으로 간략히 설명]
 
-## 🔴 Concerns
-[Critical issues, bugs, or security concerns - be specific about file and line]
+## 🔴 우려사항 (Concerns)
+[치명적인 이슈, 버그, 보안 우려 - 파일과 라인 번호를 구체적으로 명시]
 
-## 💡 Suggestions
-[Improvements for code quality, readability, or best practices]
+## 💡 제안사항 (Suggestions)
+[코드 품질, 가독성, 모범 사례를 위한 개선사항]
 
-## ✅ Positives
-[What was done well in this PR]`;
+## ✅ 긍정적 측면 (Positives)
+[이 PR에서 잘한 점]
+
+---
+
+**파일별 코멘트:**
+
+각 파일에서 발견된 주요 이슈나 개선사항에 대해 다음 **JSON 형식**으로 작성하세요:
+\`\`\`json
+{
+  "fileComments": [
+    {
+      "path": "파일경로",
+      "line": 라인번호,
+      "body": "코멘트 내용 (한국어)"
+    }
+  ]
+}
+\`\`\`
+
+파일별 코멘트는 실제로 중요한 이슈나 의미 있는 개선사항에 대해서만 작성하세요.`;
 
   try {
     const response = await anthropic.messages.create({
-      model: config.model || 'claude-haiku-4-5-20251001',
+      model: config.model || 'claude-sonnet-4-5-20250929',
       max_tokens: config.maxTokens || 8192,
       system: systemPrompt,
       messages: [
@@ -81,11 +108,64 @@ Please provide a comprehensive review in the following format:
     });
 
     const reviewText = response.content[0].type === 'text' ? response.content[0].text : '';
-    return parseReviewResponse(reviewText);
+    const parsed = parseReviewResponse(reviewText);
+    const fileComments = parseFileComments(reviewText, parsedDiff);
+
+    return { review: parsed, fileComments };
   } catch (error) {
     console.error('Error calling Anthropic API:', error);
     throw error;
   }
+}
+
+/**
+ * Parse file comments from Claude's response
+ */
+function parseFileComments(text: string, parsedDiff: { files: any[] }): FileComment[] {
+  const comments: FileComment[] = [];
+
+  // JSON 형식의 파일 코멘트 파싱
+  const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/);
+  if (jsonMatch) {
+    try {
+      const parsed = JSON.parse(jsonMatch[1]);
+      if (parsed.fileComments && Array.isArray(parsed.fileComments)) {
+        for (const fc of parsed.fileComments) {
+          if (fc.path && fc.body) {
+            comments.push({
+              path: fc.path,
+              line: fc.line,
+              body: fc.body
+            });
+          }
+        }
+      }
+    } catch (e) {
+      console.log('JSON 파싱 실패, 텍스트에서 코멘트 추출 시도');
+    }
+  }
+
+  // JSON 파싱 실패 시 텍스트에서 파일별 코멘트 추출
+  if (comments.length === 0) {
+    const lines = text.split('\n');
+    let currentPath = '';
+    for (const line of lines) {
+      const pathMatch = line.match(/###\s+(.+?):?\s*$/);
+      if (pathMatch) {
+        currentPath = pathMatch[1].trim();
+      }
+      // 파일별 코멘트 패턴
+      const commentMatch = line.match(/\*\*(.+?):\*\*\s*(.+)/);
+      if (commentMatch && currentPath) {
+        comments.push({
+          path: currentPath,
+          body: commentMatch[2].trim()
+        });
+      }
+    }
+  }
+
+  return comments;
 }
 
 /**
@@ -113,29 +193,41 @@ function parseReviewResponse(text: string): ReviewResult {
       if (line.startsWith('-') || line.startsWith('*') || line.match(/^\d+\./)) {
         const item = line.replace(/^[-*]\s*/, '').replace(/^\d+\.\s*/, '').trim();
 
-        if (sectionName.includes('summary')) {
+        const normalizedSection = sectionName
+          .toLowerCase()
+          .replace(/[가-힣]+/g, (match: string) => {
+            const koreanMap: { [key: string]: string } = {
+              '요약': 'summary',
+              '우려사항': 'concern',
+              '제안사항': 'suggestion',
+              '긍정적': 'positive'
+            };
+            return koreanMap[match] || match;
+          });
+
+        if (sectionName.includes('요약') || sectionName.includes('Summary')) {
           result.summary += (result.summary ? ' ' : '') + line.replace(/^[-*]\s*/, '').trim();
-        } else if (sectionName.includes('concern') || sectionName.includes('🔴')) {
+        } else if (sectionName.includes('우려') || sectionName.includes('Concern') || sectionName.includes('🔴')) {
           result.concerns.push(item);
-        } else if (sectionName.includes('suggestion') || sectionName.includes('💡')) {
+        } else if (sectionName.includes('제안') || sectionName.includes('Suggestion') || sectionName.includes('💡')) {
           result.suggestions.push(item);
-        } else if (sectionName.includes('positive') || sectionName.includes('✅')) {
+        } else if (sectionName.includes('긍정') || sectionName.includes('Positive') || sectionName.includes('✅')) {
           result.positives.push(item);
         }
-      } else if (line && !sectionName.includes('summary')) {
+      } else if (line && !sectionName.includes('summary') && !sectionName.includes('요약')) {
         // Non-bullet points go to the last active list
-        if (sectionName.includes('concern') || sectionName.includes('🔴')) {
+        if (sectionName.includes('우려') || sectionName.includes('Concern') || sectionName.includes('🔴')) {
           result.concerns.push(line);
-        } else if (sectionName.includes('suggestion') || sectionName.includes('💡')) {
+        } else if (sectionName.includes('제안') || sectionName.includes('Suggestion') || sectionName.includes('💡')) {
           result.suggestions.push(line);
-        } else if (sectionName.includes('positive') || sectionName.includes('✅')) {
+        } else if (sectionName.includes('긍정') || sectionName.includes('Positive') || sectionName.includes('✅')) {
           result.positives.push(line);
         }
       }
     }
 
     // Extract summary as-is if no bullets
-    if (sectionName.includes('summary')) {
+    if (sectionName.includes('요약') || sectionName.includes('Summary')) {
       result.summary = lines.slice(1).join('\n').trim();
     }
   }
@@ -150,17 +242,17 @@ function parseReviewResponse(text: string): ReviewResult {
 }
 
 /**
- * Format review as GitHub comment
+ * Format review as GitHub comment (한글)
  */
 export function formatReviewAsComment(review: ReviewResult): string {
-  let comment = '## 🤖 AI Code Review\n\n';
+  let comment = '## 🤖 AI 코드 리뷰\n\n';
 
   if (review.summary) {
-    comment += `### Summary\n\n${review.summary}\n\n`;
+    comment += `### 📋 요약\n\n${review.summary}\n\n`;
   }
 
   if (review.concerns.length > 0) {
-    comment += `### 🔴 Concerns\n\n`;
+    comment += `### 🔴 우려사항\n\n`;
     for (const concern of review.concerns) {
       comment += `- ${concern}\n`;
     }
@@ -168,7 +260,7 @@ export function formatReviewAsComment(review: ReviewResult): string {
   }
 
   if (review.suggestions.length > 0) {
-    comment += `### 💡 Suggestions\n\n`;
+    comment += `### 💡 제안사항\n\n`;
     for (const suggestion of review.suggestions) {
       comment += `- ${suggestion}\n`;
     }
@@ -176,14 +268,14 @@ export function formatReviewAsComment(review: ReviewResult): string {
   }
 
   if (review.positives.length > 0) {
-    comment += `### ✅ Positives\n\n`;
+    comment += `### ✅ 긍정적 측면\n\n`;
     for (const positive of review.positives) {
       comment += `- ${positive}\n`;
     }
     comment += '\n';
   }
 
-  comment += '\n---\n*This review was generated by Claude using the Anthropic SDK*';
+  comment += '\n---\n*이 리뷰는 Claude를 사용하여 Anthropic SDK로 생성되었습니다*';
 
   return comment;
 }
