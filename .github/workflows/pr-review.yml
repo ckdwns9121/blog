@@ -1,8 +1,6 @@
 name: PR Review Agent
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
   issue_comment:
     types: [created]
 
@@ -12,7 +10,7 @@ permissions:
 
 jobs:
   review:
-    if: github.event_name == 'pull_request' || github.event.comment.body == '/review'
+    if: github.event.comment.body == '/review'
     runs-on: ubuntu-latest
     defaults:
       run:
