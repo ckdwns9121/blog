@@ -32,6 +32,6 @@ export function getConfigFromEnv(): ReviewConfig {
     repoName,
     prNumber,
     maxTokens: 8192,
-    model: 'claude-sonnet-4-5-20250929'
+    model: 'claude-haiku-4-5-20251001'
   };
 }

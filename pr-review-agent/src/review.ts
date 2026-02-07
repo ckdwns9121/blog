@@ -69,7 +69,7 @@ Please provide a comprehensive review in the following format:
 
   try {
     const response = await anthropic.messages.create({
-      model: config.model || 'claude-3-5-sonnet-20241022',
+      model: config.model || 'claude-haiku-4-5-20251001',
       max_tokens: config.maxTokens || 8192,
       system: systemPrompt,
       messages: [
