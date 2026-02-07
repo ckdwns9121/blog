@@ -358,7 +358,7 @@ function extractBulletPoints(text: string): string[] {
     const trimmed = line.trim();
 
     // 불렛/별표/숫자 목록
-    if (/^[-*•]\s/.test(trim) || /^\d+\.\s/.test(trim)) {
+    if (/^[-*•]\s/.test(trimmed) || /^\d+\.\s/.test(trimmed)) {
       if (currentItem) {
         items.push(currentItem.trim());
         currentItem = '';
