@@ -8,7 +8,9 @@
     "build": "pnpm build:images && next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "test": "jest",
+    "test:ci": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "export": "next build && next export"
   },
