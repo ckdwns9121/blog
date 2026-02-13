@@ -11,9 +11,10 @@ interface SearchModalProps {
   isOpen: boolean;
   onClose: () => void;
   posts: BlogPost[];
+  isLoading?: boolean;
 }
 
-export function SearchModal({ isOpen, onClose, posts }: SearchModalProps) {
+export function SearchModal({ isOpen, onClose, posts, isLoading = false }: SearchModalProps) {
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -151,6 +152,12 @@ export function SearchModal({ isOpen, onClose, posts }: SearchModalProps) {
               </svg>
               <p className="text-gray-600 dark:text-gray-400">검색 결과가 없습니다</p>
               <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">다른 검색어로 시도해보세요</p>
+            </div>
+          )}
+
+          {!query && isLoading && (
+            <div className="p-8 text-center">
+              <p className="text-gray-600 dark:text-gray-400">검색 데이터를 불러오는 중...</p>
             </div>
           )}
 

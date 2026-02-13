@@ -6,21 +6,64 @@ import { useSearchShortcut } from '../hooks/useSearchShortcut';
 import { BlogPost } from '@/entities/post/model';
 
 interface SearchButtonProps {
-  posts: BlogPost[];
   className?: string;
   children?: React.ReactNode;
 }
 
-export function SearchButton({ posts, className, children }: SearchButtonProps) {
+interface SearchPostResponse {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  publishedAt: string;
+  updatedAt: string;
+  tags: { name: string; slug: string; postCount: number }[];
+  coverImage?: string;
+}
+
+export function SearchButton({ className, children }: SearchButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const openModal = async () => {
+    setIsModalOpen(true);
+
+    if (posts.length > 0 || isLoading) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/search/posts');
+      if (!response.ok) {
+        throw new Error('Failed to load search posts');
+      }
+
+      const data = (await response.json()) as SearchPostResponse[];
+      const mappedPosts: BlogPost[] = data.map((post) => ({
+        ...post,
+        publishedAt: new Date(post.publishedAt),
+        updatedAt: new Date(post.updatedAt),
+        content: [],
+        toc: [],
+      }));
+
+      setPosts(mappedPosts);
+    } catch (error) {
+      console.error('Failed to load search posts:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Keyboard shortcut to open search modal
-  useSearchShortcut(() => setIsModalOpen(true));
+  useSearchShortcut(openModal);
 
   return (
     <>
       <button
-        onClick={() => setIsModalOpen(true)}
+        onClick={openModal}
         className={className}
         aria-label="검색"
       >
@@ -45,6 +88,7 @@ export function SearchButton({ posts, className, children }: SearchButtonProps) 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         posts={posts}
+        isLoading={isLoading}
       />
     </>
   );
