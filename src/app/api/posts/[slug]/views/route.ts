@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getRedisClient, getPostViewsKey } from "@/shared/utils/redis";
+import { getClientIdentifier, getPostViewedKey, getRedisClient, getPostViewsKey } from "@/shared/utils/redis";
 
 interface RouteParams {
   params: Promise<{ slug: string }>;
@@ -48,6 +48,21 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const redis = await getRedisClient();
     const viewsKey = getPostViewsKey(slug);
+    const identifier = getClientIdentifier(request);
+    const viewedKey = getPostViewedKey(slug, identifier);
+
+    const isNewView = await redis.set(viewedKey, "1", {
+      EX: 60 * 60 * 24,
+      NX: true,
+    });
+
+    if (!isNewView) {
+      const currentViews = (await redis.get(viewsKey)) || "0";
+      return NextResponse.json({
+        views: Number(currentViews),
+        isNewView: false,
+      });
+    }
 
     // 조회수 증가 (원자적 연산)
     const newViews = await redis.incr(viewsKey);

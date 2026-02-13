@@ -4,8 +4,6 @@ import { Providers } from "@/shared/providers/ThemeProvider";
 import { Footer } from "@/shared/ui/Footer";
 import { ClientLayout } from "./ClientLayout";
 import type { Metadata } from "next";
-import { getAllPosts } from "@/entities/post/api";
-import { BlogPost } from "@/entities/post/model";
 
 // Post API 어댑터 초기화
 import "@/app/init-post-api";
@@ -91,9 +89,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Fetch posts for search functionality
-  const posts = await getAllPosts();
-
   return (
     <html lang="ko" suppressHydrationWarning>
       <body
@@ -101,7 +96,7 @@ export default async function RootLayout({
       >
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }} />
         <Providers>
-          <ClientLayout posts={posts as BlogPost[]}>
+          <ClientLayout>
             {children}
           </ClientLayout>
           <Footer />
