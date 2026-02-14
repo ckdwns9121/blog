@@ -1,4 +1,4 @@
-name: CGKR Code Review
+name: Cluade Code Review
 
 on:
   pull_request:

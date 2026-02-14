@@ -1,4 +1,4 @@
-name: Colo Review Bot
+name: Claude Review Bot
 
 on:
   issue_comment:
