@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { BlogPost } from '@/entities/post/model';
 import { BlogSearch, SearchResult } from '@/shared/utils/search';
 import { cn } from '@/shared/lib/cn';
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/shared/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 
 interface SearchModalProps {
   isOpen: boolean;

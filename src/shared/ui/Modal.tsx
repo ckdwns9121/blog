@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { Dialog, DialogContent } from "@/shared/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface ModalProps {
   isOpen: boolean;
