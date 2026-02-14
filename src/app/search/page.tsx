@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { getAllPosts } from "@/entities/post/api";
+import { BlogSearch } from "@/shared/utils/search";
+import type { BlogPost } from "@/entities/post/model";
 import "@/app/init-post-api";
 
 interface SearchPageProps {
@@ -10,13 +12,14 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
   const query = params.q?.trim() ?? "";
   const allPosts = await getAllPosts();
+  const searchInput: BlogPost[] = allPosts.map((post) => ({
+    ...post,
+    content: [],
+    toc: [],
+  }));
+  const searchInstance = new BlogSearch(searchInput);
 
-  const results = query
-    ? allPosts.filter((post) => {
-        const target = `${post.title} ${post.excerpt} ${post.tags.map((tag) => tag.name).join(" ")}`.toLowerCase();
-        return target.includes(query.toLowerCase());
-      })
-    : [];
+  const results = query ? searchInstance.search(query).map((result) => result.post) : [];
 
   return (
     <div className="py-8 text-gray-900 dark:text-white">
