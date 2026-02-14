@@ -6,15 +6,17 @@ import Image from 'next/image';
 import { BlogPost } from '@/entities/post/model';
 import { BlogSearch, SearchResult } from '@/shared/utils/search';
 import { cn } from '@/shared/lib/cn';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 
 interface SearchModalProps {
   isOpen: boolean;
   onClose: () => void;
   posts: BlogPost[];
   isLoading?: boolean;
+  contentId?: string;
 }
 
-export function SearchModal({ isOpen, onClose, posts, isLoading = false }: SearchModalProps) {
+export function SearchModal({ isOpen, onClose, posts, isLoading = false, contentId }: SearchModalProps) {
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -75,21 +77,11 @@ export function SearchModal({ isOpen, onClose, posts, isLoading = false }: Searc
     }
   };
 
-  // Close modal on outside click
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-      onClick={handleBackdropClick}
-    >
-      <div className="bg-white dark:bg-dark-bg w-full max-w-2xl rounded-lg shadow-xl h-[600px] md:h-[700px] max-h-[80vh] overflow-hidden flex flex-col">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent id={contentId} className="w-full max-w-2xl h-[600px] md:h-[700px] max-h-[80vh] overflow-hidden flex flex-col p-0">
+        <DialogTitle className="sr-only">포스트 검색</DialogTitle>
+        <DialogDescription className="sr-only">포스트 제목, 태그, 내용을 검색할 수 있습니다.</DialogDescription>
         {/* Search Input */}
         <div className="p-4 border-b border-gray-200 dark:border-dark-border flex-shrink-0">
           <div className="relative">
@@ -107,10 +99,11 @@ export function SearchModal({ isOpen, onClose, posts, isLoading = false }: Searc
               />
             </svg>
             <input
-              type="text"
+              type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
+              aria-label="포스트 검색"
               placeholder="검색어를 입력하세요..."
               className={cn(
                 "w-full pl-10 pr-12 py-3 bg-gray-50 dark:bg-gray-900",
@@ -121,10 +114,11 @@ export function SearchModal({ isOpen, onClose, posts, isLoading = false }: Searc
               autoFocus
             />
             {query && (
-              <button
-                onClick={() => setQuery('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
+                <button
+                  onClick={() => setQuery('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  aria-label="검색어 지우기"
+                >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -190,8 +184,8 @@ export function SearchModal({ isOpen, onClose, posts, isLoading = false }: Searc
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 

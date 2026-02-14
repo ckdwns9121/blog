@@ -8,7 +8,7 @@ export function createNavigationPlugin(): HeaderPlugin {
     position: 'center',
     priority: 10,
     render: () => (
-      <nav className="hidden md:flex items-center space-x-8">
+      <nav aria-label="주요 네비게이션" className="hidden md:flex items-center space-x-8">
         <Link
           href="/"
           className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 text-sm font-medium transition-colors"
