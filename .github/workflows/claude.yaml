@@ -29,15 +29,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Prepare MCP Config
+        env:
+          REVIEW_MCP_CONFIG_JSON: ${{ secrets.REVIEW_MCP_CONFIG_JSON }}
+        run: |
+          set -euo pipefail
+          if [ -z "${REVIEW_MCP_CONFIG_JSON:-}" ]; then
+            echo '{"mcpServers":{}}' > /tmp/review-mcp-config.json
+          else
+            printf '%s' "$REVIEW_MCP_CONFIG_JSON" > /tmp/review-mcp-config.json
+          fi
+
       - name: Build Mention Context Bundle
         id: context
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
-          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
-          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         run: |
           set -euo pipefail
 
@@ -56,28 +62,6 @@ jobs:
 
           TICKET_KEY=$(printf '%s\n' "$COMMENT_BODY" | grep -Eo '[A-Z][A-Z0-9]+-[0-9]+' | head -n 1 || true)
 
-          JIRA_CONTEXT="Jira 컨텍스트 없음"
-          if [ -n "${TICKET_KEY:-}" ] && [ -n "${JIRA_BASE_URL:-}" ] && [ -n "${JIRA_EMAIL:-}" ] && [ -n "${JIRA_API_TOKEN:-}" ]; then
-            JIRA_URL="$JIRA_BASE_URL/rest/api/3/issue/$TICKET_KEY"
-            JIRA_RES=$(curl -sS -u "$JIRA_EMAIL:$JIRA_API_TOKEN" -H 'Accept: application/json' "$JIRA_URL" || true)
-            JIRA_SUMMARY=$(echo "$JIRA_RES" | jq -r '.fields.summary // ""')
-            JIRA_STATUS=$(echo "$JIRA_RES" | jq -r '.fields.status.name // ""')
-            if [ -n "$JIRA_SUMMARY" ] || [ -n "$JIRA_STATUS" ]; then
-              JIRA_CONTEXT="티켓: ${TICKET_KEY}\n요약: ${JIRA_SUMMARY}\n상태: ${JIRA_STATUS}"
-            fi
-          fi
-
-          SLACK_CONTEXT="Slack 컨텍스트 없음"
-          if [ -n "${SLACK_BOT_TOKEN:-}" ] && [ -n "${SLACK_CHANNEL_ID:-}" ] && [ -n "${TICKET_KEY:-}" ]; then
-            SLACK_RES=$(curl -sS -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-              "https://slack.com/api/conversations.history?channel=$SLACK_CHANNEL_ID&limit=50" || true)
-            SLACK_CONTEXT=$(echo "$SLACK_RES" | jq -r --arg key "$TICKET_KEY" '.messages[]? | select(.text | contains($key)) | .text' | head -n 10 | sed 's/^/- /' || true)
-          fi
-
-          if [ -z "${SLACK_CONTEXT:-}" ]; then
-            SLACK_CONTEXT="Slack 관련 메시지 없음"
-          fi
-
           {
             echo "prompt<<EOF"
             echo "REPO: $REPO"
@@ -87,15 +71,13 @@ jobs:
             echo "## 사용자 요청"
             echo "$COMMENT_BODY"
             echo ""
-            echo "## Jira 컨텍스트"
-            printf '%b\n' "$JIRA_CONTEXT"
-            echo ""
-            echo "## Slack 컨텍스트"
-            printf '%b\n' "$SLACK_CONTEXT"
+            echo "## 외부 컨텍스트 조회 대상"
+            echo "- Jira 티켓 키: ${TICKET_KEY:-없음}"
+            echo "- Jira/Slack 상세 맥락은 MCP 도구로 조회하세요."
             echo ""
             echo "## 지시"
             echo "요청에 답변하거나 코드리뷰를 수행하세요."
-            echo "필요한 경우 gh API/검색으로 근거를 보강하세요."
+            echo "필요한 경우 Jira MCP/Slack MCP/GitHub MCP를 사용해 근거를 보강하세요."
             echo "모든 답변은 한국어로 작성하세요."
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
@@ -111,4 +93,5 @@ jobs:
           prompt: ${{ steps.context.outputs.prompt }}
           claude_args: >-
             --system-prompt "당신은 회사 코드리뷰/기술질문 응답 에이전트입니다. 답변은 한국어로 작성하고 반드시 근거 기반으로 작성하세요."
-            --allowedTools "Bash(gh issue view:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(gh search code:*)"
+            --mcp-config /tmp/review-mcp-config.json
+            --allowedTools "mcp__jira__*,mcp__slack__*,mcp__github_*,Bash(gh issue view:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(gh search code:*)"

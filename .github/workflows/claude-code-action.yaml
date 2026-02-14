@@ -75,16 +75,21 @@ jobs:
               done
           echo "✅ 이전 리뷰 삭제 완료"
 
+      - name: Prepare MCP Config
+        env:
+          REVIEW_MCP_CONFIG_JSON: ${{ secrets.REVIEW_MCP_CONFIG_JSON }}
+        run: |
+          set -euo pipefail
+          if [ -z "${REVIEW_MCP_CONFIG_JSON:-}" ]; then
+            echo '{"mcpServers":{}}' > /tmp/review-mcp-config.json
+          else
+            printf '%s' "$REVIEW_MCP_CONFIG_JSON" > /tmp/review-mcp-config.json
+          fi
+
       - name: Build Context Bundle
         id: context
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
-          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
-          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
-          SLACK_THREAD_TS: ${{ secrets.SLACK_THREAD_TS }}
         run: |
           set -euo pipefail
 
@@ -103,35 +108,6 @@ jobs:
 
           TICKET_KEY=$(printf '%s\n%s\n' "$PR_TITLE" "$PR_BODY" | grep -Eo '[A-Z][A-Z0-9]+-[0-9]+' | head -n 1 || true)
 
-          JIRA_CONTEXT="Jira 컨텍스트 없음"
-          if [ -n "${TICKET_KEY:-}" ] && [ -n "${JIRA_BASE_URL:-}" ] && [ -n "${JIRA_EMAIL:-}" ] && [ -n "${JIRA_API_TOKEN:-}" ]; then
-            JIRA_URL="$JIRA_BASE_URL/rest/api/3/issue/$TICKET_KEY"
-            JIRA_RES=$(curl -sS -u "$JIRA_EMAIL:$JIRA_API_TOKEN" -H 'Accept: application/json' "$JIRA_URL" || true)
-            JIRA_SUMMARY=$(echo "$JIRA_RES" | jq -r '.fields.summary // ""')
-            JIRA_STATUS=$(echo "$JIRA_RES" | jq -r '.fields.status.name // ""')
-            JIRA_DESC=$(echo "$JIRA_RES" | jq -r '.fields.description.content[0].content[0].text // ""')
-            if [ -n "$JIRA_SUMMARY" ] || [ -n "$JIRA_STATUS" ]; then
-              JIRA_CONTEXT="티켓: ${TICKET_KEY}\n요약: ${JIRA_SUMMARY}\n상태: ${JIRA_STATUS}\n설명: ${JIRA_DESC}"
-            fi
-          fi
-
-          SLACK_CONTEXT="Slack 컨텍스트 없음"
-          if [ -n "${SLACK_BOT_TOKEN:-}" ] && [ -n "${SLACK_CHANNEL_ID:-}" ]; then
-            if [ -n "${SLACK_THREAD_TS:-}" ]; then
-              SLACK_RES=$(curl -sS -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-                "https://slack.com/api/conversations.replies?channel=$SLACK_CHANNEL_ID&ts=$SLACK_THREAD_TS&limit=30" || true)
-              SLACK_CONTEXT=$(echo "$SLACK_RES" | jq -r '.messages[]?.text' | head -n 10 | sed 's/^/- /' || true)
-            elif [ -n "${TICKET_KEY:-}" ]; then
-              SLACK_RES=$(curl -sS -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-                "https://slack.com/api/conversations.history?channel=$SLACK_CHANNEL_ID&limit=50" || true)
-              SLACK_CONTEXT=$(echo "$SLACK_RES" | jq -r --arg key "$TICKET_KEY" '.messages[]? | select(.text | contains($key)) | .text' | head -n 10 | sed 's/^/- /' || true)
-            fi
-          fi
-
-          if [ -z "${SLACK_CONTEXT:-}" ]; then
-            SLACK_CONTEXT="Slack 관련 메시지 없음"
-          fi
-
           {
             echo "prompt<<EOF"
             echo "REPO: $REPO"
@@ -143,19 +119,17 @@ jobs:
             echo "본문:"
             echo "$PR_BODY"
             echo ""
-            echo "## Jira 컨텍스트"
-            printf '%b\n' "$JIRA_CONTEXT"
-            echo ""
-            echo "## Slack 컨텍스트"
-            printf '%b\n' "$SLACK_CONTEXT"
+            echo "## 외부 컨텍스트 조회 대상"
+            echo "- Jira 티켓 키: ${TICKET_KEY:-없음}"
+            echo "- Jira/Slack 상세 맥락은 MCP 도구로 조회하세요."
             echo ""
             echo "## 변경 파일"
             echo "$CHANGED_FILES"
             echo ""
             echo "## 리뷰 지시"
             echo "1) 변경 파일 기반으로 코드 리뷰를 수행하세요."
-            echo "2) Jira/Slack 컨텍스트와 PR 변경의 정합성을 검증하세요."
-            echo "3) 필요한 경우 gh API/검색을 통해 다른 레포 영향도를 점검하세요."
+            echo "2) Jira MCP와 Slack MCP를 사용해 PR 배경 맥락을 수집하세요."
+            echo "3) 필요한 경우 GitHub MCP/gh 검색으로 다른 레포 영향도를 점검하세요."
             echo "4) 결과는 반드시 한국어로, 근거 중심으로 작성하세요."
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
@@ -173,4 +147,5 @@ jobs:
             actions: read
           claude_args: >-
             --system-prompt "당신은 회사 코드리뷰 에이전트입니다. 항상 한국어로 답변하고, 반드시 근거 파일/맥락을 함께 제시하세요."
-            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(gh search code:*)"
+            --mcp-config /tmp/review-mcp-config.json
+            --allowedTools "mcp__jira__*,mcp__slack__*,mcp__github_*,mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(gh search code:*)"
