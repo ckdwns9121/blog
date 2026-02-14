@@ -1,8 +1,8 @@
-name: Cluade Code Review
+name: Claude Code Review
 
 on:
   pull_request:
-    types: [opened]
+    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
   claude-review:
@@ -18,7 +18,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          fetch-depth: 1 # 리뷰를 위해 코드를 가져옵니다.
+          fetch-depth: 1
 
       - name: Delete Previous Claude Reviews
         if: github.event.action == 'synchronize'
@@ -75,6 +75,91 @@ jobs:
               done
           echo "✅ 이전 리뷰 삭제 완료"
 
+      - name: Build Context Bundle
+        id: context
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+          SLACK_THREAD_TS: ${{ secrets.SLACK_THREAD_TS }}
+        run: |
+          set -euo pipefail
+
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          REPO="${{ github.repository }}"
+
+          PR_JSON=$(gh api "repos/$REPO/pulls/$PR_NUMBER")
+          PR_TITLE=$(echo "$PR_JSON" | jq -r '.title // ""')
+          PR_BODY=$(echo "$PR_JSON" | jq -r '.body // ""')
+          PR_AUTHOR=$(echo "$PR_JSON" | jq -r '.user.login // ""')
+
+          CHANGED_FILES=$(gh api "repos/$REPO/pulls/$PR_NUMBER/files?per_page=100" --paginate --jq '.[].filename' | sed 's/^/- /')
+          if [ -z "$CHANGED_FILES" ]; then
+            CHANGED_FILES="- 변경 파일 없음"
+          fi
+
+          TICKET_KEY=$(printf '%s\n%s\n' "$PR_TITLE" "$PR_BODY" | grep -Eo '[A-Z][A-Z0-9]+-[0-9]+' | head -n 1 || true)
+
+          JIRA_CONTEXT="Jira 컨텍스트 없음"
+          if [ -n "${TICKET_KEY:-}" ] && [ -n "${JIRA_BASE_URL:-}" ] && [ -n "${JIRA_EMAIL:-}" ] && [ -n "${JIRA_API_TOKEN:-}" ]; then
+            JIRA_URL="$JIRA_BASE_URL/rest/api/3/issue/$TICKET_KEY"
+            JIRA_RES=$(curl -sS -u "$JIRA_EMAIL:$JIRA_API_TOKEN" -H 'Accept: application/json' "$JIRA_URL" || true)
+            JIRA_SUMMARY=$(echo "$JIRA_RES" | jq -r '.fields.summary // ""')
+            JIRA_STATUS=$(echo "$JIRA_RES" | jq -r '.fields.status.name // ""')
+            JIRA_DESC=$(echo "$JIRA_RES" | jq -r '.fields.description.content[0].content[0].text // ""')
+            if [ -n "$JIRA_SUMMARY" ] || [ -n "$JIRA_STATUS" ]; then
+              JIRA_CONTEXT="티켓: ${TICKET_KEY}\n요약: ${JIRA_SUMMARY}\n상태: ${JIRA_STATUS}\n설명: ${JIRA_DESC}"
+            fi
+          fi
+
+          SLACK_CONTEXT="Slack 컨텍스트 없음"
+          if [ -n "${SLACK_BOT_TOKEN:-}" ] && [ -n "${SLACK_CHANNEL_ID:-}" ]; then
+            if [ -n "${SLACK_THREAD_TS:-}" ]; then
+              SLACK_RES=$(curl -sS -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+                "https://slack.com/api/conversations.replies?channel=$SLACK_CHANNEL_ID&ts=$SLACK_THREAD_TS&limit=30" || true)
+              SLACK_CONTEXT=$(echo "$SLACK_RES" | jq -r '.messages[]?.text' | head -n 10 | sed 's/^/- /' || true)
+            elif [ -n "${TICKET_KEY:-}" ]; then
+              SLACK_RES=$(curl -sS -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+                "https://slack.com/api/conversations.history?channel=$SLACK_CHANNEL_ID&limit=50" || true)
+              SLACK_CONTEXT=$(echo "$SLACK_RES" | jq -r --arg key "$TICKET_KEY" '.messages[]? | select(.text | contains($key)) | .text' | head -n 10 | sed 's/^/- /' || true)
+            fi
+          fi
+
+          if [ -z "${SLACK_CONTEXT:-}" ]; then
+            SLACK_CONTEXT="Slack 관련 메시지 없음"
+          fi
+
+          {
+            echo "prompt<<EOF"
+            echo "REPO: $REPO"
+            echo "PR NUMBER: $PR_NUMBER"
+            echo "AUTHOR: $PR_AUTHOR"
+            echo ""
+            echo "## PR 배경"
+            echo "제목: $PR_TITLE"
+            echo "본문:"
+            echo "$PR_BODY"
+            echo ""
+            echo "## Jira 컨텍스트"
+            printf '%b\n' "$JIRA_CONTEXT"
+            echo ""
+            echo "## Slack 컨텍스트"
+            printf '%b\n' "$SLACK_CONTEXT"
+            echo ""
+            echo "## 변경 파일"
+            echo "$CHANGED_FILES"
+            echo ""
+            echo "## 리뷰 지시"
+            echo "1) 변경 파일 기반으로 코드 리뷰를 수행하세요."
+            echo "2) Jira/Slack 컨텍스트와 PR 변경의 정합성을 검증하세요."
+            echo "3) 필요한 경우 gh API/검색을 통해 다른 레포 영향도를 점검하세요."
+            echo "4) 결과는 반드시 한국어로, 근거 중심으로 작성하세요."
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Run Claude Code Review
         id: claude-review
         uses: anthropics/claude-code-action@v1
@@ -83,13 +168,9 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           plugin_marketplaces: "https://github.com/anthropics/claude-code.git"
           plugins: "code-review@claude-code-plugins"
-          prompt: |
-            REPO: ${{ github.repository }}
-            PR NUMBER: ${{ github.event.pull_request.number }}
-
-            이 PR(#${{ github.event.pull_request.number }})에 대해 코드 리뷰를 수행해주세요.
-
-            리뷰 결과는 GitHub PR 코멘트로 남겨주세요.
-            모든 코멘트와 리뷰 내용은 반드시 **한국어**로 작성해주세요.
-
-          claude_args: '--allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr view:*),Bash(gh pr diff:*)"'
+          prompt: ${{ steps.context.outputs.prompt }}
+          additional_permissions: |
+            actions: read
+          claude_args: >-
+            --system-prompt "당신은 회사 코드리뷰 에이전트입니다. 항상 한국어로 답변하고, 반드시 근거 파일/맥락을 함께 제시하세요."
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(gh search code:*)"
