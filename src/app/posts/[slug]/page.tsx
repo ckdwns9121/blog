@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { cache } from "react";
 
 // Post API (entities 레이어)
 import { getAllPosts, getPostBySlug } from "@/entities/post/api";
@@ -27,13 +28,16 @@ interface PostPageProps {
   params: Promise<{ slug: string }>;
 }
 
+const getAllPostsCached = cache(async () => getAllPosts());
+const getPostBySlugCached = cache(async (slug: string, fetchContent = true) => getPostBySlug(slug, fetchContent));
+
 // 프로덕션 빌드 시에는 force-static으로 변경 필요
 export const dynamic = "force-static";
 export const revalidate = 3600; // 1시간마다 재검증
 
 // SSG를 위한 정적 경로 생성
 export async function generateStaticParams() {
-  const allPosts = await getAllPosts();
+  const allPosts = await getAllPostsCached();
 
   return allPosts.map((post) => ({
     slug: post.slug,
@@ -45,7 +49,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   const { slug } = resolvedParams;
 
   try {
-    const post = await getPostBySlug(slug);
+    const post = await getPostBySlugCached(slug);
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blog.changjun.dev";
     const postUrl = `${baseUrl}/posts/${slug}`;
 
@@ -160,17 +164,17 @@ export default async function PostPage({ params }: PostPageProps) {
   const { slug } = resolvedParams;
 
   try {
-    const post = await getPostBySlug(slug);
+    const post = await getPostBySlugCached(slug);
     const toc = generateTableOfContents(post.content);
 
     // 이전/다음 포스트 조회 (콘텐츠 블록 불필요)
-    const allPosts = await getAllPosts();
+    const allPosts = await getAllPostsCached();
     const currentIndex = allPosts.findIndex((p) => p.slug === slug);
 
-    const previousPost = currentIndex > 0 ? await getPostBySlug(allPosts[currentIndex - 1].slug, false) : undefined;
+    const previousPost = currentIndex > 0 ? await getPostBySlugCached(allPosts[currentIndex - 1].slug, false) : undefined;
 
     const nextPost =
-      currentIndex < allPosts.length - 1 ? await getPostBySlug(allPosts[currentIndex + 1].slug, false) : undefined;
+      currentIndex < allPosts.length - 1 ? await getPostBySlugCached(allPosts[currentIndex + 1].slug, false) : undefined;
 
     // JSON-LD 구조화된 데이터
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blog.changjun.dev";

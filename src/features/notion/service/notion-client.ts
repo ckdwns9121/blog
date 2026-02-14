@@ -39,79 +39,86 @@ function getClient(): Client {
 
 // 포스트 메타데이터 조회
 export async function getAllPosts(): Promise<NotionPost[]> {
-  const response = await getClient().search({
-    query: "",
-    page_size: 100,
-  });
+  const results: NotionPost[] = [];
+  let cursor: string | undefined;
+  let hasMore = true;
 
-  // 병렬 처리: 모든 페이지를 동시에 가져오기
-  const posts = await Promise.all(
-    response.results.map(async (page) => {
-      try {
-        const pageData = await getClient().pages.retrieve({
-          page_id: page.id,
-        });
+  while (hasMore) {
+    const response = await getClient().search({
+      query: "",
+      page_size: 100,
+      start_cursor: cursor,
+    });
 
-        if (pageData.object === "page") {
-          const notionPage = pageData as NotionPage;
-          const properties = notionPage.properties;
+    const posts = await Promise.all(
+      response.results.map(async (page) => {
+        try {
+          const pageData = await getClient().pages.retrieve({
+            page_id: page.id,
+          });
 
-          const publishedProperty = properties.published as NotionCheckboxProperty | undefined;
-          const titleProperty = getPlainText(properties.title);
+          if (pageData.object === "page") {
+            const notionPage = pageData as NotionPage;
+            const properties = notionPage.properties;
 
-          if (publishedProperty?.checkbox && titleProperty) {
-            const originalSlug = getPlainText(properties.slug);
-            const generatedSlug = slugify(titleProperty);
-            const baseSlug = originalSlug || generatedSlug || "post";
+            const publishedProperty = properties.published as NotionCheckboxProperty | undefined;
+            const titleProperty = getPlainText(properties.title);
 
-            // pageId에서 하이픈 제거 (전체 32자리)
-            const pageIdWithoutHyphens = notionPage.id.replace(/-/g, "");
+            if (publishedProperty?.checkbox && titleProperty) {
+              const originalSlug = getPlainText(properties.slug);
+              const generatedSlug = slugify(titleProperty);
+              const baseSlug = originalSlug || generatedSlug || "post";
 
-            // slug + pageId 조합 (예: javascript-promise-8618d667c89b3708a1b2c3d4e5f6g7h8)
-            const validSlug = `${baseSlug}-${pageIdWithoutHyphens}`;
+              // pageId에서 하이픈 제거 (전체 32자리)
+              const pageIdWithoutHyphens = notionPage.id.replace(/-/g, "");
 
-            const publishedAtDate = getDate(properties.publishedAt);
+              // slug + pageId 조합 (예: javascript-promise-8618d667c89b3708a1b2c3d4e5f6g7h8)
+              const validSlug = `${baseSlug}-${pageIdWithoutHyphens}`;
 
-            // 날짜 유효성 재검증
-            const createdAt = notionPage.created_time || new Date().toISOString();
-            const updatedAt = notionPage.last_edited_time || new Date().toISOString();
-            const publishedAt = publishedAtDate || createdAt;
+              const publishedAtDate = getDate(properties.publishedAt);
 
-            // 커버 이미지 URL 처리 (S3 URL인 경우 공개 프록시 URL로 변환)
-            const rawCoverImage = getUrl(properties.coverImage);
-            const coverImage = rawCoverImage ? convertToPublicNotionImageUrl(rawCoverImage, notionPage.id) : undefined;
+              // 날짜 유효성 재검증
+              const createdAt = notionPage.created_time || new Date().toISOString();
+              const updatedAt = notionPage.last_edited_time || new Date().toISOString();
+              const publishedAt = publishedAtDate || createdAt;
 
-            return {
-              id: notionPage.id,
-              title: titleProperty,
-              slug: validSlug,
-              published: publishedProperty.checkbox,
-              createdAt,
-              publishedAt,
-              updatedAt,
-              tags: (getMultiSelect(properties.tags) || []).map((tag: string) => ({
-                name: tag,
-                slug: slugify(tag),
-              })),
-              excerpt: getPlainText(properties.excerpt),
-              coverImage,
-            } as NotionPost;
+              // 커버 이미지 URL 처리 (S3 URL인 경우 공개 프록시 URL로 변환)
+              const rawCoverImage = getUrl(properties.coverImage);
+              const coverImage = rawCoverImage ? convertToPublicNotionImageUrl(rawCoverImage, notionPage.id) : undefined;
+
+              return {
+                id: notionPage.id,
+                title: titleProperty,
+                slug: validSlug,
+                published: publishedProperty.checkbox,
+                createdAt,
+                publishedAt,
+                updatedAt,
+                tags: (getMultiSelect(properties.tags) || []).map((tag: string) => ({
+                  name: tag,
+                  slug: slugify(tag),
+                })),
+                excerpt: getPlainText(properties.excerpt),
+                coverImage,
+              } as NotionPost;
+            }
+          }
+        } catch (pageError) {
+          const error = pageError as Error & { code?: string };
+          if (error.code !== "object_not_found") {
+            console.warn(`Failed to process page ${page.id}:`, error.message);
           }
         }
-      } catch (pageError) {
-        const error = pageError as Error & { code?: string };
-        if (error.code !== "object_not_found") {
-          console.warn(`Failed to process page ${page.id}:`, error.message);
-        }
-      }
-      return null;
-    })
-  );
+        return null;
+      })
+    );
 
-  // null 값 필터링 및 정렬
-  return posts
-    .filter((post): post is NotionPost => post !== null)
-    .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    results.push(...posts.filter((post): post is NotionPost => post !== null));
+    hasMore = response.has_more;
+    cursor = response.next_cursor ?? undefined;
+  }
+
+  return results.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
 }
 
 // 특정 포스트 상세 조회 (pageId로 직접 조회)
@@ -243,12 +250,12 @@ function getPlainText(property: NotionPropertyValue | undefined): string {
 
   if (property.type === "title") {
     const titleProp = property as NotionTitleProperty;
-    return titleProp.title.length > 0 ? titleProp.title[0].plain_text : "";
+    return titleProp.title.map((item) => item.plain_text).join("");
   }
 
   if (property.type === "rich_text") {
     const richTextProp = property as NotionRichTextProperty;
-    return richTextProp.rich_text.length > 0 ? richTextProp.rich_text[0].plain_text : "";
+    return richTextProp.rich_text.map((item) => item.plain_text).join("");
   }
 
   return "";
