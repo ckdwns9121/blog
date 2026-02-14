@@ -225,24 +225,26 @@ export default async function PostPage({ params }: PostPageProps) {
       <>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
         <ScrollProgress />
-        <div>
-          <div className="py-8">
-            <article className="prose prose-lg max-w-none">
-              {/* 포스트 헤더 */}
-              <header className="mb-8">
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{post.title}</h1>
+        <div className="py-10">
+          <div className="mx-auto w-full">
+            <article className="mx-auto max-w-3xl">
+              <header className="mx-auto mb-10 max-w-3xl pb-8">
+                <h1 className="mb-6 text-3xl leading-tight font-bold tracking-tight text-gray-950 md:text-4xl dark:text-gray-50">
+                  {post.title}
+                </h1>
 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-6">
+                <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <time dateTime={post.publishedAt.toISOString()}>{post.publishedAt.toLocaleDateString("ko-KR")}</time>
+                  <span>·</span>
                   <PostViewCounter slug={slug} />
                   {post.tags.length > 0 && (
                     <>
-                      <span>•</span>
-                      <div className="flex gap-2">
+                      <span>·</span>
+                      <div className="flex flex-wrap gap-2">
                         {post.tags.map((tag) => (
                           <span
                             key={tag.slug}
-                            className="px-2 py-1 bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200 rounded-full text-xs"
+                            className="rounded-full border border-primary-200 bg-primary-50 px-3 py-1 text-xs font-medium text-primary-700 dark:border-primary-900 dark:bg-primary-950 dark:text-primary-200"
                           >
                             {tag.name}
                           </span>
@@ -253,26 +255,22 @@ export default async function PostPage({ params }: PostPageProps) {
                 </div>
 
                 {post.excerpt && (
-                  <div className="mt-6 p-4 bg-primary-50 dark:bg-primary-950 border-l-4 border-primary-600 dark:border-primary-400 rounded-r-lg">
-                    <div className="flex items-center gap-3 justify-center">
-                      <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed flex-1">
-                        {post.excerpt}
-                      </p>
-                    </div>
-                  </div>
+                  <p className="border-l-2 border-primary-500 pl-4 text-lg leading-7 text-gray-600 dark:border-primary-400 dark:text-gray-300">
+                    {post.excerpt}
+                  </p>
                 )}
               </header>
 
-              {/* 포스트 콘텐츠 */}
-              <PostContent blocks={post.content} />
+              <PostContent
+                blocks={post.content}
+                className="!prose-inherit mx-auto max-w-2xl text-[1.15rem] leading-8 text-gray-800 dark:text-gray-200 [&_h1]:mt-12 [&_h1]:mb-4 [&_h1]:text-4xl [&_h1]:font-bold [&_h2]:mt-10 [&_h2]:mb-3 [&_h2]:text-3xl [&_h2]:font-bold [&_h3]:mt-8 [&_h3]:mb-2 [&_h3]:text-2xl [&_h3]:font-semibold [&_p]:my-4 [&_p]:leading-[1.9] [&_blockquote]:my-7 [&_blockquote]:border-l-2 [&_blockquote]:border-gray-300 [&_blockquote]:bg-gray-50 [&_blockquote]:px-6 [&_blockquote]:py-3 [&_blockquote]:text-gray-700 dark:[&_blockquote]:border-gray-700 dark:[&_blockquote]:bg-gray-900/40 dark:[&_blockquote]:text-gray-300 [&_ul]:my-4 [&_ol]:my-4 [&_li]:my-1.5 [&_img]:my-8"
+              />
 
-              {/* 포스트 푸터 */}
-              <footer className="mt-12 pt-8">
+              <footer className="mx-auto mt-16 max-w-3xl pt-8">
                 <PostNavigation previousPost={previousPost} nextPost={nextPost} />
 
-                {/* 댓글 섹션 */}
-                <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">댓글</h2>
+                <div className="mt-12 border-t border-gray-200 pt-8 dark:border-gray-800">
+                  <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">댓글</h2>
                   <Comment repo="ckdwns9121/blog-comment" issueTerm="pathname" label="Comment" />
                 </div>
               </footer>
