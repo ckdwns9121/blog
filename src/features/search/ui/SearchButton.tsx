@@ -25,6 +25,7 @@ export function SearchButton({ className, children }: SearchButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const searchDialogId = 'search-dialog-content';
 
   const openModal = async () => {
     setIsModalOpen(true);
@@ -66,6 +67,9 @@ export function SearchButton({ className, children }: SearchButtonProps) {
         onClick={openModal}
         className={className}
         aria-label="검색"
+        aria-haspopup="dialog"
+        aria-expanded={isModalOpen}
+        aria-controls={searchDialogId}
       >
         {children || (
           <svg
@@ -89,6 +93,7 @@ export function SearchButton({ className, children }: SearchButtonProps) {
         onClose={() => setIsModalOpen(false)}
         posts={posts}
         isLoading={isLoading}
+        contentId={searchDialogId}
       />
     </>
   );
