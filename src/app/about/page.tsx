@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   authors: [{ name: "박창준", url: baseUrl }],
   creator: "박창준",
   publisher: "박창준",
+  alternates: {
+    canonical: "/about",
+  },
   openGraph: {
     title: "박창준 블로그 - 소개",
     description:
@@ -21,12 +24,21 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     siteName: "박창준",
     url: `${baseUrl}/about`,
+    images: [
+      {
+        url: `${baseUrl}/logo.png`,
+        width: 1200,
+        height: 630,
+        alt: "박창준 블로그 - 소개",
+      },
+    ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "박창준 블로그 - 소개",
     description: "프론트엔드 개발자 박창준입니다.",
     creator: "@changjun",
+    images: [`${baseUrl}/logo.png`],
   },
 };
 

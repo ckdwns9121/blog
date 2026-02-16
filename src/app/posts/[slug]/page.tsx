@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
 
   try {
     const post = await getPostBySlugCached(slug);
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blog.changjun.dev";
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://changjun.dev";
     const postUrl = `${baseUrl}/posts/${slug}`;
 
     // 설명 생성 (excerpt가 없으면 제목 기반)
@@ -177,7 +177,7 @@ export default async function PostPage({ params }: PostPageProps) {
       currentIndex < allPosts.length - 1 ? await getPostBySlugCached(allPosts[currentIndex + 1].slug, false) : undefined;
 
     // JSON-LD 구조화된 데이터
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://blog.changjun.dev";
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://changjun.dev";
 
     // OG Image와 동일한 로직으로 이미지 선택
     let jsonLdImage: string | undefined = undefined;

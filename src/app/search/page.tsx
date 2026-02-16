@@ -57,9 +57,24 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 export async function generateMetadata({ searchParams }: SearchPageProps) {
   const params = await searchParams;
   const query = params.q?.trim();
+  const hasQuery = Boolean(query);
 
   return {
     title: query ? `검색: ${query}` : "검색",
     description: query ? `${query} 검색 결과` : "블로그 포스트를 검색해보세요",
+    alternates: {
+      canonical: "/search",
+    },
+    robots: {
+      index: false,
+      follow: true,
+      googleBot: {
+        index: false,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": hasQuery ? 0 : -1,
+      },
+    },
   };
 }

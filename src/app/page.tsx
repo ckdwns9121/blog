@@ -44,6 +44,9 @@ export async function generateMetadata() {
     authors: [{ name: "박창준", url: baseUrl }],
     creator: "박창준",
     publisher: "박창준",
+    alternates: {
+      canonical: "/",
+    },
     openGraph: {
       title: "박창준 블로그",
       description:
@@ -52,6 +55,14 @@ export async function generateMetadata() {
       locale: "ko_KR",
       siteName: "박창준",
       url: baseUrl,
+      images: [
+        {
+          url: `${baseUrl}/logo.png`,
+          width: 1200,
+          height: 630,
+          alt: "박창준 블로그",
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
@@ -59,6 +70,7 @@ export async function generateMetadata() {
       description:
         "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
       creator: "@changjun",
+      images: [`${baseUrl}/logo.png`],
     },
   };
 }
