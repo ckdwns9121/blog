@@ -57,7 +57,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 export async function generateMetadata({ searchParams }: SearchPageProps) {
   const params = await searchParams;
   const query = params.q?.trim();
-  const hasQuery = Boolean(query);
 
   return {
     title: query ? `검색: ${query}` : "검색",
@@ -73,7 +72,7 @@ export async function generateMetadata({ searchParams }: SearchPageProps) {
         follow: true,
         "max-video-preview": -1,
         "max-image-preview": "large",
-        "max-snippet": hasQuery ? 0 : -1,
+        "max-snippet": -1,
       },
     },
   };
