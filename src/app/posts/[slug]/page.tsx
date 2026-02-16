@@ -22,6 +22,7 @@ import { PostViewCounter } from "@/features/page-views";
 import { PostNavigation } from "@/widgets/post-navigation";
 import { ScrollProgress } from "@/shared/ui/ScrollProgress";
 import BottomNavigation from "@/shared/ui/BottomNavigation";
+import { BASE_URL } from "@/shared/constants";
 import type { Metadata } from "next";
 
 interface PostPageProps {
@@ -50,8 +51,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
 
   try {
     const post = await getPostBySlugCached(slug);
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://changjun.dev";
-    const postUrl = `${baseUrl}/posts/${slug}`;
+    const postUrl = `${BASE_URL}/posts/${slug}`;
 
     // 설명 생성 (excerpt가 없으면 제목 기반)
     const description = post.excerpt || `${post.title}에 대한 상세한 내용을 다룹니다. `;
@@ -66,17 +66,17 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
     if (post.coverImage) {
       ogImageUrl = post.coverImage.startsWith("http")
         ? post.coverImage
-        : `${baseUrl}${post.coverImage.startsWith("/") ? post.coverImage : `/${post.coverImage}`}`;
+        : `${BASE_URL}${post.coverImage.startsWith("/") ? post.coverImage : `/${post.coverImage}`}`;
     } else {
       // 2. 포스트 콘텐츠에서 첫 번째 이미지 찾기
       const firstImageUrl = getFirstImageFromContent(post.content);
       if (firstImageUrl) {
         ogImageUrl = firstImageUrl.startsWith("http")
           ? firstImageUrl
-          : `${baseUrl}${firstImageUrl.startsWith("/") ? firstImageUrl : `/${firstImageUrl}`}`;
+          : `${BASE_URL}${firstImageUrl.startsWith("/") ? firstImageUrl : `/${firstImageUrl}`}`;
       } else {
         // 3. 이미지가 없으면 동적 생성된 OG 이미지 사용
-        ogImageUrl = `${baseUrl}/posts/${slug}/opengraph-image`;
+        ogImageUrl = `${BASE_URL}/posts/${slug}/opengraph-image`;
       }
     }
 
@@ -84,7 +84,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
       title: `${post.title}`,
       description: description.slice(0, 160), // 검색엔진 최적 길이
       keywords: keywords.join(", "),
-      authors: [{ name: "박창준", url: baseUrl }],
+      authors: [{ name: "박창준", url: BASE_URL }],
       creator: "박창준",
       publisher: "박창준",
 
@@ -177,20 +177,18 @@ export default async function PostPage({ params }: PostPageProps) {
       currentIndex < allPosts.length - 1 ? await getPostBySlugCached(allPosts[currentIndex + 1].slug, false) : undefined;
 
     // JSON-LD 구조화된 데이터
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://changjun.dev";
-
     // OG Image와 동일한 로직으로 이미지 선택
     let jsonLdImage: string | undefined = undefined;
     if (post.coverImage) {
       jsonLdImage = post.coverImage.startsWith("http")
         ? post.coverImage
-        : `${baseUrl}${post.coverImage.startsWith("/") ? post.coverImage : `/${post.coverImage}`}`;
+        : `${BASE_URL}${post.coverImage.startsWith("/") ? post.coverImage : `/${post.coverImage}`}`;
     } else {
       const firstImageUrl = getFirstImageFromContent(post.content);
       if (firstImageUrl) {
         jsonLdImage = firstImageUrl.startsWith("http")
           ? firstImageUrl
-          : `${baseUrl}${firstImageUrl.startsWith("/") ? firstImageUrl : `/${firstImageUrl}`}`;
+          : `${BASE_URL}${firstImageUrl.startsWith("/") ? firstImageUrl : `/${firstImageUrl}`}`;
       }
     }
 
@@ -205,16 +203,16 @@ export default async function PostPage({ params }: PostPageProps) {
       author: {
         "@type": "Person",
         name: "박창준",
-        url: baseUrl,
+        url: BASE_URL,
       },
       publisher: {
         "@type": "Person",
         name: "박창준",
-        url: baseUrl,
+        url: BASE_URL,
       },
       mainEntityOfPage: {
         "@type": "WebPage",
-        "@id": `${baseUrl}/posts/${slug}`,
+        "@id": `${BASE_URL}/posts/${slug}`,
       },
       keywords: [...post.tags.map((tag) => tag.name)].join(", "),
       articleSection: post.tags.map((tag) => tag.name).join(", "),
