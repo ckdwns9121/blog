@@ -2,15 +2,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { CodeBracketIcon } from "@heroicons/react/24/outline";
 import type { Metadata } from "next";
-
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://changjun.dev";
+import { BASE_URL } from "@/shared/constants";
 
 export const metadata: Metadata = {
   title: "박창준 블로그 - 소개",
   description:
     "프론트엔드 개발자 박창준입니다. React와 Next.js를 활용한 웹 애플리케이션 개발에 집중하며, 기술 블로그를 통해 개발 경험과 학습한 내용을 공유합니다.",
   keywords: ["박창준", "프론트엔드", "개발자", "소개", "이력", "React", "Next.js", "TypeScript"],
-  authors: [{ name: "박창준", url: baseUrl }],
+  authors: [{ name: "박창준", url: BASE_URL }],
   creator: "박창준",
   publisher: "박창준",
   alternates: {
@@ -23,10 +22,10 @@ export const metadata: Metadata = {
     type: "profile",
     locale: "ko_KR",
     siteName: "박창준",
-    url: `${baseUrl}/about`,
+    url: `${BASE_URL}/about`,
     images: [
       {
-        url: `${baseUrl}/logo.png`,
+        url: `${BASE_URL}/logo.png`,
         width: 1200,
         height: 630,
         alt: "박창준 블로그 - 소개",
@@ -34,11 +33,8 @@ export const metadata: Metadata = {
     ],
   },
   twitter: {
-    card: "summary_large_image",
     title: "박창준 블로그 - 소개",
     description: "프론트엔드 개발자 박창준입니다.",
-    creator: "@changjun",
-    images: [`${baseUrl}/logo.png`],
   },
 };
 
@@ -47,7 +43,7 @@ const aboutPersonSchema = {
   "@context": "https://schema.org",
   "@type": "Person",
   name: "박창준",
-  url: baseUrl,
+  url: BASE_URL,
   jobTitle: "프론트엔드 개발자",
   description:
     "프론트엔드 개발자 박창준입니다. React와 Next.js를 활용한 웹 애플리케이션 개발에 집중하며, 기술 블로그를 통해 개발 경험과 학습한 내용을 공유합니다.",

@@ -3,7 +3,7 @@ import { PostList } from "../entities/post/ui/PostList";
 
 // Post API 어댑터 초기화
 import "@/app/init-post-api";
-import { POSTS_PER_PAGE } from "@/shared/constants";
+import { BASE_URL, POSTS_PER_PAGE } from "@/shared/constants";
 
 // 프로덕션 빌드 시에는 force-static으로 변경 필요
 export const dynamic = "force-static";
@@ -24,8 +24,6 @@ export default async function Home() {
 }
 
 export async function generateMetadata() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://changjun.dev";
-
   return {
     title: "박창준 블로그",
     description:
@@ -41,7 +39,7 @@ export async function generateMetadata() {
       "웹 개발",
       "기술 블로그",
     ],
-    authors: [{ name: "박창준", url: baseUrl }],
+    authors: [{ name: "박창준", url: BASE_URL }],
     creator: "박창준",
     publisher: "박창준",
     alternates: {
@@ -54,23 +52,15 @@ export async function generateMetadata() {
       type: "website",
       locale: "ko_KR",
       siteName: "박창준",
-      url: baseUrl,
+      url: BASE_URL,
       images: [
         {
-          url: `${baseUrl}/logo.png`,
+          url: `${BASE_URL}/logo.png`,
           width: 1200,
           height: 630,
           alt: "박창준 블로그",
         },
       ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: "박창준 블로그",
-      description:
-        "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
-      creator: "@changjun",
-      images: [`${baseUrl}/logo.png`],
     },
   };
 }
