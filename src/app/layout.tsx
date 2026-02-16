@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/shared/providers/ThemeProvider";
 import { Footer } from "@/shared/ui/Footer";
+import { BASE_URL } from "@/shared/constants";
 import { ClientLayout } from "./ClientLayout";
 import type { Metadata } from "next";
 
@@ -17,8 +18,6 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
-
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://changjun.dev";
 
 export const metadata: Metadata = {
   title: {
@@ -38,15 +37,26 @@ export const metadata: Metadata = {
     "웹 개발",
     "기술 블로그",
   ],
-  authors: [{ name: "박창준", url: baseUrl }],
+  authors: [{ name: "박창준", url: BASE_URL }],
   creator: "박창준",
   publisher: "박창준",
-  metadataBase: new URL(baseUrl),
+  metadataBase: new URL(BASE_URL),
   alternates: {
     types: {
-      "application/rss+xml": `${baseUrl}/feed.xml`,
-      "application/feed+json": `${baseUrl}/feed.json`,
-      "application/atom+xml": `${baseUrl}/atom.xml`,
+      "application/rss+xml": `${BASE_URL}/feed.xml`,
+      "application/feed+json": `${BASE_URL}/feed.json`,
+      "application/atom+xml": `${BASE_URL}/atom.xml`,
+    },
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
   },
   openGraph: {
@@ -56,7 +66,23 @@ export const metadata: Metadata = {
     title: "박창준 블로그",
     description:
       "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
-    url: baseUrl,
+    url: BASE_URL,
+    images: [
+      {
+        url: `${BASE_URL}/logo.png`,
+        width: 1200,
+        height: 630,
+        alt: "박창준 블로그",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "박창준 블로그",
+    description:
+      "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
+    creator: "@changjun",
+    images: [`${BASE_URL}/logo.png`],
   },
   verification: {
     google: "KkCn5ZoWWUotKW-IU9GakGgXxxoLeAzeeBSig3BvUIQ",
@@ -76,12 +102,28 @@ const personSchema = {
   "@context": "https://schema.org",
   "@type": "Person",
   name: "박창준",
-  url: baseUrl,
+  url: BASE_URL,
   jobTitle: "프론트엔드 개발자",
   description:
     "프론트엔드 개발자 박창준의 기술 블로그입니다. React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
   sameAs: ["https://github.com/ckdwns9121", "https://linkedin.com/in/devchangjun"],
   knowsAbout: ["프론트엔드 개발", "React", "Next.js", "TypeScript", "JavaScript", "웹 개발"],
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "박창준 블로그",
+  url: BASE_URL,
+  inLanguage: "ko-KR",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: `${BASE_URL}/search?q={search_term_string}`,
+    },
+    "query-input": "required name=search_term_string",
+  },
 };
 
 export default async function RootLayout({
@@ -101,6 +143,7 @@ export default async function RootLayout({
           본문으로 바로가기
         </a>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
         <Providers>
           <ClientLayout>
             {children}
