@@ -26,8 +26,7 @@ export default async function Home() {
 export async function generateMetadata() {
   return {
     title: "박창준 블로그",
-    description:
-      "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
+    description: "개발자 박창준 블로그입니다.",
     keywords: [
       "박창준",
       "프론트엔드",
@@ -47,8 +46,7 @@ export async function generateMetadata() {
     },
     openGraph: {
       title: "박창준 블로그",
-      description:
-        "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
+      description: "개발자 박창준 블로그입니다.",
       type: "website",
       locale: "ko_KR",
       siteName: "박창준",

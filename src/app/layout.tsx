@@ -24,8 +24,7 @@ export const metadata: Metadata = {
     default: "박창준 블로그",
     template: "%s | 박창준 블로그",
   },
-  description:
-    "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
+  description: "개발자 박창준 블로그입니다.",
   keywords: [
     "박창준",
     "프론트엔드",
@@ -64,8 +63,7 @@ export const metadata: Metadata = {
     locale: "ko_KR",
     siteName: "박창준",
     title: "박창준 블로그",
-    description:
-      "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
+    description: "개발자 박창준 블로그입니다.",
     url: BASE_URL,
     images: [
       {
@@ -79,8 +77,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "박창준 블로그",
-    description:
-      "박창준의 기술 블로그입니다. 프론트엔드 개발자 박창준이 React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
+    description: "개발자 박창준 블로그입니다.",
     creator: "@changjun",
     images: [`${BASE_URL}/logo.png`],
   },
@@ -104,8 +101,7 @@ const personSchema = {
   name: "박창준",
   url: BASE_URL,
   jobTitle: "프론트엔드 개발자",
-  description:
-    "프론트엔드 개발자 박창준의 기술 블로그입니다. React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
+  description: "프론트엔드 개발자 박창준의 경험과 지식을 공유하는 블로그입니다.",
   sameAs: ["https://github.com/ckdwns9121", "https://linkedin.com/in/devchangjun"],
   knowsAbout: ["프론트엔드 개발", "React", "Next.js", "TypeScript", "JavaScript", "웹 개발"],
 };
