@@ -3,6 +3,7 @@
 import { Fragment } from "react";
 import type { ContentBlockWithChildren } from "@/shared/types/content";
 import { ContentBlockRenderer } from "@/shared/ui/ContentBlockRenderer";
+import { SELF_CONTAINED_BLOCK_TYPES } from "@/shared/utils/blockGrouping";
 
 interface PostContentProps {
   blocks: ContentBlockWithChildren[];
@@ -36,10 +37,12 @@ export default function PostContent({
   ) => {
     const headingId = getHeadingId(block);
 
+    const isSelfContained = (SELF_CONTAINED_BLOCK_TYPES as readonly string[]).includes(block.type);
+
     return (
       <Fragment key={block.id || index}>
         <ContentBlockRenderer block={block} headingId={headingId} />
-        {block.children && block.children.length > 0 && (
+        {!isSelfContained && block.children && block.children.length > 0 && (
           <div className="ml-2 pl-2">
             {block.children.map((child, childIndex) =>
               renderBlockWithChildren(child, childIndex),
