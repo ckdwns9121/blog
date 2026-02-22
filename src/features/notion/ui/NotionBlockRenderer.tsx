@@ -95,6 +95,9 @@ export function NotionBlockRenderer({ block, headingId }: NotionBlockRendererPro
       return (
         <blockquote className="my-5 border-l-4 border-primary-500 pl-4 italic text-gray-600 dark:text-gray-400">
           {renderContent()}
+          {block.children && block.children.map((child) => (
+            <NotionBlockRenderer key={child.id} block={child} />
+          ))}
         </blockquote>
       );
 
