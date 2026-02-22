@@ -31,12 +31,11 @@ export default function PostContent({ blocks, className = "" }: PostContentProps
     return (
       <Fragment key={block.id || index}>
         <ContentBlockRenderer block={block} headingId={headingId} />
-        {block.children && block.children.length > 0 && (
+        {block.children && block.children.length > 0 && block.type !== "quote" && (
           <div className="ml-2 pl-2">
             {block.children.map((child, childIndex) => renderBlockWithChildren(child, childIndex))}
           </div>
-        )}
-      </Fragment>
+        )}      </Fragment>
     );
   };
 

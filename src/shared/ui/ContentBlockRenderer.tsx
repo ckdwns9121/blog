@@ -64,7 +64,13 @@ export function ContentBlockRenderer({ block, headingId }: ContentBlockRendererP
           ) : (
             <span>{block.fallbackText || ""}</span>
           )}
-        </blockquote>
+          {block.children && block.children.length > 0 && (
+            <div className="mt-3">
+              {block.children.map((child, childIndex) => (
+                <ContentBlockRenderer key={child.id || childIndex} block={child} />
+              ))}
+            </div>
+          )}        </blockquote>
       );
 
     case "list_item":
