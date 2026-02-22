@@ -39,7 +39,6 @@ export default function PostContent({
     return (
       <Fragment key={block.id || index}>
         <ContentBlockRenderer block={block} headingId={headingId} />
-<<<<<<< HEAD
         {block.children && block.children.length > 0 && (
           <div className="ml-2 pl-2">
             {block.children.map((child, childIndex) =>
@@ -47,17 +46,6 @@ export default function PostContent({
             )}
           </div>
         )}
-=======
-        {block.children &&
-          block.children.length > 0 &&
-          block.type !== "quote" && (
-            <div className="ml-2 pl-2">
-              {block.children.map((child, childIndex) =>
-                renderBlockWithChildren(child, childIndex),
-              )}
-            </div>
-          )}{" "}
->>>>>>> origin/fix/quote-block-rendering
       </Fragment>
     );
   };
