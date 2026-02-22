@@ -72,6 +72,16 @@ export function ContentBlockRenderer({
           ) : (
             <span>{block.fallbackText || ""}</span>
           )}
+          {block.children && block.children.length > 0 && (
+            <div className="mt-3">
+              {block.children.map((child, childIndex) => (
+                <ContentBlockRenderer
+                  key={child.id || childIndex}
+                  block={child}
+                />
+              ))}
+            </div>
+          )}{" "}
         </blockquote>
       );
 
