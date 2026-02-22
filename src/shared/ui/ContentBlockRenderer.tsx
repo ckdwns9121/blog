@@ -17,7 +17,10 @@ interface ContentBlockRendererProps {
  * 공통 콘텐츠 블록을 렌더링하는 컴포넌트
  * CMS에 독립적으로 작동하며, 다양한 소스의 블록을 렌더링할 수 있습니다.
  */
-export function ContentBlockRenderer({ block, headingId }: ContentBlockRendererProps) {
+export function ContentBlockRenderer({
+  block,
+  headingId,
+}: ContentBlockRendererProps) {
   switch (block.type) {
     case "text":
       return (
@@ -43,12 +46,17 @@ export function ContentBlockRenderer({ block, headingId }: ContentBlockRendererP
           <RichTextRenderer items={block.richText} />
         ) : (
           <span>{block.fallbackText || ""}</span>
-        )
+        ),
       );
     }
 
     case "code":
-      return <CodeBlock code={block.code || ""} language={block.language || "text"} />;
+      return (
+        <CodeBlock
+          code={block.code || ""}
+          language={block.language || "text"}
+        />
+      );
 
     case "image":
       return <ImageBlock url={block.url || ""} caption={block.caption} />;
@@ -67,10 +75,14 @@ export function ContentBlockRenderer({ block, headingId }: ContentBlockRendererP
           {block.children && block.children.length > 0 && (
             <div className="mt-3">
               {block.children.map((child, childIndex) => (
-                <ContentBlockRenderer key={child.id || childIndex} block={child} />
+                <ContentBlockRenderer
+                  key={child.id || childIndex}
+                  block={child}
+                />
               ))}
             </div>
-          )}        </blockquote>
+          )}{" "}
+        </blockquote>
       );
 
     case "list_item":
@@ -96,8 +108,12 @@ export function ContentBlockRenderer({ block, headingId }: ContentBlockRendererP
             rel="noopener noreferrer"
             className="block p-4 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
-            <div className="text-sm text-gray-600 dark:text-gray-400">{block.url}</div>
-            {block.caption && <div className="mt-2 text-sm">{block.caption}</div>}
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              {block.url}
+            </div>
+            {block.caption && (
+              <div className="mt-2 text-sm">{block.caption}</div>
+            )}
           </a>
         </div>
       );
@@ -117,7 +133,11 @@ export function ContentBlockRenderer({ block, headingId }: ContentBlockRendererP
                 return (
                   <tr
                     key={rowIndex}
-                    className={isHeaderRow ? "bg-gray-100 dark:bg-gray-800" : "border-t border-gray-300 dark:border-gray-600"}
+                    className={
+                      isHeaderRow
+                        ? "bg-gray-100 dark:bg-gray-800"
+                        : "border-t border-gray-300 dark:border-gray-600"
+                    }
                   >
                     {row.cells.map((cell: TableCell, cellIndex: number) => {
                       const CellTag = isHeaderRow ? "th" : "td";
