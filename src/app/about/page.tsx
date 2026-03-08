@@ -7,7 +7,7 @@ import { BASE_URL } from "@/shared/constants";
 export const metadata: Metadata = {
   title: "박창준 블로그 - 소개",
   description:
-    "프론트엔드 개발자 박창준입니다. React와 Next.js를 활용한 웹 애플리케이션 개발에 집중하며, 기술 블로그를 통해 개발 경험과 학습한 내용을 공유합니다.",
+    "스타트업을 공동창업하며 제품을 만들어본 프론트엔드 개발자 박창준입니다. 팀 생산성과 자동화에 관심이 많으며, 현재 Colosseum에서 WMS 서비스를 개발하고 있습니다.",
   keywords: ["박창준", "프론트엔드", "개발자", "소개", "이력", "React", "Next.js", "TypeScript"],
   authors: [{ name: "박창준", url: BASE_URL }],
   creator: "박창준",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "박창준 블로그 - 소개",
     description:
-      "프론트엔드 개발자 박창준입니다. React와 Next.js를 활용한 웹 애플리케이션 개발에 집중하며, 기술 블로그를 통해 개발 경험과 학습한 내용을 공유합니다.",
+      "스타트업을 공동창업하며 제품을 만들어본 프론트엔드 개발자 박창준입니다. 팀 생산성과 자동화에 관심이 많으며, 현재 Colosseum에서 WMS 서비스를 개발하고 있습니다.",
     type: "profile",
     locale: "ko_KR",
     siteName: "박창준",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     title: "박창준 블로그 - 소개",
-    description: "프론트엔드 개발자 박창준입니다.",
+    description: "스타트업을 공동창업하며 제품을 만들어본 프론트엔드 개발자 박창준입니다.",
   },
 };
 
@@ -46,7 +46,7 @@ const aboutPersonSchema = {
   url: BASE_URL,
   jobTitle: "프론트엔드 개발자",
   description:
-    "프론트엔드 개발자 박창준입니다. React와 Next.js를 활용한 웹 애플리케이션 개발에 집중하며, 기술 블로그를 통해 개발 경험과 학습한 내용을 공유합니다.",
+    "스타트업을 공동창업하며 제품을 만들어본 프론트엔드 개발자 박창준입니다. 팀 생산성과 자동화에 관심이 많으며, 현재 Colosseum에서 WMS 서비스를 개발하고 있습니다.",
   sameAs: ["https://github.com/ckdwns9121", "https://linkedin.com/in/devchangjun"],
   knowsAbout: ["프론트엔드 개발", "React", "Next.js", "TypeScript", "JavaScript", "웹 개발"],
   worksFor: {
