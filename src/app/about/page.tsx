@@ -7,7 +7,7 @@ import { BASE_URL } from "@/shared/constants";
 export const metadata: Metadata = {
   title: "박창준 블로그 - 소개",
   description:
-    "프론트엔드 개발자 박창준입니다. React와 Next.js를 활용한 웹 애플리케이션 개발에 집중하며, 기술 블로그를 통해 개발 경험과 학습한 내용을 공유합니다.",
+    "스타트업을 공동창업하며 제품을 만들어본 프론트엔드 개발자 박창준입니다. 팀 생산성과 자동화에 관심이 많으며, 현재 Colosseum에서 WMS 서비스를 개발하고 있습니다.",
   keywords: ["박창준", "프론트엔드", "개발자", "소개", "이력", "React", "Next.js", "TypeScript"],
   authors: [{ name: "박창준", url: BASE_URL }],
   creator: "박창준",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "박창준 블로그 - 소개",
     description:
-      "프론트엔드 개발자 박창준입니다. React와 Next.js를 활용한 웹 애플리케이션 개발에 집중하며, 기술 블로그를 통해 개발 경험과 학습한 내용을 공유합니다.",
+      "스타트업을 공동창업하며 제품을 만들어본 프론트엔드 개발자 박창준입니다. 팀 생산성과 자동화에 관심이 많으며, 현재 Colosseum에서 WMS 서비스를 개발하고 있습니다.",
     type: "profile",
     locale: "ko_KR",
     siteName: "박창준",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     title: "박창준 블로그 - 소개",
-    description: "프론트엔드 개발자 박창준입니다.",
+    description: "스타트업을 공동창업하며 제품을 만들어본 프론트엔드 개발자 박창준입니다.",
   },
 };
 
@@ -46,7 +46,7 @@ const aboutPersonSchema = {
   url: BASE_URL,
   jobTitle: "프론트엔드 개발자",
   description:
-    "프론트엔드 개발자 박창준입니다. React와 Next.js를 활용한 웹 애플리케이션 개발에 집중하며, 기술 블로그를 통해 개발 경험과 학습한 내용을 공유합니다.",
+    "스타트업을 공동창업하며 제품을 만들어본 프론트엔드 개발자 박창준입니다. 팀 생산성과 자동화에 관심이 많으며, 현재 Colosseum에서 WMS 서비스를 개발하고 있습니다.",
   sameAs: ["https://github.com/ckdwns9121", "https://linkedin.com/in/devchangjun"],
   knowsAbout: ["프론트엔드 개발", "React", "Next.js", "TypeScript", "JavaScript", "웹 개발"],
   worksFor: {
@@ -103,22 +103,11 @@ export default function About() {
               {/* 소개 */}
               <div className="text-left">
                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                  안녕하세요. 프론트엔드 개발자 <strong>박창준</strong>입니다.
-                </p>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                  복잡한 문제를 구조화하고, 빠르게 실행하는 것을 강점으로 가지고 있습니다. 이러한 강점을 바탕으로
-                  스타트업을 공동창업하여 제품을 0부터 1까지 만들어왔던 경험이 있습니다. React와 Next.js를 활용한 웹
-                  애플리케이션 개발에 집중하고 있으며, 기술 블로그를 통해 개발 경험과 학습한 내용을 공유하고 있습니다.
-                </p>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                  개발을 단순히 코드를 작성하는 것이 아니라 문제를 해결하는 과정으로 봅니다. 따라서 프론트엔드에
-                  국한되지 않고, 주어진 문제에 가장 적합한 기술과 방법을 선택하여 해결책을 만들어냅니다. 기술 블로그를
-                  통해 이러한 문제해결 과정과 경험을 공유하고 있습니다.
-                </p>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                  팀 협업과 조직문화에도 관심이 많습니다. 효과적인 협업을 통해 더 나은 결과를 만들어내고, 건강한
-                  조직문화가 개발자의 성장과 제품의 품질에 미치는 긍정적인 영향을 경험했습니다. 이러한 경험을 바탕으로
-                  팀의 생산성과 만족도를 높이는 방법에 대해 지속적으로 학습하고 실천하고 있습니다.
+                  스타트업을 공동창업하며 제품을 Zero to One까지 만들어본 경험이 있습니다.
+                  <br />
+                  어떤 문제라도 함께 고민한다면 해결할 수 있다고 믿고 있어요.
+                  <br />
+                  요즘은 팀 생산성과 자동화에 관심이 많습니다.
                 </p>
                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                   현재는{" "}
@@ -130,7 +119,7 @@ export default function About() {
                   >
                     Colosseum
                   </Link>
-                  에서 WMS, OMS 서비스를 개발하고 있습니다.
+                  에서 WMS 서비스를 개발하고 있습니다.
                 </p>
               </div>
             </div>
