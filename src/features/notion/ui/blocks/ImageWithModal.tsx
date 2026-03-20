@@ -21,6 +21,7 @@ export function ImageWithModal({ url, caption }: ImageWithModalProps) {
   if (!url) return null;
 
   const optimizedImageUrl = getOptimizedImageUrl(url);
+  const isGif = optimizedImageUrl.endsWith(".gif");
 
   return (
     <>
@@ -35,6 +36,7 @@ export function ImageWithModal({ url, caption }: ImageWithModalProps) {
             height={0}
             sizes="100vw"
             className="max-w-full max-h-[90vh] w-auto h-auto rounded-lg object-contain"
+            unoptimized={isGif}
           />
         </div>
 

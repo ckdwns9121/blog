@@ -11,6 +11,23 @@ import sharp from "sharp";
  * @param quality - WebP 품질 (1-100)
  * @returns 로컬 이미지 경로
  */
+/**
+ * URL에서 이미지 확장자를 추출
+ */
+function getImageExtension(url: string): string {
+  // URL에서 쿼리 파라미터 제거 후 확장자 추출
+  const cleanUrl = url.split("?")[0];
+  const ext = path.extname(cleanUrl).toLowerCase();
+  return ext;
+}
+
+/**
+ * GIF 이미지인지 확인
+ */
+function isGifUrl(url: string): boolean {
+  return getImageExtension(url) === ".gif";
+}
+
 export async function convertImageToWebp(
   url: string,
   postSlug: string,
@@ -18,7 +35,8 @@ export async function convertImageToWebp(
   quality = 85
 ): Promise<string> {
   try {
-    const fileName = `${imageIndex}.webp`;
+    const isGif = isGifUrl(url);
+    const fileName = isGif ? `${imageIndex}.gif` : `${imageIndex}.webp`;
     const outputDir = path.join(process.cwd(), "public", "images", postSlug);
     const outputPath = path.join(outputDir, fileName);
 
@@ -33,9 +51,9 @@ export async function convertImageToWebp(
       fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    console.log(`  🔄 ${postSlug}/${fileName}`);
+    console.log(`  🔄 ${postSlug}/${fileName}${isGif ? " (GIF 원본 유지)" : ""}`);
 
-    // Notion 이미지 다운로드
+    // 이미지 다운로드
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`이미지 다운로드 실패: ${response.status}`);
@@ -44,8 +62,13 @@ export async function convertImageToWebp(
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // WebP로 변환 및 저장
-    await sharp(buffer).webp({ quality }).toFile(outputPath);
+    if (isGif) {
+      // GIF는 애니메이션 보존을 위해 원본 그대로 저장
+      fs.writeFileSync(outputPath, buffer);
+    } else {
+      // WebP로 변환 및 저장
+      await sharp(buffer).webp({ quality }).toFile(outputPath);
+    }
 
     console.log(`  ✅ ${postSlug}/${fileName}`);
     return `/images/${postSlug}/${fileName}`;
