@@ -16,8 +16,11 @@ interface ImageBlockProps {
 export function ImageBlock({ url, caption, enableModal = false, onImageClick }: ImageBlockProps) {
   if (!url) return null;
 
-  // 빌드 시점에 변환된 로컬 WebP 이미지 경로 가져오기
+  // 빌드 시점에 변환된 로컬 이미지 경로 가져오기
   const optimizedImageUrl = getOptimizedImageUrl(url);
+
+  // GIF는 Next.js 이미지 최적화를 비활성화하여 애니메이션 보존
+  const isGif = optimizedImageUrl.endsWith(".gif");
 
   return (
     <figure className="my-8">
@@ -29,6 +32,7 @@ export function ImageBlock({ url, caption, enableModal = false, onImageClick }: 
         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 80vw, 60vw"
         className={`w-full max-w-3xl h-auto rounded-lg mx-auto block ${enableModal && onImageClick ? "cursor-pointer hover:opacity-90 transition-opacity" : ""}`}
         onClick={onImageClick}
+        unoptimized={isGif}
       />
       {caption && (
         <figcaption className="mt-3 text-center text-sm text-gray-600 dark:text-gray-400">{caption}</figcaption>
