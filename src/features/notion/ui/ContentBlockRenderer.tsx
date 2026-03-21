@@ -14,8 +14,8 @@ interface ContentBlockRendererProps {
 }
 
 /**
- * 공통 콘텐츠 블록을 렌더링하는 컴포넌트
- * CMS에 독립적으로 작동하며, 다양한 소스의 블록을 렌더링할 수 있습니다.
+ * 콘텐츠 블록을 렌더링하는 컴포넌트
+ * Notion 블록 데이터를 받아 적절한 UI로 변환합니다.
  */
 export function ContentBlockRenderer({
   block,

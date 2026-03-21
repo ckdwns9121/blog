@@ -1,6 +1,6 @@
 "use client";
 
-import { Pagination } from "@/shared/ui/Pagination";
+import { Pagination } from "@/shared/ui";
 
 interface ClientPaginationProps {
   currentPage: number;

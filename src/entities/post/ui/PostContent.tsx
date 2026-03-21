@@ -2,7 +2,7 @@
 
 import { Fragment } from "react";
 import type { ContentBlockWithChildren } from "@/shared/types/content";
-import { ContentBlockRenderer } from "@/shared/ui/ContentBlockRenderer";
+import { ContentBlockRenderer } from "@/features/notion/ui/ContentBlockRenderer";
 import { SELF_CONTAINED_BLOCK_TYPES } from "@/shared/utils/blockGrouping";
 
 interface PostContentProps {

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { ImageBlock } from "./ImageBlock";
-import { Modal } from "@/shared/ui/Modal";
+import { Modal } from "@/shared/ui";
 import { getOptimizedImageUrl } from "@/shared/utils/imageMapper";
 
 interface ImageWithModalProps {
