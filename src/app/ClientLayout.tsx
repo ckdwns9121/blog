@@ -1,15 +1,15 @@
 "use client";
 
 import { useMemo } from "react";
-import { HeaderPlugin } from "@/shared/ui/Header/types";
-import { Header } from "@/shared/ui/Header";
 import {
+  Header,
   createLogoPlugin,
   createNavigationPlugin,
   createSearchPlugin,
   createMobileSearchPlugin,
   createThemeTogglePlugin,
-} from "@/shared/ui/Header/index";
+} from "@/shared/ui";
+import type { HeaderPlugin } from "@/shared/ui";
 
 interface ClientLayoutProps {
   children: React.ReactNode;

@@ -1,7 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/shared/providers/ThemeProvider";
-import { Footer } from "@/shared/ui/Footer";
+import { Footer } from "@/shared/ui";
 import { BASE_URL } from "@/shared/constants";
 import { ClientLayout } from "./ClientLayout";
 import type { Metadata } from "next";

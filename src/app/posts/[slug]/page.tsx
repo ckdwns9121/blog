@@ -20,8 +20,7 @@ import { PostViewCounter } from "@/features/page-views";
 
 // widgets
 import { PostNavigation } from "@/widgets/post-navigation";
-import { ScrollProgress } from "@/shared/ui/ScrollProgress";
-import BottomNavigation from "@/shared/ui/BottomNavigation";
+import { ScrollProgress, BottomNavigation } from "@/shared/ui";
 import { BASE_URL } from "@/shared/constants";
 import type { Metadata } from "next";
 
