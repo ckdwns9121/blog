@@ -41,24 +41,6 @@ body {
   height: auto;
 }
 
-@media (min-width: 768px) {
-  .prose img {
-    max-width: 90%;
-  }
-}
-
-@media (min-width: 1024px) {
-  .prose img {
-    max-width: 80%;
-  }
-}
-
-@media (min-width: 1280px) {
-  .prose img {
-    max-width: 70%;
-  }
-}
-
 /* Search result highlight styles */
 mark {
   background-color: #fef3c7;
