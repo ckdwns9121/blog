@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { PostCard } from "./PostCard";
-import { ClientPagination } from "./ClientPagination";
 import type { PostMetadata } from "../model/usePostsQuery";
 
 interface PostListProps {
@@ -20,23 +19,19 @@ const getButtonClassName = (isActive: boolean) => {
 };
 
 export function PostList({ posts, postsPerPage }: PostListProps) {
-  const [currentPage, setCurrentPage] = useState(1);
+  const [visibleCount, setVisibleCount] = useState(postsPerPage);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const observerRef = useRef<HTMLDivElement>(null);
 
-  // URL에서 페이지 번호와 태그 읽기 (브라우저 네비게이션 지원)
+  // URL에서 태그 읽기 (브라우저 네비게이션 지원)
   useEffect(() => {
     const syncStateWithUrl = () => {
       const params = new URLSearchParams(window.location.search);
-      const page = parseInt(params.get("page") || "1", 10);
       const tag = params.get("tag");
-      setCurrentPage(page);
       setSelectedTag(tag);
     };
 
-    // 브라우저 뒤로/앞으로 가기 감지
     window.addEventListener("popstate", syncStateWithUrl);
-
-    // 초기 로드 시 실행
     syncStateWithUrl();
 
     return () => {
@@ -44,15 +39,9 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
     };
   }, []);
 
-  // 페이지 또는 태그 변경 시 URL 업데이트
+  // 태그 변경 시 URL 업데이트
   useEffect(() => {
     const url = new URL(window.location.href);
-
-    if (currentPage > 1) {
-      url.searchParams.set("page", currentPage.toString());
-    } else {
-      url.searchParams.delete("page");
-    }
 
     if (selectedTag) {
       url.searchParams.set("tag", selectedTag);
@@ -60,8 +49,9 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
       url.searchParams.delete("tag");
     }
 
+    url.searchParams.delete("page");
     window.history.replaceState({}, "", url);
-  }, [currentPage, selectedTag]);
+  }, [selectedTag]);
 
   // 태그 카운트와 태그 목록을 한 번에 계산 (성능 최적화)
   const { tagCounts, allTags } = useMemo(() => {
@@ -81,16 +71,35 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
     return posts.filter((post) => post.tags.some((tag) => tag.name === selectedTag));
   }, [posts, selectedTag]);
 
-  // 페이지네이션
-  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
-  const startIndex = (currentPage - 1) * postsPerPage;
-  const endIndex = startIndex + postsPerPage;
-  const currentPosts = filteredPosts.slice(startIndex, endIndex);
+  const hasMore = visibleCount < filteredPosts.length;
+  const visiblePosts = filteredPosts.slice(0, visibleCount);
+
+  // Intersection Observer로 무한 스크롤
+  const loadMore = useCallback(() => {
+    setVisibleCount((prev) => prev + postsPerPage);
+  }, [postsPerPage]);
+
+  useEffect(() => {
+    const el = observerRef.current;
+    if (!el || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMore();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore, loadMore]);
 
   // 태그 변경 핸들러
   const handleTagClick = (tag: string | null) => {
     setSelectedTag(tag);
-    setCurrentPage(1); // 태그 변경 시 첫 페이지로
+    setVisibleCount(postsPerPage);
   };
 
   return (
@@ -113,19 +122,22 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
       </div>
 
       <div className="space-y-0 mb-8">
-        {currentPosts.map((post) => (
+        {visiblePosts.map((post) => (
           <PostCard key={post.id} post={post} />
         ))}
       </div>
 
-      {currentPosts.length === 0 && (
+      {visiblePosts.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 dark:text-gray-400 text-lg">아직 포스트가 없습니다.</p>
         </div>
       )}
 
-      {totalPages > 1 && (
-        <ClientPagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      {/* 무한 스크롤 트리거 */}
+      {hasMore && (
+        <div ref={observerRef} className="flex justify-center py-8">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-primary-600" />
+        </div>
       )}
     </>
   );
