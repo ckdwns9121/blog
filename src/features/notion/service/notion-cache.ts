@@ -1,5 +1,3 @@
-import fs from "fs";
-import path from "path";
 import type { NotionBlock } from "../types";
 
 /**
@@ -13,29 +11,49 @@ import type { NotionBlock } from "../types";
  * 캐시 구조:
  *   .cache/notion/
  *   └── pages/{pageId}.json   { lastEditedTime, blocks }
+ *
+ * 주의: Edge Runtime(opengraph-image 등)에서는 fs/path를 사용할 수 없으므로
+ * Node 런타임에서만 동작하고, Edge에서는 자동으로 no-op가 됩니다.
  */
-
-const CACHE_ROOT = path.join(process.cwd(), ".cache", "notion");
-const PAGES_DIR = path.join(CACHE_ROOT, "pages");
-
-// 캐시 비활성화 환경 변수 (CI에서 강제 풀 빌드용)
-const CACHE_DISABLED = process.env.NOTION_CACHE_DISABLED === "true";
 
 interface PageBlocksCacheEntry {
   lastEditedTime: string;
   blocks: NotionBlock[];
 }
 
-function ensureDir(dir: string) {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+// Node 런타임에서만 fs/path 모듈 로드 (eval로 webpack 정적 분석 회피)
+function getNodeModules(): { fs: typeof import("fs"); path: typeof import("path") } | null {
+  if (typeof process === "undefined" || !process.versions?.node) return null;
+  // @ts-expect-error - EdgeRuntime은 Edge 환경에서만 정의됨
+  if (typeof EdgeRuntime !== "undefined") return null;
+  try {
+    // eval을 사용해 webpack이 fs/path를 번들에 포함하지 않도록 함
+    const req = eval("require") as NodeRequire;
+    return { fs: req("fs"), path: req("path") };
+  } catch {
+    return null;
   }
 }
 
-function getPageCachePath(pageId: string): string {
-  // pageId의 하이픈을 제거하여 파일명으로 사용
+const CACHE_DISABLED = typeof process !== "undefined" && process.env.NOTION_CACHE_DISABLED === "true";
+
+function getCachePaths() {
+  const mods = getNodeModules();
+  if (!mods) return null;
+  const root = mods.path.join(process.cwd(), ".cache", "notion");
+  return {
+    fs: mods.fs,
+    path: mods.path,
+    root,
+    pagesDir: mods.path.join(root, "pages"),
+  };
+}
+
+function getPageCachePath(pageId: string): string | null {
+  const ctx = getCachePaths();
+  if (!ctx) return null;
   const safeId = pageId.replace(/-/g, "");
-  return path.join(PAGES_DIR, `${safeId}.json`);
+  return ctx.path.join(ctx.pagesDir, `${safeId}.json`);
 }
 
 /**
@@ -44,19 +62,20 @@ function getPageCachePath(pageId: string): string {
  */
 export function readPageBlocksCache(pageId: string, lastEditedTime: string): NotionBlock[] | null {
   if (CACHE_DISABLED) return null;
+  const ctx = getCachePaths();
+  if (!ctx) return null;
 
   const cachePath = getPageCachePath(pageId);
-  if (!fs.existsSync(cachePath)) return null;
+  if (!cachePath || !ctx.fs.existsSync(cachePath)) return null;
 
   try {
-    const raw = fs.readFileSync(cachePath, "utf-8");
+    const raw = ctx.fs.readFileSync(cachePath, "utf-8");
     const entry = JSON.parse(raw) as PageBlocksCacheEntry;
     if (entry.lastEditedTime === lastEditedTime) {
       return entry.blocks;
     }
     return null;
   } catch {
-    // 파싱 실패 시 캐시 무효화
     return null;
   }
 }
@@ -66,18 +85,26 @@ export function readPageBlocksCache(pageId: string, lastEditedTime: string): Not
  */
 export function writePageBlocksCache(pageId: string, lastEditedTime: string, blocks: NotionBlock[]): void {
   if (CACHE_DISABLED) return;
+  const ctx = getCachePaths();
+  if (!ctx) return;
 
-  ensureDir(PAGES_DIR);
+  if (!ctx.fs.existsSync(ctx.pagesDir)) {
+    ctx.fs.mkdirSync(ctx.pagesDir, { recursive: true });
+  }
   const cachePath = getPageCachePath(pageId);
+  if (!cachePath) return;
+
   const entry: PageBlocksCacheEntry = { lastEditedTime, blocks };
-  fs.writeFileSync(cachePath, JSON.stringify(entry));
+  ctx.fs.writeFileSync(cachePath, JSON.stringify(entry));
 }
 
 /**
  * 캐시 디렉터리 전체 삭제 (테스트/디버깅용).
  */
 export function clearNotionCache(): void {
-  if (fs.existsSync(CACHE_ROOT)) {
-    fs.rmSync(CACHE_ROOT, { recursive: true, force: true });
+  const ctx = getCachePaths();
+  if (!ctx) return;
+  if (ctx.fs.existsSync(ctx.root)) {
+    ctx.fs.rmSync(ctx.root, { recursive: true, force: true });
   }
 }
