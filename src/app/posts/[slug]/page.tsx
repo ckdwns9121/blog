@@ -7,6 +7,29 @@ import { getAllPosts, getPostBySlug } from "@/entities/post/api";
 // Notion feature (유틸리티만 사용)
 import { generateTableOfContents } from "@/features/notion";
 import { getFirstImageFromContent } from "@/features/notion/utils/blockParser";
+import type { ContentBlockWithChildren, RichTextItem } from "@/shared/types/content";
+
+// 블록에서 실제 단어 수를 계산 (한/영 혼용: 공백 기준 + CJK 문자 개별 카운트)
+function countWordsInBlocks(blocks: ContentBlockWithChildren[]): number {
+  const extractText = (items?: RichTextItem[]): string =>
+    items?.map((item) => item.plain_text).join(" ") ?? "";
+
+  let total = 0;
+  const walk = (nodes: ContentBlockWithChildren[]) => {
+    for (const node of nodes) {
+      const text = extractText(node.richText) || node.fallbackText || node.code || "";
+      if (text) {
+        const nonCjk = text.replace(/[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff\uac00-\ud7af]/g, " ");
+        const words = nonCjk.trim().split(/\s+/).filter(Boolean).length;
+        const cjk = (text.match(/[\u4e00-\u9fff\uac00-\ud7af]/g) ?? []).length;
+        total += words + cjk;
+      }
+      if (node.children?.length) walk(node.children);
+    }
+  };
+  walk(blocks);
+  return total;
+}
 
 // Post API 어댑터 초기화
 import "@/app/init-post-api";
@@ -215,12 +238,32 @@ export default async function PostPage({ params }: PostPageProps) {
       },
       keywords: [...post.tags.map((tag) => tag.name)].join(", "),
       articleSection: post.tags.map((tag) => tag.name).join(", "),
-      wordCount: post.content.length * 100, // 대략적인 단어 수
+      wordCount: countWordsInBlocks(post.content),
+    };
+
+    const breadcrumbJsonLd = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "홈",
+          item: BASE_URL,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: post.title,
+          item: `${BASE_URL}/posts/${slug}`,
+        },
+      ],
     };
 
     return (
       <>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
         <ScrollProgress />
         <div className="py-10">
           <div className="mx-auto w-full">

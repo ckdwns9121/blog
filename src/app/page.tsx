@@ -9,12 +9,40 @@ import { BASE_URL, POSTS_PER_PAGE } from "@/shared/constants";
 export const dynamic = "force-static";
 export const revalidate = 3600; // 1시간마다 재검증
 
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "박창준 블로그",
+  url: BASE_URL,
+  description: "개발자 박창준 블로그입니다.",
+  inLanguage: "ko-KR",
+  author: {
+    "@type": "Person",
+    name: "박창준",
+    url: BASE_URL,
+  },
+  publisher: {
+    "@type": "Person",
+    name: "박창준",
+    url: BASE_URL,
+  },
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: `${BASE_URL}/search?q={search_term_string}`,
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
+
 export default async function Home() {
   const allPosts = await getAllPosts();
   const sortedPosts = allPosts.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
 
   return (
     <div className="text-gray-900 dark:text-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
       <div className="py-8">
         {/* 클라이언트 컴포넌트로 전체 포스트 전달 */}
         <PostList posts={sortedPosts} postsPerPage={POSTS_PER_PAGE} />
