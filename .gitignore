@@ -44,3 +44,6 @@ next-env.d.ts
 /public/images/*/
 /public/images/image-mapping.json
 /src/shared/utils/imageMapping.generated.ts
+
+# notion build cache
+/.cache/

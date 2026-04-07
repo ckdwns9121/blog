@@ -16,6 +16,7 @@ import type {
 } from "../types";
 import type { BlogPost } from "@/entities/post/model";
 import { adaptNotionBlocksToContentBlocks } from "../utils/blockAdapter";
+import { readPageBlocksCache, writePageBlocksCache } from "./notion-cache";
 
 // Singleton client instance
 let client: Client | null = null;
@@ -144,17 +145,27 @@ export async function getPostBySlug(slug: string, fetchContent = true): Promise<
 
 // pageId로 직접 포스트 조회
 export async function getPostByPageId(pageId: string, fetchContent = true): Promise<BlogPost> {
-  // ✅ API 병렬 호출로 성능 최적화
-  const pageDataPromise = getClient().pages.retrieve({ page_id: pageId });
-  const blocksPromise = fetchContent ? getPostBlocks(pageId) : Promise.resolve([]);
-
-  const [pageData, blocks] = await Promise.all([pageDataPromise, blocksPromise]);
+  // 페이지 메타데이터를 먼저 가져와서 last_edited_time으로 캐시 유효성 판단
+  const pageData = await getClient().pages.retrieve({ page_id: pageId });
 
   if (!("properties" in pageData)) {
     throw new Error("Invalid page");
   }
 
   const page = pageData as NotionPage;
+
+  // 블록 조회: 캐시 우선, 미스 시 API 호출
+  let blocks: NotionBlock[] = [];
+  if (fetchContent) {
+    const cached = readPageBlocksCache(page.id, page.last_edited_time);
+    if (cached) {
+      blocks = cached;
+    } else {
+      blocks = await getPostBlocks(page.id);
+      writePageBlocksCache(page.id, page.last_edited_time, blocks);
+    }
+  }
+
   const properties = page.properties;
 
   const title = getPlainText(properties.title) || "Untitled";
