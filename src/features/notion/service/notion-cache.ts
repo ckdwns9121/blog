@@ -88,14 +88,18 @@ export function writePageBlocksCache(pageId: string, lastEditedTime: string, blo
   const ctx = getCachePaths();
   if (!ctx) return;
 
-  if (!ctx.fs.existsSync(ctx.pagesDir)) {
-    ctx.fs.mkdirSync(ctx.pagesDir, { recursive: true });
-  }
-  const cachePath = getPageCachePath(pageId);
-  if (!cachePath) return;
+  try {
+    if (!ctx.fs.existsSync(ctx.pagesDir)) {
+      ctx.fs.mkdirSync(ctx.pagesDir, { recursive: true });
+    }
+    const cachePath = getPageCachePath(pageId);
+    if (!cachePath) return;
 
-  const entry: PageBlocksCacheEntry = { lastEditedTime, blocks };
-  ctx.fs.writeFileSync(cachePath, JSON.stringify(entry));
+    const entry: PageBlocksCacheEntry = { lastEditedTime, blocks };
+    ctx.fs.writeFileSync(cachePath, JSON.stringify(entry));
+  } catch {
+    // Vercel 서버리스 등 읽기 전용 파일시스템에서는 조용히 무시
+  }
 }
 
 /**
