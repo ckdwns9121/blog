@@ -303,7 +303,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
               <PostContent
                 blocks={post.content}
-                className="!prose-inherit mx-auto max-w-2xl text-[1.15rem] leading-8 text-gray-800 dark:text-gray-200 [&_h1]:mt-12 [&_h1]:mb-4 [&_h1]:text-4xl [&_h1]:font-bold [&_h2]:mt-10 [&_h2]:mb-3 [&_h2]:text-3xl [&_h2]:font-bold [&_h3]:mt-8 [&_h3]:mb-2 [&_h3]:text-2xl [&_h3]:font-semibold [&_p]:my-4 [&_p]:leading-[1.9] [&_blockquote]:my-7 [&_blockquote]:border-l-2 [&_blockquote]:border-gray-300 [&_blockquote]:bg-gray-50 [&_blockquote]:px-6 [&_blockquote]:py-3 [&_blockquote]:text-gray-700 dark:[&_blockquote]:border-gray-700 dark:[&_blockquote]:bg-gray-900/40 dark:[&_blockquote]:text-gray-300 [&_ul]:my-4 [&_ol]:my-4 [&_li]:my-1.5 [&_img]:my-8"
+                className="!prose-inherit mx-auto max-w-2xl text-[1.0625rem] leading-7 text-gray-800 dark:text-gray-200 [&_h1]:mt-12 [&_h1]:mb-4 [&_h1]:text-3xl [&_h1]:font-bold [&_h2]:mt-10 [&_h2]:mb-3 [&_h2]:text-2xl [&_h2]:font-bold [&_h3]:mt-8 [&_h3]:mb-2 [&_h3]:text-xl [&_h3]:font-semibold [&_p]:my-4 [&_p]:leading-[1.8] [&_blockquote]:my-7 [&_blockquote]:border-l-2 [&_blockquote]:border-gray-300 [&_blockquote]:bg-gray-50 [&_blockquote]:px-6 [&_blockquote]:py-3 [&_blockquote]:text-gray-700 dark:[&_blockquote]:border-gray-700 dark:[&_blockquote]:bg-gray-900/40 dark:[&_blockquote]:text-gray-300 [&_ul]:my-4 [&_ol]:my-4 [&_li]:my-1.5 [&_img]:my-8"
               />
 
               <footer className="mx-auto mt-16 max-w-3xl pt-8">
