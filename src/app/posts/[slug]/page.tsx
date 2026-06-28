@@ -268,7 +268,7 @@ export default async function PostPage({ params }: PostPageProps) {
         <div className="py-10">
           <div className="mx-auto w-full">
             <article className="mx-auto max-w-3xl">
-              <header className="mx-auto max-w-3xl">
+              <header className="mx-auto mb-6 max-w-3xl">
                 <h1 className="mb-6 text-3xl leading-tight font-bold tracking-tight text-gray-950 md:text-4xl dark:text-gray-50">
                   {post.title}
                 </h1>
