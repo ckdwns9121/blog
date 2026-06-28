@@ -1,6 +1,25 @@
 import { createClient } from "redis";
 
 let clientPromise: Promise<ReturnType<typeof createClient>> | null = null;
+let hasLoggedRedisClientError = false;
+
+const isDevelopment = process.env.NODE_ENV === "development";
+
+function formatRedisError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function logRedisClientError(error: unknown) {
+  if (isDevelopment) {
+    if (!hasLoggedRedisClientError) {
+      console.warn(`Redis unavailable in development; falling back to 0 views. ${formatRedisError(error)}`);
+      hasLoggedRedisClientError = true;
+    }
+    return;
+  }
+
+  console.error("Redis Client Error:", error);
+}
 
 /**
  * Redis 클라이언트 초기화 및 반환
@@ -29,16 +48,32 @@ export function getRedisClient(): Promise<ReturnType<typeof createClient>> {
       );
     }
 
-    const client = createClient({ url: redisUrl });
+    const client = createClient(
+      isDevelopment
+        ? {
+            url: redisUrl,
+            disableOfflineQueue: true,
+            socket: {
+              reconnectStrategy: false,
+            },
+          }
+        : { url: redisUrl },
+    );
 
     // 에러 핸들링
     client.on("error", (err) => {
-      console.error("Redis Client Error:", err);
+      logRedisClientError(err);
       // 연결 실패 시 재시도 가능하도록 Promise 초기화
       clientPromise = null;
     });
 
-    await client.connect();
+    try {
+      await client.connect();
+    } catch (error) {
+      clientPromise = null;
+      logRedisClientError(error);
+      throw error;
+    }
 
     return client;
   })();

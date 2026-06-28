@@ -5,6 +5,24 @@ interface RouteParams {
   params: Promise<{ slug: string }>;
 }
 
+let hasLoggedFetchViewsError = false;
+let hasLoggedIncrementViewsError = false;
+
+function logViewsErrorOnce(message: string, error: unknown, logged: boolean): boolean {
+  if (logged) {
+    return true;
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    const details = error instanceof Error ? error.message : String(error);
+    console.warn(`${message}; returning fallback views. ${details}`);
+  } else {
+    console.error(message, error);
+  }
+
+  return true;
+}
+
 /**
  * GET /api/posts/[slug]/views
  * 포스트의 현재 조회수를 조회합니다.
@@ -25,7 +43,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({ views: Number(views) });
   } catch (error) {
-    console.error("Error fetching views:", error);
+    hasLoggedFetchViewsError = logViewsErrorOnce("Error fetching views", error, hasLoggedFetchViewsError);
 
     // Redis 연결 실패 시에도 에러를 반환하지 않고 0을 반환
     // (프로덕션에서는 로깅만 하고 사용자에게는 에러를 숨김)
@@ -72,9 +90,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       isNewView: true,
     });
   } catch (error) {
-    console.error("Error incrementing views:", error);
+    hasLoggedIncrementViewsError = logViewsErrorOnce("Error incrementing views", error, hasLoggedIncrementViewsError);
 
     // Redis 연결 실패 시에도 에러를 반환하지 않음
-    return NextResponse.json({ views: 0, isNewView: false }, { status: 500 });
+    return NextResponse.json({ views: 0, isNewView: false });
   }
 }
