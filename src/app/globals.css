@@ -35,12 +35,6 @@ body {
   overflow: hidden;
 }
 
-/* Responsive image sizing */
-.prose img {
-  max-width: 100%;
-  height: auto;
-}
-
 /* Search result highlight styles */
 mark {
   background-color: #fef3c7;

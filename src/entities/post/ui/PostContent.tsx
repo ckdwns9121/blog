@@ -110,8 +110,8 @@ export default function PostContent({
       const ListTag = listType === "numbered" ? "ol" : "ul";
       const listClassName =
         listType === "numbered"
-          ? "my-4 space-y-2 list-decimal pl-6"
-          : "my-4 space-y-2 list-disc pl-6";
+          ? "my-3 space-y-1 list-decimal pl-6"
+          : "my-3 space-y-1 list-disc pl-6";
 
       return (
         <ListTag key={`list-${index}`} className={listClassName}>
@@ -126,9 +126,7 @@ export default function PostContent({
   const groupedBlocks = groupBlocks(blocks);
 
   return (
-    <div
-      className={`prose prose-lg max-w-none prose-img:max-w-full ${className}`}
-    >
+    <div className={`[&>*:first-child]:mt-0 ${className}`}>
       {renderGroupedBlocks(groupedBlocks)}
     </div>
   );

@@ -24,7 +24,7 @@ export function ContentBlockRenderer({
   switch (block.type) {
     case "text":
       return (
-        <p className="my-4">
+        <p className="my-2.5 leading-[1.75]">
           {block.richText && block.richText.length > 0 ? (
             <RichTextRenderer items={block.richText} />
           ) : (
@@ -40,7 +40,7 @@ export function ContentBlockRenderer({
         HeadingTag,
         {
           id: headingId,
-          className: `my-6 font-bold ${getHeadingClassName(level)}`,
+          className: getHeadingClassName(level),
         },
         block.richText && block.richText.length > 0 ? (
           <RichTextRenderer items={block.richText} />
@@ -66,7 +66,7 @@ export function ContentBlockRenderer({
 
     case "quote":
       return (
-        <blockquote className="my-4 pl-4 border-l-4 border-gray-300 dark:border-gray-600 italic">
+        <blockquote className="my-5 border-l-2 border-gray-300 bg-gray-50 px-6 py-3 italic text-gray-700 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-300">
           {block.richText && block.richText.length > 0 ? (
             <RichTextRenderer items={block.richText} />
           ) : (
@@ -97,7 +97,7 @@ export function ContentBlockRenderer({
       );
 
     case "divider":
-      return <hr className="my-8 border-gray-300 dark:border-gray-600" />;
+      return <hr className="my-6 border-gray-300 dark:border-gray-600" />;
 
     case "bookmark":
       return (
@@ -175,12 +175,12 @@ export function ContentBlockRenderer({
 
 function getHeadingClassName(level: number): string {
   const classMap: Record<number, string> = {
-    1: "text-4xl",
-    2: "text-3xl",
-    3: "text-2xl",
-    4: "text-xl",
-    5: "text-lg",
-    6: "text-base",
+    1: "mt-10 mb-3 text-3xl font-bold",
+    2: "mt-8 mb-3 text-2xl font-bold",
+    3: "mt-6 mb-2 text-xl font-semibold",
+    4: "mt-5 mb-2 text-lg font-semibold",
+    5: "mt-4 mb-2 text-base font-semibold",
+    6: "mt-4 mb-2 text-base font-semibold",
   };
-  return classMap[level] || "text-2xl";
+  return classMap[level] || classMap[3];
 }

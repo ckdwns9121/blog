@@ -24,7 +24,7 @@ interface RichTextItemProps {
 }
 
 function RichTextItem({ item }: RichTextItemProps) {
-  let text: React.ReactNode = item.plain_text || "";
+  let text: React.ReactNode = renderWithLineBreaks(item.plain_text || "");
   const annotations = item.annotations;
 
   // 텍스트 스타일 적용
@@ -65,4 +65,21 @@ function RichTextItem({ item }: RichTextItemProps) {
   }
 
   return <span>{text}</span>;
+}
+
+/**
+ * Notion의 soft break(Shift+Enter)로 입력된 \n을 <br>로 변환
+ * HTML whitespace collapsing으로 줄바꿈이 유실되는 것을 방지
+ */
+function renderWithLineBreaks(text: string): React.ReactNode {
+  if (!text.includes("\n")) {
+    return text;
+  }
+  const lines = text.split("\n");
+  return lines.map((line, index) => (
+    <React.Fragment key={index}>
+      {line}
+      {index < lines.length - 1 && <br />}
+    </React.Fragment>
+  ));
 }

@@ -23,7 +23,7 @@ export function ImageBlock({ url, caption, enableModal = false, onImageClick }: 
   const isGif = optimizedImageUrl.endsWith(".gif");
 
   return (
-    <figure className="my-8">
+    <figure className="my-6">
       <Image
         src={optimizedImageUrl}
         alt={caption || ""}

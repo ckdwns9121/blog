@@ -18,7 +18,7 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
   const isDark = theme === "dark";
 
   return (
-    <div className="mb-6 overflow-hidden rounded-lg">
+    <div className="my-5 overflow-hidden rounded-lg">
       <SyntaxHighlighter
         language={language}
         style={isDark ? oneDark : oneLight}
