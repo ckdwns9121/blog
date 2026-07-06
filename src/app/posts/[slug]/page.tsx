@@ -295,7 +295,7 @@ export default async function PostPage({ params }: PostPageProps) {
                 </div>
 
                 {post.excerpt && (
-                  <p className="border-l-2 border-primary-500 pl-4 text-lg leading-7 text-gray-600 dark:border-primary-400 dark:text-gray-300">
+                  <p className="mb-8 border-l-2 border-primary-500 pl-4 text-lg leading-7 text-gray-600 dark:border-primary-400 dark:text-gray-300">
                     {post.excerpt}
                   </p>
                 )}
