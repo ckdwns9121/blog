@@ -303,7 +303,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
               <PostContent
                 blocks={post.content}
-                className="mx-auto max-w-5xl text-[1.0625rem] leading-[1.5] text-gray-800 dark:text-gray-200"
+                className="mx-auto max-w-5xl text-[1.0625rem] leading-[1.75] text-gray-800 dark:text-gray-200"
               />
 
               <footer className="mx-auto mt-16 max-w-5xl pt-8">
