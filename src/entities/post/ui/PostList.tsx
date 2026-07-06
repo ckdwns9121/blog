@@ -11,11 +11,11 @@ interface PostListProps {
 
 // 태그 버튼 스타일 헬퍼
 const getButtonClassName = (isActive: boolean) => {
-  const baseClasses = "px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer";
+  const baseClasses = "px-5 py-2.5 rounded-full text-sm font-semibold transition-colors cursor-pointer";
   if (isActive) {
     return `${baseClasses} bg-primary-600 text-white hover:bg-primary-700`;
   }
-  return `${baseClasses} bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700`;
+  return `${baseClasses} bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700`;
 };
 
 export function PostList({ posts, postsPerPage }: PostListProps) {
@@ -105,8 +105,8 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
   return (
     <>
       {/* 태그 필터 */}
-      <div className="mb-8">
-        <div className="flex flex-wrap gap-2">
+      <div className="pt-0 pb-5 sm:pb-7">
+        <div className="flex flex-wrap gap-2.5 sm:gap-3">
           <button onClick={() => handleTagClick(null)} className={getButtonClassName(selectedTag === null)}>
             전체 ({posts.length})
           </button>
@@ -121,7 +121,7 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
         </div>
       </div>
 
-      <div className="space-y-0 mb-8">
+      <div className="mb-10 border-t border-gray-200 dark:border-gray-800">
         {visiblePosts.map((post) => (
           <PostCard key={post.id} post={post} />
         ))}

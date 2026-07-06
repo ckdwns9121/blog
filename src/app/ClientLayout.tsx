@@ -28,7 +28,7 @@ export function ClientLayout({ children }: ClientLayoutProps) {
   return (
     <>
       <Header plugins={headerPlugins} mobilePlugins={mobileHeaderPlugins} />
-      <main id="main-content" className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 w-full" tabIndex={-1}>
+      <main id="main-content" className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full" tabIndex={-1}>
         {children}
       </main>
     </>
