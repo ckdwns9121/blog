@@ -15,7 +15,7 @@ const getButtonClassName = (isActive: boolean) => {
   if (isActive) {
     return `${baseClasses} bg-primary-600 text-white hover:bg-primary-700`;
   }
-  return `${baseClasses} bg-[#efe8dc] text-[#6f6253] hover:bg-[#e7dece] dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700`;
+  return `${baseClasses} bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700`;
 };
 
 export function PostList({ posts, postsPerPage }: PostListProps) {

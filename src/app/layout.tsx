@@ -130,7 +130,7 @@ export default async function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-[#fdfbf8] dark:bg-dark-bg`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-white dark:bg-dark-bg`}
       >
         <a
           href="#main-content"

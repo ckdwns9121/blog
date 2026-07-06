@@ -91,7 +91,7 @@ export function PostCard({ post }: PostCardProps) {
               {post.tags.map((tag) => (
                 <span
                   key={tag.slug}
-                  className="rounded-md bg-[#efe8dc] px-2.5 py-1 text-xs font-medium text-[#6f6253] sm:px-3 sm:py-1.5 sm:text-sm dark:bg-gray-800 dark:text-gray-400"
+                  className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-500 sm:px-3 sm:py-1.5 sm:text-sm dark:bg-gray-800 dark:text-gray-400"
                 >
                   #{tag.name}
                 </span>
