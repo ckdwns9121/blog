@@ -28,7 +28,7 @@ export function Header({ plugins, mobilePlugins = [], className }: HeaderProps) 
 
   return (
     <header className={cn("border-b border-gray-200 dark:border-dark-border", className)}>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* 좌측 섹션 */}
           <div className="flex items-center gap-4">
