@@ -105,8 +105,8 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
   return (
     <>
       {/* 태그 필터 */}
-      <div className="pt-7 pb-8">
-        <div className="flex flex-wrap gap-3">
+      <div className="pt-0 pb-5 sm:pb-7">
+        <div className="flex flex-wrap gap-2.5 sm:gap-3">
           <button onClick={() => handleTagClick(null)} className={getButtonClassName(selectedTag === null)}>
             전체 ({posts.length})
           </button>
