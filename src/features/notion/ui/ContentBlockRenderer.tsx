@@ -24,7 +24,7 @@ export function ContentBlockRenderer({
   switch (block.type) {
     case "text":
       return (
-        <p className="my-2.5 leading-[1.75]">
+        <p className="my-5 leading-[1.5]">
           {block.richText && block.richText.length > 0 ? (
             <RichTextRenderer items={block.richText} />
           ) : (
@@ -66,7 +66,7 @@ export function ContentBlockRenderer({
 
     case "quote":
       return (
-        <blockquote className="my-5 border-l-2 border-gray-300 bg-gray-50 px-6 py-3 italic text-gray-700 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-300">
+        <blockquote className="my-5 border-l-2 border-gray-300 bg-gray-50 px-6 py-3 leading-[1.5] italic text-gray-700 dark:border-gray-700 dark:bg-gray-900/40 dark:text-gray-300">
           {block.richText && block.richText.length > 0 ? (
             <RichTextRenderer items={block.richText} />
           ) : (
@@ -87,7 +87,7 @@ export function ContentBlockRenderer({
 
     case "list_item":
       return (
-        <li className="my-1">
+        <li className="my-5 leading-[1.5]">
           {block.richText && block.richText.length > 0 ? (
             <RichTextRenderer items={block.richText} />
           ) : (
