@@ -46,10 +46,10 @@ export function PostCard({ post }: PostCardProps) {
 
   return (
     <article className="border-b border-gray-200 py-7 dark:border-gray-800">
-      <div className="grid grid-cols-[112px_minmax(0,1fr)] items-center gap-4 sm:grid-cols-[132px_minmax(0,1fr)] sm:gap-5 md:grid-cols-[minmax(0,1fr)_148px] lg:grid-cols-[minmax(0,1fr)_180px]">
+      <div className="grid grid-cols-[112px_minmax(0,1fr)] items-center gap-4 sm:grid-cols-[132px_minmax(0,1fr)] sm:gap-5 md:grid-cols-[148px_minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_180px]">
         <Link
           href={`/posts/${post.slug}`}
-          className="relative aspect-[4/3] w-full overflow-hidden rounded-lg md:order-2"
+          className="relative aspect-[4/3] w-full overflow-hidden rounded-lg lg:order-2"
           aria-label={`${post.title} 포스트 보기`}
         >
           {post.coverImage ? (
@@ -70,7 +70,7 @@ export function PostCard({ post }: PostCardProps) {
           )}
         </Link>
 
-        <div className="min-w-0 md:order-1">
+        <div className="min-w-0 lg:order-1">
           <time dateTime={post.publishedAt.toISOString()} className="mb-2 block text-sm font-semibold text-gray-400 sm:text-base dark:text-gray-500">
             {formatDate(post.publishedAt)}
           </time>
