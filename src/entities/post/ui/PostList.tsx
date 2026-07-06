@@ -11,7 +11,7 @@ interface PostListProps {
 
 // 태그 버튼 스타일 헬퍼
 const getButtonClassName = (isActive: boolean) => {
-  const baseClasses = "px-6 py-3 rounded-full text-base font-semibold transition-colors cursor-pointer";
+  const baseClasses = "px-5 py-2.5 rounded-full text-sm font-semibold transition-colors cursor-pointer";
   if (isActive) {
     return `${baseClasses} bg-primary-600 text-white hover:bg-primary-700`;
   }
@@ -105,8 +105,8 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
   return (
     <>
       {/* 태그 필터 */}
-      <div className="pt-14 pb-12">
-        <div className="flex flex-wrap gap-4">
+      <div className="pt-7 pb-8">
+        <div className="flex flex-wrap gap-3">
           <button onClick={() => handleTagClick(null)} className={getButtonClassName(selectedTag === null)}>
             전체 ({posts.length})
           </button>

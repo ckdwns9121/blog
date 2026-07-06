@@ -45,14 +45,14 @@ export function PostCard({ post }: PostCardProps) {
   const thumbnailCaption = post.tags.slice(0, 2).map((tag) => tag.slug || tag.name).join(" · ");
 
   return (
-    <article className="border-b border-gray-200 py-12 dark:border-gray-800">
-      <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_176px] md:items-center lg:grid-cols-[minmax(0,1fr)_220px]">
+    <article className="border-b border-gray-200 py-8 dark:border-gray-800">
+      <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_148px] md:items-center lg:grid-cols-[minmax(0,1fr)_180px]">
         <div className="min-w-0">
-          <time dateTime={post.publishedAt.toISOString()} className="mb-4 block text-lg font-semibold text-gray-400 dark:text-gray-500">
+          <time dateTime={post.publishedAt.toISOString()} className="mb-3 block text-base font-semibold text-gray-400 dark:text-gray-500">
             {formatDate(post.publishedAt)}
           </time>
 
-          <h2 className="mb-4 text-3xl font-bold leading-tight text-gray-950 dark:text-gray-50">
+          <h2 className="mb-3 text-2xl font-bold leading-tight text-gray-950 dark:text-gray-50">
             <Link
               href={`/posts/${post.slug}`}
               className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
@@ -61,14 +61,14 @@ export function PostCard({ post }: PostCardProps) {
             </Link>
           </h2>
 
-          {post.excerpt && <p className="mb-6 text-xl leading-[1.5] text-gray-500 line-clamp-2 dark:text-gray-400">{post.excerpt}</p>}
+          {post.excerpt && <p className="mb-5 text-lg leading-[1.5] text-gray-500 line-clamp-2 dark:text-gray-400">{post.excerpt}</p>}
 
           {post.tags.length > 0 && (
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2.5">
               {post.tags.map((tag) => (
                 <span
                   key={tag.slug}
-                  className="rounded-md bg-gray-100 px-3 py-1.5 text-base font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+                  className="rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-500 dark:bg-gray-800 dark:text-gray-400"
                 >
                   #{tag.name}
                 </span>
@@ -87,14 +87,14 @@ export function PostCard({ post }: PostCardProps) {
               src={post.coverImage}
               alt=""
               fill
-              sizes="(max-width: 1024px) 176px, 220px"
+              sizes="(max-width: 1024px) 148px, 180px"
               className="object-cover transition-transform duration-300 hover:scale-105"
             />
           ) : (
-            <div className={`flex h-full w-full flex-col justify-between p-5 ${thumbnailTheme.surface}`}>
-              <span className={`text-4xl font-black leading-none ${thumbnailTheme.mark}`}>{thumbnailTheme.symbol}</span>
+            <div className={`flex h-full w-full flex-col justify-between p-4 ${thumbnailTheme.surface}`}>
+              <span className={`text-3xl font-black leading-none ${thumbnailTheme.mark}`}>{thumbnailTheme.symbol}</span>
               {thumbnailCaption && (
-                <span className={`truncate font-mono text-sm font-semibold ${thumbnailTheme.caption}`}>{thumbnailCaption}</span>
+                <span className={`truncate font-mono text-xs font-semibold ${thumbnailTheme.caption}`}>{thumbnailCaption}</span>
               )}
             </div>
           )}
