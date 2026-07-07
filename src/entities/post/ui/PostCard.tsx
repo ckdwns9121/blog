@@ -43,7 +43,7 @@ function formatDate(date: Date) {
 export function PostCard({ post }: PostCardProps) {
   const thumbnailTheme = getThumbnailTheme(post);
   const thumbnailCaption = post.tags.slice(0, 2).map((tag) => tag.slug || tag.name).join(" · ");
-  const thumbnailImage = post.thumbnailImage || post.coverImage;
+  const thumbnailImage = post.thumbnailImage;
 
   return (
     <article className="border-b border-gray-200 py-7 dark:border-gray-800">

@@ -17,7 +17,6 @@ import type {
 } from "../types";
 import type { BlogPost } from "@/entities/post/model";
 import { adaptNotionBlocksToContentBlocks } from "../utils/blockAdapter";
-import { getFirstImageFromContent } from "../utils/blockParser";
 import { readPageBlocksCache, writePageBlocksCache } from "./notion-cache";
 
 // Singleton client instance
@@ -88,7 +87,7 @@ export async function getAllPosts(): Promise<NotionPost[]> {
               // 커버 이미지 URL 처리 (S3 URL인 경우 공개 프록시 URL로 변환)
               const rawCoverImage = getImageUrl(properties.coverImage);
               const coverImage = rawCoverImage ? convertToPublicNotionImageUrl(rawCoverImage, notionPage.id) : undefined;
-              const thumbnailImage = await resolveThumbnailImage(notionPage, coverImage);
+              const thumbnailImage = resolveThumbnailImage(notionPage, coverImage);
 
               return {
                 id: notionPage.id,
@@ -186,7 +185,7 @@ export async function getPostByPageId(pageId: string, fetchContent = true): Prom
   // 커버 이미지 URL 처리
   const rawCoverImage = getImageUrl(properties.coverImage);
   const coverImage = rawCoverImage ? convertToPublicNotionImageUrl(rawCoverImage, page.id) : undefined;
-  const thumbnailImage = await resolveThumbnailImage(page, coverImage, blocks);
+  const thumbnailImage = resolveThumbnailImage(page, coverImage);
 
   // NotionBlock을 공통 ContentBlock으로 변환
   const contentBlocks = adaptNotionBlocksToContentBlocks(blocks);
@@ -312,7 +311,7 @@ function getPropertyByName(properties: NotionPage["properties"], names: string[]
   return matchedEntry?.[1];
 }
 
-async function resolveThumbnailImage(page: NotionPage, coverImage?: string, existingBlocks?: NotionBlock[]): Promise<string | undefined> {
+function resolveThumbnailImage(page: NotionPage, coverImage?: string): string | undefined {
   const thumbnailProperty = getPropertyByName(page.properties, ["thumbnail", "thumnail"]);
   const rawThumbnailImage = getImageUrl(thumbnailProperty);
 
@@ -320,24 +319,7 @@ async function resolveThumbnailImage(page: NotionPage, coverImage?: string, exis
     return convertToPublicNotionImageUrl(rawThumbnailImage, page.id);
   }
 
-  if (coverImage) {
-    return coverImage;
-  }
-
-  const blocks = existingBlocks ?? getCachedOrFreshPageBlocks(page);
-  const resolvedBlocks = Array.isArray(blocks) ? blocks : await blocks;
-  return getFirstImageFromContent(resolvedBlocks);
-}
-
-async function getCachedOrFreshPageBlocks(page: NotionPage): Promise<NotionBlock[]> {
-  const cached = readPageBlocksCache(page.id, page.last_edited_time);
-  if (cached) {
-    return cached;
-  }
-
-  const blocks = await getPostBlocks(page.id);
-  writePageBlocksCache(page.id, page.last_edited_time, blocks);
-  return blocks;
+  return coverImage;
 }
 
 function getDate(property: NotionPropertyValue | undefined): string {
