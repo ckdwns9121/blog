@@ -43,6 +43,7 @@ function formatDate(date: Date) {
 export function PostCard({ post }: PostCardProps) {
   const thumbnailTheme = getThumbnailTheme(post);
   const thumbnailCaption = post.tags.slice(0, 2).map((tag) => tag.slug || tag.name).join(" · ");
+  const thumbnailImage = post.thumbnailImage || post.coverImage;
 
   return (
     <article className="border-b border-gray-200 py-7 dark:border-gray-800">
@@ -52,9 +53,9 @@ export function PostCard({ post }: PostCardProps) {
           className="relative aspect-[4/3] w-full overflow-hidden rounded-lg lg:order-2"
           aria-label={`${post.title} 포스트 보기`}
         >
-          {post.coverImage ? (
+          {thumbnailImage ? (
             <Image
-              src={post.coverImage}
+              src={thumbnailImage}
               alt=""
               fill
               sizes="(max-width: 640px) 112px, (max-width: 768px) 132px, (max-width: 1024px) 148px, 180px"
