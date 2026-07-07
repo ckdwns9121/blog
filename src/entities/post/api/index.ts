@@ -24,7 +24,7 @@ import type { BlogPost } from "../model";
  * 모든 포스트 목록을 조회합니다.
  */
 export async function getAllPosts(): Promise<
-  Pick<BlogPost, "id" | "title" | "slug" | "publishedAt" | "updatedAt" | "excerpt" | "tags" | "coverImage">[]
+  Pick<BlogPost, "id" | "title" | "slug" | "publishedAt" | "updatedAt" | "excerpt" | "tags" | "coverImage" | "thumbnailImage">[]
 > {
   const adapter = getPostApiAdapter();
   return adapter.getAllPosts();
