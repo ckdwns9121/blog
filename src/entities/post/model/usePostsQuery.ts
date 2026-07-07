@@ -8,7 +8,7 @@ import type { BlogPost } from "./index";
  */
 export type PostMetadata = Pick<
   BlogPost,
-  "id" | "title" | "slug" | "publishedAt" | "updatedAt" | "excerpt" | "tags" | "coverImage"
+  "id" | "title" | "slug" | "publishedAt" | "updatedAt" | "excerpt" | "tags" | "coverImage" | "thumbnailImage"
 >;
 
 /**

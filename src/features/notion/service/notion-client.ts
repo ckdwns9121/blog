@@ -11,11 +11,13 @@ import type {
   NotionRichTextProperty,
   NotionMultiSelectProperty,
   NotionUrlProperty,
+  NotionFileProperty,
   NotionDateProperty,
   BlockContent,
 } from "../types";
 import type { BlogPost } from "@/entities/post/model";
 import { adaptNotionBlocksToContentBlocks } from "../utils/blockAdapter";
+import { getFirstImageFromContent } from "../utils/blockParser";
 import { readPageBlocksCache, writePageBlocksCache } from "./notion-cache";
 
 // Singleton client instance
@@ -84,8 +86,9 @@ export async function getAllPosts(): Promise<NotionPost[]> {
               const publishedAt = publishedAtDate || createdAt;
 
               // 커버 이미지 URL 처리 (S3 URL인 경우 공개 프록시 URL로 변환)
-              const rawCoverImage = getUrl(properties.coverImage);
+              const rawCoverImage = getImageUrl(properties.coverImage);
               const coverImage = rawCoverImage ? convertToPublicNotionImageUrl(rawCoverImage, notionPage.id) : undefined;
+              const thumbnailImage = await resolveThumbnailImage(notionPage, coverImage);
 
               return {
                 id: notionPage.id,
@@ -101,6 +104,7 @@ export async function getAllPosts(): Promise<NotionPost[]> {
                 })),
                 excerpt: getPlainText(properties.excerpt),
                 coverImage,
+                thumbnailImage,
               } as NotionPost;
             }
           }
@@ -180,8 +184,9 @@ export async function getPostByPageId(pageId: string, fetchContent = true): Prom
   const slug = `${baseSlug}-${pageIdWithoutHyphens}`;
 
   // 커버 이미지 URL 처리
-  const rawCoverImage = getUrl(properties.coverImage);
+  const rawCoverImage = getImageUrl(properties.coverImage);
   const coverImage = rawCoverImage ? convertToPublicNotionImageUrl(rawCoverImage, page.id) : undefined;
+  const thumbnailImage = await resolveThumbnailImage(page, coverImage, blocks);
 
   // NotionBlock을 공통 ContentBlock으로 변환
   const contentBlocks = adaptNotionBlocksToContentBlocks(blocks);
@@ -201,6 +206,7 @@ export async function getPostByPageId(pageId: string, fetchContent = true): Prom
       postCount: 0,
     })),
     coverImage,
+    thumbnailImage,
     toc: [],
   };
 }
@@ -283,7 +289,7 @@ function getMultiSelect(property: NotionPropertyValue | undefined): string[] {
   return [];
 }
 
-function getUrl(property: NotionPropertyValue | undefined): string | undefined {
+function getImageUrl(property: NotionPropertyValue | undefined): string | undefined {
   if (!property) return undefined;
 
   if (property.type === "url") {
@@ -291,7 +297,47 @@ function getUrl(property: NotionPropertyValue | undefined): string | undefined {
     return urlProp.url || undefined;
   }
 
+  if (property.type === "files") {
+    const fileProp = property as NotionFileProperty;
+    const firstFile = fileProp.files[0];
+    return firstFile?.external?.url || firstFile?.file?.url || undefined;
+  }
+
   return undefined;
+}
+
+function getPropertyByName(properties: NotionPage["properties"], names: string[]): NotionPropertyValue | undefined {
+  const normalizedNames = names.map((name) => name.toLowerCase());
+  const matchedEntry = Object.entries(properties).find(([name]) => normalizedNames.includes(name.toLowerCase()));
+  return matchedEntry?.[1];
+}
+
+async function resolveThumbnailImage(page: NotionPage, coverImage?: string, existingBlocks?: NotionBlock[]): Promise<string | undefined> {
+  const thumbnailProperty = getPropertyByName(page.properties, ["thumbnail", "thumnail"]);
+  const rawThumbnailImage = getImageUrl(thumbnailProperty);
+
+  if (rawThumbnailImage) {
+    return convertToPublicNotionImageUrl(rawThumbnailImage, page.id);
+  }
+
+  if (coverImage) {
+    return coverImage;
+  }
+
+  const blocks = existingBlocks ?? getCachedOrFreshPageBlocks(page);
+  const resolvedBlocks = Array.isArray(blocks) ? blocks : await blocks;
+  return getFirstImageFromContent(resolvedBlocks);
+}
+
+async function getCachedOrFreshPageBlocks(page: NotionPage): Promise<NotionBlock[]> {
+  const cached = readPageBlocksCache(page.id, page.last_edited_time);
+  if (cached) {
+    return cached;
+  }
+
+  const blocks = await getPostBlocks(page.id);
+  writePageBlocksCache(page.id, page.last_edited_time, blocks);
+  return blocks;
 }
 
 function getDate(property: NotionPropertyValue | undefined): string {
