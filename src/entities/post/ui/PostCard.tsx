@@ -1,36 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { PostMetadata } from "../model/usePostsQuery";
 
 interface PostCardProps {
   post: PostMetadata;
-}
-
-const thumbnailThemes = [
-  {
-    surface: "bg-[#e8edf5] dark:bg-[#1f2937]",
-    mark: "text-[#36577e] dark:text-[#93b4df]",
-    caption: "text-[#8292aa] dark:text-[#9caec7]",
-    symbol: "?",
-  },
-  {
-    surface: "bg-[#e8f1ec] dark:bg-[#17251d]",
-    mark: "text-primary-700 dark:text-primary-300",
-    caption: "text-primary-700/60 dark:text-primary-200/70",
-    symbol: "</>",
-  },
-  {
-    surface: "bg-[#f1eee8] dark:bg-[#2a241c]",
-    mark: "text-[#755f3a] dark:text-[#d6bd8c]",
-    caption: "text-[#8b7b62] dark:text-[#d0b98a]",
-    symbol: "#",
-  },
-];
-
-function getThumbnailTheme(post: PostMetadata) {
-  const source = post.tags[0]?.name || post.title;
-  const charSum = Array.from(source).reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  return thumbnailThemes[charSum % thumbnailThemes.length];
 }
 
 function formatDate(date: Date) {
@@ -41,37 +13,10 @@ function formatDate(date: Date) {
 }
 
 export function PostCard({ post }: PostCardProps) {
-  const thumbnailTheme = getThumbnailTheme(post);
-  const thumbnailCaption = post.tags.slice(0, 2).map((tag) => tag.slug || tag.name).join(" · ");
-  const thumbnailImage = post.thumbnailImage || post.coverImage;
-
   return (
     <article className="border-b border-gray-200 py-7 dark:border-gray-800">
-      <div className="grid grid-cols-[112px_minmax(0,1fr)] items-center gap-4 sm:grid-cols-[132px_minmax(0,1fr)] sm:gap-5 md:grid-cols-[148px_minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_180px]">
-        <Link
-          href={`/posts/${post.slug}`}
-          className="relative aspect-[4/3] w-full overflow-hidden rounded-lg lg:order-2"
-          aria-label={`${post.title} 포스트 보기`}
-        >
-          {thumbnailImage ? (
-            <Image
-              src={thumbnailImage}
-              alt=""
-              fill
-              sizes="(max-width: 640px) 112px, (max-width: 768px) 132px, (max-width: 1024px) 148px, 180px"
-              className="object-cover transition-transform duration-300 hover:scale-105"
-            />
-          ) : (
-            <div className={`flex h-full w-full flex-col justify-between p-3 sm:p-4 ${thumbnailTheme.surface}`}>
-              <span className={`text-2xl font-black leading-none sm:text-3xl ${thumbnailTheme.mark}`}>{thumbnailTheme.symbol}</span>
-              {thumbnailCaption && (
-                <span className={`truncate font-mono text-[10px] font-semibold sm:text-xs ${thumbnailTheme.caption}`}>{thumbnailCaption}</span>
-              )}
-            </div>
-          )}
-        </Link>
-
-        <div className="min-w-0 lg:order-1">
+      <div className="max-w-3xl">
+        <div className="min-w-0">
           <time dateTime={post.publishedAt.toISOString()} className="mb-2 block text-sm font-semibold text-gray-400 sm:text-base dark:text-gray-500">
             {formatDate(post.publishedAt)}
           </time>
