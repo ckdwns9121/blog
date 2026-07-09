@@ -82,14 +82,13 @@ async function main() {
     let newImageCount = 0;
     let skippedImageCount = 0;
 
-    // 병렬 처리: 모든 포스트의 이미지 URL을 동시에 추출
-    console.log("📥 모든 포스트의 이미지 URL을 병렬로 추출하는 중...\n");
-    const postImageData = await Promise.all(
-      posts.map(async (post) => {
-        const imageUrls = await extractPostImageUrls(post.id, post.slug, post.coverImage);
-        return { post, imageUrls };
-      })
-    );
+    // Notion API rate limit을 피하기 위해 포스트별 이미지 URL은 순차 추출
+    console.log("📥 모든 포스트의 이미지 URL을 추출하는 중...\n");
+    const postImageData: Array<{ post: (typeof posts)[number]; imageUrls: string[] }> = [];
+    for (const post of posts) {
+      const imageUrls = await extractPostImageUrls(post.id, post.slug, post.coverImage);
+      postImageData.push({ post, imageUrls });
+    }
 
     console.log("━".repeat(60));
 
