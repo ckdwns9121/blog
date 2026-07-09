@@ -87,7 +87,7 @@ export function ContentBlockRenderer({
 
     case "list_item":
       return (
-        <li className="my-5 leading-[1.75]">
+        <li className="leading-[1.75]">
           {block.richText && block.richText.length > 0 ? (
             <RichTextRenderer items={block.richText} />
           ) : (
