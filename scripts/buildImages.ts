@@ -82,7 +82,7 @@ async function main() {
     let newImageCount = 0;
     let skippedImageCount = 0;
 
-    // 병렬 처리: 모든 포스트의 이미지 URL을 동시에 추출
+    // Notion API 요청은 내부 큐에서 조율되므로 작업 자체는 병렬로 위임
     console.log("📥 모든 포스트의 이미지 URL을 병렬로 추출하는 중...\n");
     const postImageData = await Promise.all(
       posts.map(async (post) => {

@@ -22,6 +22,72 @@ import { readPageBlocksCache, writePageBlocksCache } from "./notion-cache";
 
 // Singleton client instance
 let client: Client | null = null;
+let lastNotionRequestAt = 0;
+let notionRequestQueue: Promise<void> = Promise.resolve();
+
+const NOTION_MIN_REQUEST_INTERVAL_MS = 400;
+const NOTION_MAX_RETRY_COUNT = 5;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForNotionRequestSlot(): Promise<void> {
+  const previousRequest = notionRequestQueue;
+  let releaseRequestSlot!: () => void;
+
+  notionRequestQueue = new Promise<void>((resolve) => {
+    releaseRequestSlot = resolve;
+  });
+
+  await previousRequest;
+
+  try {
+    const now = Date.now();
+    const elapsed = now - lastNotionRequestAt;
+
+    if (elapsed < NOTION_MIN_REQUEST_INTERVAL_MS) {
+      await sleep(NOTION_MIN_REQUEST_INTERVAL_MS - elapsed);
+    }
+
+    lastNotionRequestAt = Date.now();
+  } finally {
+    releaseRequestSlot();
+  }
+}
+
+function isRateLimitError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+
+  const notionError = error as { status?: number; code?: string };
+  return notionError.status === 429 || notionError.code === "rate_limited";
+}
+
+function getRetryDelayMs(attempt: number): number {
+  return Math.min(1000 * 2 ** attempt, 10000);
+}
+
+async function runNotionRequest<T>(request: () => Promise<T>): Promise<T> {
+  for (let attempt = 0; attempt <= NOTION_MAX_RETRY_COUNT; attempt++) {
+    await waitForNotionRequestSlot();
+
+    try {
+      return await request();
+    } catch (error) {
+      if (!isRateLimitError(error) || attempt === NOTION_MAX_RETRY_COUNT) {
+        throw error;
+      }
+
+      const retryDelayMs = getRetryDelayMs(attempt);
+      console.warn(`Notion API rate limited. Retrying in ${retryDelayMs}ms...`);
+      await sleep(retryDelayMs);
+    }
+  }
+
+  throw new Error("Notion request retry loop exited unexpectedly");
+}
 
 function initialize() {
   if (client) return; // 이미 초기화됨
@@ -47,76 +113,84 @@ export async function getAllPosts(): Promise<NotionPost[]> {
   let hasMore = true;
 
   while (hasMore) {
-    const response = await getClient().search({
-      query: "",
-      page_size: 100,
-      start_cursor: cursor,
-    });
-
-    const posts = await Promise.all(
-      response.results.map(async (page) => {
-        try {
-          const pageData = await getClient().pages.retrieve({
-            page_id: page.id,
-          });
-
-          if (pageData.object === "page") {
-            const notionPage = pageData as NotionPage;
-            const properties = notionPage.properties;
-
-            const publishedProperty = properties.published as NotionCheckboxProperty | undefined;
-            const titleProperty = getPlainText(properties.title);
-
-            if (publishedProperty?.checkbox && titleProperty) {
-              const originalSlug = getPlainText(properties.slug);
-              const generatedSlug = slugify(titleProperty);
-              const baseSlug = originalSlug || generatedSlug || "post";
-
-              // pageId에서 하이픈 제거 (전체 32자리)
-              const pageIdWithoutHyphens = notionPage.id.replace(/-/g, "");
-
-              // slug + pageId 조합 (예: javascript-promise-8618d667c89b3708a1b2c3d4e5f6g7h8)
-              const validSlug = `${baseSlug}-${pageIdWithoutHyphens}`;
-
-              const publishedAtDate = getDate(properties.publishedAt);
-
-              // 날짜 유효성 재검증
-              const createdAt = notionPage.created_time || new Date().toISOString();
-              const updatedAt = notionPage.last_edited_time || new Date().toISOString();
-              const publishedAt = publishedAtDate || createdAt;
-
-              // 커버 이미지 URL 처리 (S3 URL인 경우 공개 프록시 URL로 변환)
-              const rawCoverImage = getImageUrl(properties.coverImage);
-              const coverImage = rawCoverImage ? convertToPublicNotionImageUrl(rawCoverImage, notionPage.id) : undefined;
-              const thumbnailImage = await resolveThumbnailImage(notionPage, coverImage);
-
-              return {
-                id: notionPage.id,
-                title: titleProperty,
-                slug: validSlug,
-                published: publishedProperty.checkbox,
-                createdAt,
-                publishedAt,
-                updatedAt,
-                tags: (getMultiSelect(properties.tags) || []).map((tag: string) => ({
-                  name: tag,
-                  slug: slugify(tag),
-                })),
-                excerpt: getPlainText(properties.excerpt),
-                coverImage,
-                thumbnailImage,
-              } as NotionPost;
-            }
-          }
-        } catch (pageError) {
-          const error = pageError as Error & { code?: string };
-          if (error.code !== "object_not_found") {
-            console.warn(`Failed to process page ${page.id}:`, error.message);
-          }
-        }
-        return null;
+    const response = await runNotionRequest(() =>
+      getClient().search({
+        query: "",
+        page_size: 100,
+        start_cursor: cursor,
       })
     );
+
+    const posts: Array<NotionPost | null> = [];
+    for (const page of response.results) {
+      try {
+        const pageData =
+          page.object === "page" && "properties" in page
+            ? (page as NotionPage)
+            : ((await runNotionRequest(() =>
+                getClient().pages.retrieve({
+                  page_id: page.id,
+                })
+              )) as NotionPage);
+
+        if (pageData.object === "page") {
+          const notionPage = pageData as NotionPage;
+          const properties = notionPage.properties;
+
+          const publishedProperty = properties.published as NotionCheckboxProperty | undefined;
+          const titleProperty = getPlainText(properties.title);
+
+          if (publishedProperty?.checkbox && titleProperty) {
+            const originalSlug = getPlainText(properties.slug);
+            const generatedSlug = slugify(titleProperty);
+            const baseSlug = originalSlug || generatedSlug || "post";
+
+            // pageId에서 하이픈 제거 (전체 32자리)
+            const pageIdWithoutHyphens = notionPage.id.replace(/-/g, "");
+
+            // slug + pageId 조합 (예: javascript-promise-8618d667c89b3708a1b2c3d4e5f6g7h8)
+            const validSlug = `${baseSlug}-${pageIdWithoutHyphens}`;
+
+            const publishedAtDate = getDate(properties.publishedAt);
+
+            // 날짜 유효성 재검증
+            const createdAt = notionPage.created_time || new Date().toISOString();
+            const updatedAt = notionPage.last_edited_time || new Date().toISOString();
+            const publishedAt = publishedAtDate || createdAt;
+
+            // 커버 이미지 URL 처리 (S3 URL인 경우 공개 프록시 URL로 변환)
+            const rawCoverImage = getImageUrl(properties.coverImage);
+            const coverImage = rawCoverImage ? convertToPublicNotionImageUrl(rawCoverImage, notionPage.id) : undefined;
+            const thumbnailImage = await resolveThumbnailImage(notionPage, coverImage);
+
+            posts.push({
+              id: notionPage.id,
+              title: titleProperty,
+              slug: validSlug,
+              published: publishedProperty.checkbox,
+              createdAt,
+              publishedAt,
+              updatedAt,
+              tags: (getMultiSelect(properties.tags) || []).map((tag: string) => ({
+                name: tag,
+                slug: slugify(tag),
+              })),
+              excerpt: getPlainText(properties.excerpt),
+              coverImage,
+              thumbnailImage,
+            } as NotionPost);
+            continue;
+          }
+        }
+      } catch (pageError) {
+        const error = pageError as Error & { code?: string };
+        if (error.code !== "object_not_found") {
+          console.warn(`Failed to process page ${page.id}:`, error.message);
+        }
+      }
+
+      posts.push(null);
+    }
 
     results.push(...posts.filter((post): post is NotionPost => post !== null));
     hasMore = response.has_more;
@@ -150,7 +224,7 @@ export async function getPostBySlug(slug: string, fetchContent = true): Promise<
 // pageId로 직접 포스트 조회
 export async function getPostByPageId(pageId: string, fetchContent = true): Promise<BlogPost> {
   // 페이지 메타데이터를 먼저 가져와서 last_edited_time으로 캐시 유효성 판단
-  const pageData = await getClient().pages.retrieve({ page_id: pageId });
+  const pageData = await runNotionRequest(() => getClient().pages.retrieve({ page_id: pageId }));
 
   if (!("properties" in pageData)) {
     throw new Error("Invalid page");
@@ -219,11 +293,13 @@ export async function getPostBlocks(pageId: string): Promise<NotionBlock[]> {
 
   // 모든 블록을 페이지네이션으로 가져오기
   while (hasMore) {
-    const response = await getClient().blocks.children.list({
-      block_id: pageId,
-      page_size: 100,
-      start_cursor: cursor,
-    });
+    const response = await runNotionRequest(() =>
+      getClient().blocks.children.list({
+        block_id: pageId,
+        page_size: 100,
+        start_cursor: cursor,
+      })
+    );
 
     const blocks = await Promise.all(
       response.results.map(async (block) => {
