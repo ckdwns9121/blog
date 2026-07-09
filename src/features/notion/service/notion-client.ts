@@ -23,6 +23,7 @@ import { readPageBlocksCache, writePageBlocksCache } from "./notion-cache";
 // Singleton client instance
 let client: Client | null = null;
 let lastNotionRequestAt = 0;
+let notionRequestQueue: Promise<void> = Promise.resolve();
 
 const NOTION_MIN_REQUEST_INTERVAL_MS = 400;
 const NOTION_MAX_RETRY_COUNT = 5;
@@ -32,14 +33,27 @@ function sleep(ms: number): Promise<void> {
 }
 
 async function waitForNotionRequestSlot(): Promise<void> {
-  const now = Date.now();
-  const elapsed = now - lastNotionRequestAt;
+  const previousRequest = notionRequestQueue;
+  let releaseRequestSlot!: () => void;
 
-  if (elapsed < NOTION_MIN_REQUEST_INTERVAL_MS) {
-    await sleep(NOTION_MIN_REQUEST_INTERVAL_MS - elapsed);
+  notionRequestQueue = new Promise<void>((resolve) => {
+    releaseRequestSlot = resolve;
+  });
+
+  await previousRequest;
+
+  try {
+    const now = Date.now();
+    const elapsed = now - lastNotionRequestAt;
+
+    if (elapsed < NOTION_MIN_REQUEST_INTERVAL_MS) {
+      await sleep(NOTION_MIN_REQUEST_INTERVAL_MS - elapsed);
+    }
+
+    lastNotionRequestAt = Date.now();
+  } finally {
+    releaseRequestSlot();
   }
-
-  lastNotionRequestAt = Date.now();
 }
 
 function isRateLimitError(error: unknown): boolean {
@@ -110,11 +124,14 @@ export async function getAllPosts(): Promise<NotionPost[]> {
     const posts: Array<NotionPost | null> = [];
     for (const page of response.results) {
       try {
-        const pageData = await runNotionRequest(() =>
-          getClient().pages.retrieve({
-            page_id: page.id,
-          })
-        );
+        const pageData =
+          page.object === "page" && "properties" in page
+            ? (page as NotionPage)
+            : ((await runNotionRequest(() =>
+                getClient().pages.retrieve({
+                  page_id: page.id,
+                })
+              )) as NotionPage);
 
         if (pageData.object === "page") {
           const notionPage = pageData as NotionPage;
@@ -284,23 +301,24 @@ export async function getPostBlocks(pageId: string): Promise<NotionBlock[]> {
       })
     );
 
-    const blocks: NotionBlock[] = [];
-    for (const block of response.results) {
-      const notionBlock = block as NotionBlockType;
-      const baseBlock = {
-        id: notionBlock.id,
-        type: notionBlock.type,
-        content: extractBlockContent(notionBlock),
-        children: undefined as NotionBlock[] | undefined,
-      };
+    const blocks = await Promise.all(
+      response.results.map(async (block) => {
+        const notionBlock = block as NotionBlockType;
+        const baseBlock = {
+          id: notionBlock.id,
+          type: notionBlock.type,
+          content: extractBlockContent(notionBlock),
+          children: undefined as NotionBlock[] | undefined,
+        };
 
-      // children이 있는 경우 재귀적으로 가져오기
-      if (notionBlock.has_children) {
-        baseBlock.children = await getPostBlocks(notionBlock.id);
-      }
+        // children이 있는 경우 재귀적으로 가져오기
+        if (notionBlock.has_children) {
+          baseBlock.children = await getPostBlocks(notionBlock.id);
+        }
 
-      blocks.push(baseBlock);
-    }
+        return baseBlock;
+      })
+    );
 
     allBlocks.push(...blocks);
 
@@ -316,12 +334,7 @@ export async function getPostsByTag(tag: string): Promise<BlogPost[]> {
   const posts = await getAllPosts();
   const filteredPosts = posts.filter((post) => post.tags.some((t) => t.name === tag));
 
-  const fullPosts: BlogPost[] = [];
-  for (const post of filteredPosts) {
-    fullPosts.push(await getPostBySlug(post.slug));
-  }
-
-  return fullPosts;
+  return Promise.all(filteredPosts.map((post) => getPostBySlug(post.slug)));
 }
 
 // Helper functions
