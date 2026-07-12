@@ -1,7 +1,8 @@
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { loadSearchPosts } from '@/features/search/api/searchPosts';
 import type { SearchablePost } from '@/features/search/model/searchDocument';
+import { BlogSearch } from '@/shared/utils/search';
 import { SearchResults } from './SearchResults';
 
 jest.mock('../../features/search/api/searchPosts', () => ({
@@ -30,6 +31,10 @@ describe('SearchResults', () => {
     mockedLoadSearchPosts.mockReset();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('does not load the corpus until a query is present', () => {
     const { container } = render(<SearchResults query="" />);
 
@@ -56,6 +61,29 @@ describe('SearchResults', () => {
     expect(
       await screen.findByRole('link', { name: /정적 검색 인덱스/ }),
     ).toHaveAttribute('href', '/posts/static-search-index');
+  });
+
+  it('reuses the loaded corpus and Fuse index when the query changes', async () => {
+    mockedLoadSearchPosts.mockResolvedValue(posts);
+    const searchInstances = new Set<BlogSearch>();
+    const originalSearch = BlogSearch.prototype.search;
+    jest
+      .spyOn(BlogSearch.prototype, 'search')
+      .mockImplementation(function (this: BlogSearch, query: string) {
+        searchInstances.add(this);
+        return originalSearch.call(this, query);
+      });
+
+    const { rerender } = render(<SearchResults query="오로라프로토콜" />);
+    await screen.findByRole('link', { name: /정적 검색 인덱스/ });
+
+    rerender(<SearchResults query="정적" />);
+    await waitFor(() =>
+      expect(screen.getByText('"정적" 검색 결과 1개')).toBeInTheDocument(),
+    );
+
+    expect(mockedLoadSearchPosts).toHaveBeenCalledTimes(1);
+    expect(searchInstances.size).toBe(1);
   });
 
   it('renders an explicit error and retries the shared loader', async () => {

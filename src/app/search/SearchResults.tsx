@@ -15,9 +15,10 @@ interface SearchResultsProps {
 export function SearchResults({ query }: SearchResultsProps) {
   const [state, setState] = useState<SearchPostsState>({ status: 'idle' });
   const [requestId, setRequestId] = useState(0);
+  const hasQuery = query.length > 0;
 
   useEffect(() => {
-    if (!query) {
+    if (!hasQuery) {
       setState({ status: 'idle' });
       return;
     }
@@ -41,12 +42,17 @@ export function SearchResults({ query }: SearchResultsProps) {
     return () => {
       isCurrent = false;
     };
-  }, [query, requestId]);
+  }, [hasQuery, requestId]);
+
+  const searchInstance = useMemo(
+    () => (state.status === 'success' ? new BlogSearch(state.posts) : null),
+    [state],
+  );
 
   const results = useMemo(() => {
-    if (state.status !== 'success' || !query) return [];
-    return new BlogSearch(state.posts).search(query).map(({ post }) => post);
-  }, [query, state]);
+    if (!searchInstance || !query) return [];
+    return searchInstance.search(query).map(({ post }) => post);
+  }, [query, searchInstance]);
 
   if (!query) return null;
 
