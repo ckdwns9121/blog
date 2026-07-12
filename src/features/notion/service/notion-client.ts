@@ -17,7 +17,6 @@ import type {
 } from "../types";
 import type { BlogPost } from "@/entities/post/model";
 import { adaptNotionBlocksToContentBlocks } from "../utils/blockAdapter";
-import { getFirstImageFromContent } from "../utils/blockParser";
 import { readPageBlocksCache, writePageBlocksCache } from "./notion-cache";
 
 // Singleton client instance
@@ -161,7 +160,6 @@ export async function getAllPosts(): Promise<NotionPost[]> {
             // 커버 이미지 URL 처리 (S3 URL인 경우 공개 프록시 URL로 변환)
             const rawCoverImage = getImageUrl(properties.coverImage);
             const coverImage = rawCoverImage ? convertToPublicNotionImageUrl(rawCoverImage, notionPage.id) : undefined;
-            const thumbnailImage = await resolveThumbnailImage(notionPage, coverImage);
 
             posts.push({
               id: notionPage.id,
@@ -173,11 +171,10 @@ export async function getAllPosts(): Promise<NotionPost[]> {
               updatedAt,
               tags: (getMultiSelect(properties.tags) || []).map((tag: string) => ({
                 name: tag,
-                slug: slugify(tag),
+                slug: tagSlug(tag),
               })),
               excerpt: getPlainText(properties.excerpt),
               coverImage,
-              thumbnailImage,
             } as NotionPost);
             continue;
           }
@@ -260,7 +257,6 @@ export async function getPostByPageId(pageId: string, fetchContent = true): Prom
   // 커버 이미지 URL 처리
   const rawCoverImage = getImageUrl(properties.coverImage);
   const coverImage = rawCoverImage ? convertToPublicNotionImageUrl(rawCoverImage, page.id) : undefined;
-  const thumbnailImage = await resolveThumbnailImage(page, coverImage, blocks);
 
   // NotionBlock을 공통 ContentBlock으로 변환
   const contentBlocks = adaptNotionBlocksToContentBlocks(blocks);
@@ -276,11 +272,10 @@ export async function getPostByPageId(pageId: string, fetchContent = true): Prom
 
     tags: tags.map((tag: string) => ({
       name: tag,
-      slug: slugify(tag),
+      slug: tagSlug(tag),
       postCount: 0,
     })),
     coverImage,
-    thumbnailImage,
     toc: [],
   };
 }
@@ -382,40 +377,6 @@ function getImageUrl(property: NotionPropertyValue | undefined): string | undefi
   return undefined;
 }
 
-function getPropertyByName(properties: NotionPage["properties"], names: string[]): NotionPropertyValue | undefined {
-  const normalizedNames = names.map((name) => name.toLowerCase());
-  const matchedEntry = Object.entries(properties).find(([name]) => normalizedNames.includes(name.toLowerCase()));
-  return matchedEntry?.[1];
-}
-
-async function resolveThumbnailImage(page: NotionPage, coverImage?: string, existingBlocks?: NotionBlock[]): Promise<string | undefined> {
-  const thumbnailProperty = getPropertyByName(page.properties, ["thumbnail", "thumnail"]);
-  const rawThumbnailImage = getImageUrl(thumbnailProperty);
-
-  if (rawThumbnailImage) {
-    return convertToPublicNotionImageUrl(rawThumbnailImage, page.id);
-  }
-
-  if (coverImage) {
-    return coverImage;
-  }
-
-  const blocks = existingBlocks ?? getCachedOrFreshPageBlocks(page);
-  const resolvedBlocks = Array.isArray(blocks) ? blocks : await blocks;
-  return getFirstImageFromContent(resolvedBlocks);
-}
-
-async function getCachedOrFreshPageBlocks(page: NotionPage): Promise<NotionBlock[]> {
-  const cached = readPageBlocksCache(page.id, page.last_edited_time);
-  if (cached) {
-    return cached;
-  }
-
-  const blocks = await getPostBlocks(page.id);
-  writePageBlocksCache(page.id, page.last_edited_time, blocks);
-  return blocks;
-}
-
 function getDate(property: NotionPropertyValue | undefined): string {
   if (!property) return new Date().toISOString();
 
@@ -444,6 +405,15 @@ function slugify(text: string): string {
     .replace(/[^\w\s-]/g, "")
     .replace(/\s+/g, "-")
     .trim();
+}
+
+/** Preserve Unicode letters in tag URLs without changing existing post slugs. */
+export function tagSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{N}\s-]/gu, "")
+    .replace(/\s+/g, "-");
 }
 
 /**

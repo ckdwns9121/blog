@@ -1,55 +1,8 @@
 import "dotenv/config";
 import { getAllPosts, getPostByPageId } from "../src/features/notion/service/notion-client";
 import { convertPostImages, saveImageMapping, loadImageMapping } from "./convertImages";
-import type { ContentBlockWithChildren } from "../src/shared/types/content";
-
-/**
- * 콘텐츠 블록에서 모든 이미지 URL을 재귀적으로 추출
- */
-function extractImageUrlsFromBlocks(blocks: ContentBlockWithChildren[]): string[] {
-  const imageUrls: string[] = [];
-
-  for (const block of blocks) {
-    // 이미지 블록인 경우
-    if (block.type === "image" && block.url) {
-      imageUrls.push(block.url);
-    }
-
-    // 자식 블록도 재귀적으로 확인
-    if (block.children && block.children.length > 0) {
-      imageUrls.push(...extractImageUrlsFromBlocks(block.children));
-    }
-  }
-
-  return imageUrls;
-}
-
-/**
- * 포스트의 모든 이미지 URL 추출
- */
-async function extractPostImageUrls(postId: string, postSlug: string, coverImage?: string): Promise<string[]> {
-  const imageUrls: string[] = [];
-
-  try {
-    // 커버 이미지
-    if (coverImage) {
-      imageUrls.push(coverImage);
-    }
-
-    // 포스트 콘텐츠의 이미지
-    const fullPost = await getPostByPageId(postId, true);
-
-    if (fullPost.content && fullPost.content.length > 0) {
-      const contentImageUrls = extractImageUrlsFromBlocks(fullPost.content);
-      imageUrls.push(...contentImageUrls);
-    }
-
-    return imageUrls;
-  } catch (error) {
-    console.warn(`  ⚠️  콘텐츠 가져오기 실패: ${postSlug}`, error);
-    return imageUrls;
-  }
-}
+import { collectPostBuildData } from "./postBuildData";
+import { getSearchIndexPath, publishSearchIndex, removeSearchIndex } from "./searchIndex";
 
 /**
  * 증분 빌드: 변경된 이미지만 변환
@@ -58,6 +11,10 @@ async function main() {
   try {
     console.log("\n🚀 증분 이미지 빌드 프로세스를 시작합니다...\n");
     console.log("━".repeat(60) + "\n");
+
+    // 실패한 빌드가 이전 검색 데이터를 유효한 새 결과처럼 남기지 않도록 먼저 제거
+    const searchIndexPath = getSearchIndexPath();
+    await removeSearchIndex(searchIndexPath);
 
     // 1. 기존 매핑 로드
     console.log("📋 기존 이미지 매핑 정보를 로드하는 중...\n");
@@ -69,11 +26,6 @@ async function main() {
     const posts = await getAllPosts();
     console.log(`📄 총 ${posts.length}개의 포스트를 발견했습니다.\n`);
 
-    if (posts.length === 0) {
-      console.log("ℹ️  변환할 포스트가 없습니다.");
-      return;
-    }
-
     console.log("━".repeat(60));
 
     // 3. 포스트별로 이미지 처리 (증분 빌드 + 병렬 처리)
@@ -84,12 +36,7 @@ async function main() {
 
     // Notion API 요청은 내부 큐에서 조율되므로 작업 자체는 병렬로 위임
     console.log("📥 모든 포스트의 이미지 URL을 병렬로 추출하는 중...\n");
-    const postImageData = await Promise.all(
-      posts.map(async (post) => {
-        const imageUrls = await extractPostImageUrls(post.id, post.slug, post.coverImage);
-        return { post, imageUrls };
-      })
-    );
+    const postImageData = await collectPostBuildData(posts, getPostByPageId);
 
     console.log("━".repeat(60));
 
@@ -140,6 +87,10 @@ async function main() {
     // 4. 매핑 정보 저장
     console.log("\n" + "━".repeat(60));
     saveImageMapping(allImageMapping);
+    const searchDocuments = await publishSearchIndex(
+      postImageData.map(({ post }) => post),
+      searchIndexPath,
+    );
 
     console.log("\n✅ 증분 이미지 빌드 완료!\n");
     console.log(`📊 처리된 포스트: ${posts.length}개`);
@@ -148,6 +99,7 @@ async function main() {
     console.log(`   - 기존 이미지 스킵: ${skippedImageCount}개`);
     console.log(`📁 저장 위치: public/images/[post-slug]/`);
     console.log(`📋 매핑 파일: public/images/image-mapping.json\n`);
+    console.log(`🔎 검색 인덱스: ${searchIndexPath} (${searchDocuments.length}개)\n`);
   } catch (error) {
     console.error("\n❌ 이미지 빌드 실패:", error);
     process.exit(1);

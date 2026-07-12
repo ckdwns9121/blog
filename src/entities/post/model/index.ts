@@ -15,7 +15,6 @@ export interface BlogPost {
   updatedAt: Date;
   tags: Tag[];
   coverImage?: string;
-  thumbnailImage?: string;
   toc: TableOfContentsItem[];
 }
 
