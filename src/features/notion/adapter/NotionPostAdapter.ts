@@ -14,7 +14,7 @@ export class NotionPostAdapter implements PostApi {
    * NotionPost를 BlogPost 메타데이터로 변환합니다.
    */
   async getAllPosts(): Promise<
-    Pick<BlogPost, "id" | "title" | "slug" | "publishedAt" | "updatedAt" | "excerpt" | "tags" | "coverImage" | "thumbnailImage">[]
+    Pick<BlogPost, "id" | "title" | "slug" | "publishedAt" | "updatedAt" | "excerpt" | "tags" | "coverImage">[]
   > {
     const notionPosts = await notionGetAllPosts();
 
@@ -31,7 +31,6 @@ export class NotionPostAdapter implements PostApi {
         postCount: 0, // NotionPost에는 postCount가 없으므로 0으로 설정
       })),
       coverImage: post.coverImage,
-      thumbnailImage: post.thumbnailImage,
     }));
   }
 

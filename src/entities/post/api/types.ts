@@ -12,7 +12,7 @@ export interface PostApi {
    * @returns 포스트 목록 (메타데이터만 포함)
    */
   getAllPosts(): Promise<
-    Pick<BlogPost, "id" | "title" | "slug" | "publishedAt" | "updatedAt" | "excerpt" | "tags" | "coverImage" | "thumbnailImage">[]
+    Pick<BlogPost, "id" | "title" | "slug" | "publishedAt" | "updatedAt" | "excerpt" | "tags" | "coverImage">[]
   >;
 
   /**

@@ -1,69 +1,48 @@
 'use client';
 
-import { useState } from 'react';
-import { SearchModal } from './SearchModal';
+import { useCallback, useId, useState } from 'react';
+import {
+  loadSearchPosts,
+  type SearchPostsState,
+} from '@/features/search/api/searchPosts';
 import { useSearchShortcut } from '../hooks/useSearchShortcut';
-import { BlogPost } from '@/entities/post/model';
+import { SearchModal } from './SearchModal';
 
 interface SearchButtonProps {
   className?: string;
   children?: React.ReactNode;
 }
 
-interface SearchPostResponse {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  publishedAt: string;
-  updatedAt: string;
-  tags: { name: string; slug: string; postCount: number }[];
-  coverImage?: string;
-}
-
 export function SearchButton({ className, children }: SearchButtonProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const searchDialogId = 'search-dialog-content';
+  const [state, setState] = useState<SearchPostsState>({ status: 'idle' });
+  const searchDialogId = `search-dialog-${useId().replaceAll(':', '')}`;
 
-  const openModal = async () => {
+  const requestPosts = useCallback(() => {
+    setState({ status: 'loading' });
+    void loadSearchPosts().then(
+      (posts) => setState({ status: 'success', posts }),
+      (error: unknown) =>
+        setState({
+          status: 'error',
+          error: error instanceof Error ? error : new Error(String(error)),
+        }),
+    );
+  }, []);
+
+  const openModal = useCallback(() => {
     setIsModalOpen(true);
-
-    if (posts.length > 0 || isLoading) {
-      return;
+    if (state.status === 'idle') {
+      requestPosts();
     }
+  }, [requestPosts, state.status]);
 
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/search/posts');
-      if (!response.ok) {
-        throw new Error('Failed to load search posts');
-      }
-
-      const data = (await response.json()) as SearchPostResponse[];
-      const mappedPosts: BlogPost[] = data.map((post) => ({
-        ...post,
-        publishedAt: new Date(post.publishedAt),
-        updatedAt: new Date(post.updatedAt),
-        content: [],
-        toc: [],
-      }));
-
-      setPosts(mappedPosts);
-    } catch (error) {
-      console.error('Failed to load search posts:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Keyboard shortcut to open search modal
   useSearchShortcut(openModal);
 
   return (
     <>
       <button
+        type="button"
         onClick={openModal}
         className={className}
         aria-label="검색"
@@ -73,6 +52,7 @@ export function SearchButton({ className, children }: SearchButtonProps) {
       >
         {children || (
           <svg
+            aria-hidden="true"
             className="h-5 w-5 text-gray-400"
             fill="none"
             stroke="currentColor"
@@ -91,8 +71,8 @@ export function SearchButton({ className, children }: SearchButtonProps) {
       <SearchModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        posts={posts}
-        isLoading={isLoading}
+        state={state}
+        onRetry={requestPosts}
         contentId={searchDialogId}
       />
     </>

@@ -13,7 +13,6 @@ export interface NotionPost {
   }>;
   excerpt?: string;
   coverImage?: string;
-  thumbnailImage?: string;
 }
 
 // Notion API 응답 타입들

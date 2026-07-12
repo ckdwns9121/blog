@@ -5,6 +5,8 @@ import { useEffect } from 'react';
 export function useSearchShortcut(onOpen: () => void) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.defaultPrevented) return;
+
       // Ctrl+K or Cmd+K (Mac)
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
