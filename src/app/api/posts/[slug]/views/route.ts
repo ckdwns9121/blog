@@ -54,7 +54,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 /**
  * POST /api/posts/[slug]/views
  * 포스트 조회수를 증가시킵니다.
- * 새로고침 시마다 조회수가 증가합니다.
+ * 동일한 IP의 조회는 포스트별로 1시간에 한 번만 집계합니다.
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const viewedKey = getPostViewedKey(slug, identifier);
 
     const isNewView = await redis.set(viewedKey, "1", {
-      EX: 60 * 60 * 24,
+      EX: 60 * 60,
       NX: true,
     });
 
