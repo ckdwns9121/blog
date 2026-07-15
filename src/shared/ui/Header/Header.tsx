@@ -15,7 +15,6 @@ interface HeaderProps {
 
 export function Header({ plugins, mobilePlugins = [], className }: HeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const mobileNavId = "mobile-main-navigation";
 
   // 플러그인을 포지션별로 분리
   const leftPlugins = useMemo(() => plugins.filter((p) => p.position === "left"), [plugins]);
@@ -36,11 +35,11 @@ export function Header({ plugins, mobilePlugins = [], className }: HeaderProps) 
               <button
                 onClick={toggleMenu}
                 className="md:hidden p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                aria-label="메뉴 토글"
+                type="button"
+                aria-label={isMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
                 aria-expanded={isMenuOpen}
-                aria-controls={mobileNavId}
               >
-              {isMenuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
+              {isMenuOpen ? <XMarkIcon aria-hidden="true" className="h-6 w-6" /> : <Bars3Icon aria-hidden="true" className="h-6 w-6" />}
             </button>
 
             {/* 좌측 플러그인들 */}
@@ -63,7 +62,7 @@ export function Header({ plugins, mobilePlugins = [], className }: HeaderProps) 
             ))}
 
             {/* 기본 네비게이션 링크 */}
-            <nav id={mobileNavId} aria-label="모바일 네비게이션" className="flex flex-col space-y-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <nav aria-label="모바일 네비게이션" className="flex flex-col space-y-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <Link
                 href="/"
                 onClick={() => setIsMenuOpen(false)}

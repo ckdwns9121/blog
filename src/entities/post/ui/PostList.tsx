@@ -106,19 +106,20 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
     <>
       {/* 태그 필터 */}
       <div className="pt-0 pb-5 sm:pb-7">
-        <div className="flex flex-wrap gap-2.5 sm:gap-3">
-          <button onClick={() => handleTagClick(null)} className={getButtonClassName(selectedTag === null)}>
+        <fieldset className="flex flex-wrap gap-2.5 sm:gap-3">
+          <legend className="sr-only">태그로 글 필터링</legend>
+          <button type="button" aria-pressed={selectedTag === null} onClick={() => handleTagClick(null)} className={getButtonClassName(selectedTag === null)}>
             전체 ({posts.length})
           </button>
           {allTags.map((tag) => {
             const count = tagCounts.get(tag) || 0;
             return (
-              <button key={tag} onClick={() => handleTagClick(tag)} className={getButtonClassName(selectedTag === tag)}>
+              <button type="button" aria-pressed={selectedTag === tag} key={tag} onClick={() => handleTagClick(tag)} className={getButtonClassName(selectedTag === tag)}>
                 {tag} ({count})
               </button>
             );
           })}
-        </div>
+        </fieldset>
       </div>
 
       <div className="mb-10 border-t border-gray-200 dark:border-gray-800">
@@ -126,6 +127,10 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
           <PostCard key={post.id} post={post} />
         ))}
       </div>
+
+      <p className="sr-only" role="status">
+        {selectedTag ? `${selectedTag} 태그 글 ${filteredPosts.length}개` : `전체 글 ${filteredPosts.length}개`}
+      </p>
 
       {visiblePosts.length === 0 && (
         <div className="text-center py-12">

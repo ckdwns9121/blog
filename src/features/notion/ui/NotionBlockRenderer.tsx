@@ -127,13 +127,13 @@ export function NotionBlockRenderer({ block, headingId }: NotionBlockRendererPro
           className="my-5 block rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 text-2xl">🔗</div>
+            <div aria-hidden="true" className="flex-shrink-0 text-2xl">🔗</div>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium text-primary-600 dark:text-primary-400 truncate">{parsed.url}</div>
               {parsed.caption && <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">{parsed.caption}</div>}
             </div>
             <div className="flex-shrink-0 text-gray-400">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -143,6 +143,7 @@ export function NotionBlockRenderer({ block, headingId }: NotionBlockRendererPro
               </svg>
             </div>
           </div>
+          <span className="sr-only"> (새 탭에서 열림)</span>
         </a>
       );
 

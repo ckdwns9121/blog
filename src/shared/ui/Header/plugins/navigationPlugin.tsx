@@ -16,10 +16,10 @@ function NavigationLinks() {
 
   return (
     <nav aria-label="주요 네비게이션" className="hidden md:flex items-center gap-5">
-      <Link href="/" className={getLinkClassName(isPostActive)}>
+      <Link href="/" aria-current={isPostActive ? "page" : undefined} className={getLinkClassName(isPostActive)}>
         Post
       </Link>
-      <Link href="/about" className={getLinkClassName(isAboutActive)}>
+      <Link href="/about" aria-current={isAboutActive ? "page" : undefined} className={getLinkClassName(isAboutActive)}>
         About
       </Link>
     </nav>

@@ -81,6 +81,7 @@ export default function TableOfContents({ items, className = "" }: TableOfConten
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">목차</h3>
       <nav
         ref={navRef}
+        aria-label="글 목차"
         className="max-h-[calc(100vh-200px)] overflow-y-auto space-y-1 pr-2"
         style={{ scrollBehavior: "smooth" }}
       >
@@ -104,6 +105,7 @@ const TocItem = ({ item, index, activeId }: { item: TableOfContentsItem; index: 
     <li key={item.id || index} className={`${indentClass} mb-1`}>
       <Link
         href={`#${item.id}`}
+        aria-current={isActive ? "location" : undefined}
         className={`block py-1 px-2 text-sm rounded transition-all ${
           isActive
             ? "text-primary-700 font-semibold dark:text-primary-300 "
