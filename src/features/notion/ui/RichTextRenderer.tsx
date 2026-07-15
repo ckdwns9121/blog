@@ -60,6 +60,7 @@ function RichTextItem({ item }: RichTextItemProps) {
         className="text-primary-600 dark:text-primary-400 hover:underline transition-colors"
       >
         {text}
+        <span className="sr-only"> (새 탭에서 열림)</span>
       </a>
     );
   }

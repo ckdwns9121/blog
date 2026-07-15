@@ -12,12 +12,16 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     <div className="py-8 text-gray-900 dark:text-white">
       <h1 className="mb-4 text-2xl font-bold">검색</h1>
       <form action="/search" className="mb-6">
+        <label htmlFor="site-search" className="sr-only">
+          블로그 글 검색
+        </label>
         <input
+          id="site-search"
           type="search"
           name="q"
           defaultValue={query}
           placeholder="검색어를 입력하세요"
-          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-900"
+          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 focus-visible:border-primary-600 focus-visible:ring-2 focus-visible:ring-primary-500 dark:border-gray-700 dark:bg-gray-900"
         />
       </form>
 

@@ -15,7 +15,7 @@ export default function PostNavigation({ previousPost, nextPost, className = "" 
   }
 
   return (
-    <nav className={`py-8 border-t border-gray-200 dark:border-gray-700 ${className}`}>
+    <nav aria-label="글 이동" className={`py-8 border-t border-gray-200 dark:border-gray-700 ${className}`}>
       {/* 데스크톱 레이아웃 */}
       <div className="hidden md:flex justify-between items-center">
         {/* 이전 포스트 */}

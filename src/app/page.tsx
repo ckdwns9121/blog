@@ -43,6 +43,7 @@ export default async function Home() {
   return (
     <div className="text-gray-900 dark:text-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
+      <h1 className="sr-only">박창준 블로그 글 목록</h1>
       <div className="pt-3 pb-8 sm:pt-4">
         {/* 클라이언트 컴포넌트로 전체 포스트 전달 */}
         <PostList posts={sortedPosts} postsPerPage={POSTS_PER_PAGE} />

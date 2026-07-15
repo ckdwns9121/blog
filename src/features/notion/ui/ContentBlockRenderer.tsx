@@ -34,7 +34,8 @@ export function ContentBlockRenderer({
       );
 
     case "heading": {
-      const level = block.level || 1;
+      // 글 제목은 페이지의 h1으로 렌더링되므로 본문은 h2부터 시작한다.
+      const level = Math.max(block.level || 2, 2);
       const HeadingTag = `h${level}` as "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
       return createElement(
         HeadingTag,
@@ -114,6 +115,7 @@ export function ContentBlockRenderer({
             {block.caption && (
               <div className="mt-2 text-sm">{block.caption}</div>
             )}
+            <span className="sr-only"> (새 탭에서 열림)</span>
           </a>
         </div>
       );
@@ -144,6 +146,7 @@ export function ContentBlockRenderer({
                       return (
                         <CellTag
                           key={cellIndex}
+                          {...(isHeaderRow ? { scope: "col" as const } : {})}
                           className={`px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 ${
                             isHeaderRow ? "font-semibold" : ""
                           }`}

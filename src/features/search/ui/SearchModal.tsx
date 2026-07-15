@@ -159,23 +159,24 @@ export function SearchModal({
           )}
 
           {state.status === 'success' && (
-            <div className="py-2">
+            <ul className="py-2" aria-label="검색 결과">
               {searchResults.map(({ post }, index) => (
-                <SearchResultItem
-                  key={post.id}
-                  post={post}
-                  isSelected={index === selectedIndex}
-                  onClick={() => openPost(post)}
-                  onMouseEnter={() => setSelectedIndex(index)}
-                />
+                <li key={post.id}>
+                  <SearchResultItem
+                    post={post}
+                    isSelected={index === selectedIndex}
+                    onClick={() => openPost(post)}
+                    onMouseEnter={() => setSelectedIndex(index)}
+                  />
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </div>
 
         <div className="px-4 py-3 border-t border-gray-200 dark:border-dark-border text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
           <div className="flex items-center justify-between">
-            <span>{state.status === 'success' ? searchResults.length : 0}개의 포스트</span>
+            <span role="status">{state.status === 'success' ? searchResults.length : 0}개의 포스트</span>
             <div className="flex items-center gap-4">
               <span>↑↓ 탐색</span>
               <span>Enter 선택</span>
@@ -233,7 +234,8 @@ function SearchResultItem({
   onMouseEnter: () => void;
 }) {
   return (
-    <div
+    <button
+      type="button"
       className={cn(
         'px-4 py-3 cursor-pointer transition-colors',
         'border-b border-gray-100 dark:border-gray-800 last:border-b-0',
@@ -244,12 +246,12 @@ function SearchResultItem({
       onClick={onClick}
       onMouseEnter={onMouseEnter}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex w-full items-start gap-3 text-left">
         {post.coverImage && (
           <div className="flex-shrink-0 w-12 h-12 rounded-md overflow-hidden">
             <Image
               src={post.coverImage}
-              alt={post.title}
+              alt=""
               width={48}
               height={48}
               className="w-full h-full object-cover"
@@ -296,6 +298,6 @@ function SearchResultItem({
           </div>
         </div>
       </div>
-    </div>
+    </button>
   );
 }

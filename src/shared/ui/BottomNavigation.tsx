@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import type { TableOfContentsItem } from "@/entities/post/model";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface BottomNavigationProps {
   tocItems: TableOfContentsItem[];
@@ -26,42 +27,29 @@ export default function BottomNavigation({ tocItems }: BottomNavigationProps) {
   } as const;
 
   return (
-    <>
-      {/* 하단 고정 버튼 */}
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <div className="fixed bottom-6 right-6 z-40 lg:hidden">
-        <button
-          onClick={() => setIsOpen(true)}
+        <DialogTrigger asChild>
+          <button
+          type="button"
           className="bg-primary-600 hover:bg-primary-700 text-white p-3 rounded-full shadow-lg transition-colors"
           aria-label="목차 열기"
         >
-          <Bars3Icon className="w-6 h-6" />
+          <Bars3Icon aria-hidden="true" className="w-6 h-6" />
         </button>
+        </DialogTrigger>
       </div>
 
-      {/* 오버레이 - 투명하게 설정하여 뒤 콘텐츠가 보이도록 */}
-      {isOpen && <div className="fixed inset-0 bg-transparent z-50 lg:hidden" onClick={() => setIsOpen(false)} />}
-
-      {/* 모달 */}
-      <div
-        className={`fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-2xl shadow-2xl z-50 transform transition-transform duration-300 ease-out lg:hidden ${
-          isOpen ? "translate-y-0" : "translate-y-full"
-        }`}
+      <DialogContent
+        className="top-auto bottom-0 left-0 w-full max-w-none translate-x-0 translate-y-0 rounded-b-none rounded-t-2xl border-x-0 border-b-0 p-0 sm:max-w-none lg:hidden"
       >
-        {/* 헤더 */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">목차</h3>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
-            aria-label="목차 닫기"
-          >
-            <XMarkIcon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-          </button>
+          <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-white">목차</DialogTitle>
+          <DialogDescription className="sr-only">글의 각 제목으로 이동할 수 있습니다.</DialogDescription>
         </div>
 
-        {/* 목차 리스트 */}
         <div className="max-h-[60vh] overflow-y-auto p-4">
-          <nav className="space-y-1">
+          <nav aria-label="글 목차" className="space-y-1">
             {tocItems.map((item, index) => {
               const indentClass = indentClasses[item.level] || "";
 
@@ -78,7 +66,7 @@ export default function BottomNavigation({ tocItems }: BottomNavigationProps) {
             })}
           </nav>
         </div>
-      </div>
-    </>
+      </DialogContent>
+    </Dialog>
   );
 }
