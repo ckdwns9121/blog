@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { getAllPosts, getPostByPageId } from "../src/features/notion/service/notion-client";
-import { convertPostImages, saveImageMapping, loadImageMapping } from "./convertImages";
+import { convertPostImages, saveImageMapping, loadImageMapping, type OptimizedImage } from "./convertImages";
 import { collectPostBuildData } from "./postBuildData";
 import { getSearchIndexPath, publishSearchIndex, removeSearchIndex } from "./searchIndex";
 
@@ -18,7 +18,7 @@ async function main() {
 
     // 1. 기존 매핑 로드
     console.log("📋 기존 이미지 매핑 정보를 로드하는 중...\n");
-    const existingMapping = loadImageMapping();
+    const existingMapping = await loadImageMapping();
     console.log(`   기존 매핑: ${existingMapping.size}개\n`);
 
     // 2. 모든 포스트 가져오기
@@ -29,7 +29,7 @@ async function main() {
     console.log("━".repeat(60));
 
     // 3. 포스트별로 이미지 처리 (증분 빌드 + 병렬 처리)
-    const allImageMapping = new Map<string, string>(existingMapping); // 기존 매핑 복사
+    const allImageMapping = new Map<string, OptimizedImage>(existingMapping); // 기존 매핑 복사
     let totalImageCount = 0;
     let newImageCount = 0;
     let skippedImageCount = 0;
@@ -59,8 +59,8 @@ async function main() {
           const postMapping = await convertPostImages(post.slug, newImageUrls, 85);
 
           // 전체 매핑에 추가
-          postMapping.forEach((localPath, url) => {
-            allImageMapping.set(url, localPath);
+          postMapping.forEach((image, url) => {
+            allImageMapping.set(url, image);
           });
 
           console.log(`  ✨ [${post.title}] ${newImageUrls.length}개 새로 변환 완료`);

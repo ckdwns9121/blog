@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { getOptimizedImageUrl } from "@/shared/utils/imageMapper";
+import { getOptimizedImageData } from "@/shared/utils/imageMapper";
 
 interface ImageBlockProps {
   url?: string;
@@ -17,20 +17,20 @@ export function ImageBlock({ url, caption, enableModal = false, onImageClick }: 
   if (!url) return null;
 
   // 빌드 시점에 변환된 로컬 이미지 경로 가져오기
-  const optimizedImageUrl = getOptimizedImageUrl(url);
+  const optimizedImage = getOptimizedImageData(url);
 
   // GIF는 Next.js 이미지 최적화를 비활성화하여 애니메이션 보존
-  const isGif = optimizedImageUrl.endsWith(".gif");
+  const isGif = optimizedImage.src.endsWith(".gif");
 
   return (
     <figure className="my-6">
       <Image
-        src={optimizedImageUrl}
+        src={optimizedImage.src}
         alt={caption || ""}
-        width={0}
-        height={0}
-        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 80vw, 60vw"
-        className={`w-full max-w-3xl h-auto rounded-lg mx-auto block ${enableModal && onImageClick ? "cursor-pointer hover:opacity-90 transition-opacity" : ""}`}
+        width={optimizedImage.width || 0}
+        height={optimizedImage.height || 0}
+        sizes="(max-width: 640px) calc(100vw - 2rem), 960px"
+        className={`block h-auto rounded-lg mx-auto ${optimizedImage.width ? "w-auto max-w-full" : "w-full"} ${enableModal && onImageClick ? "cursor-pointer hover:opacity-90 transition-opacity" : ""}`}
         onClick={onImageClick}
         unoptimized={isGif}
       />
