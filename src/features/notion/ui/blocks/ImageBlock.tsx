@@ -30,7 +30,7 @@ export function ImageBlock({ url, caption, enableModal = false, onImageClick }: 
       width={optimizedImage.width || 0}
       height={optimizedImage.height || 0}
       sizes="(max-width: 640px) calc(100vw - 2rem), 960px"
-      className="block h-auto max-w-full mx-auto"
+      className={`block h-auto max-w-full mx-auto ${optimizedImage.width ? "" : "w-full"}`}
       style={optimizedImage.width ? { width: optimizedImage.width } : undefined}
       unoptimized={isGif}
     />
