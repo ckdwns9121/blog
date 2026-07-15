@@ -2,6 +2,17 @@ import fs from "fs";
 import path from "path";
 import sharp from "sharp";
 
+export interface OptimizedImage {
+  src: string;
+  width?: number;
+  height?: number;
+}
+
+async function getImageDimensions(input: Buffer | string): Promise<Pick<OptimizedImage, "width" | "height">> {
+  const { width, height } = await sharp(input, { animated: true }).metadata();
+  return { width, height };
+}
+
 /**
  * Notion 이미지를 WebP로 변환하여 포스트별 폴더에 저장
  *
@@ -9,7 +20,7 @@ import sharp from "sharp";
  * @param postSlug - 포스트 슬러그 (폴더명으로 사용)
  * @param imageIndex - 이미지 순서 (파일명으로 사용)
  * @param quality - WebP 품질 (1-100)
- * @returns 로컬 이미지 경로
+ * @returns 로컬 이미지 경로와 원본 크기
  */
 /**
  * URL에서 이미지 확장자를 추출
@@ -86,8 +97,8 @@ export async function convertPostImages(
   postSlug: string,
   imageUrls: string[],
   quality = 85
-): Promise<Map<string, string>> {
-  const results = new Map<string, string>();
+): Promise<Map<string, OptimizedImage>> {
+  const results = new Map<string, OptimizedImage>();
 
   if (imageUrls.length === 0) {
     return results;
@@ -99,13 +110,21 @@ export async function convertPostImages(
   const conversionResults = await Promise.all(
     imageUrls.map(async (url, index) => {
       const localPath = await convertImageToWebp(url, postSlug, index + 1, quality);
-      return { url, localPath };
+      const localImagePath = localPath.startsWith("/") ? path.join(process.cwd(), "public", localPath) : undefined;
+
+      try {
+        const dimensions = await getImageDimensions(localImagePath || localPath);
+        return { url, image: { src: localPath, ...dimensions } };
+      } catch (error) {
+        console.warn(`  ⚠️  이미지 크기 추출 실패: ${localPath}`, error);
+        return { url, image: { src: localPath } };
+      }
     })
   );
 
   // 결과를 Map에 추가
-  conversionResults.forEach(({ url, localPath }) => {
-    results.set(url, localPath);
+  conversionResults.forEach(({ url, image }) => {
+    results.set(url, image);
   });
 
   return results;
@@ -114,7 +133,7 @@ export async function convertPostImages(
 /**
  * 이미지 매핑 정보를 TypeScript 파일로 저장
  */
-export function saveImageMapping(mapping: Map<string, string>): void {
+export function saveImageMapping(mapping: Map<string, OptimizedImage>): void {
   const mappingObj = Object.fromEntries(mapping);
 
   // JSON 파일 저장 (백업용)
@@ -126,7 +145,7 @@ export function saveImageMapping(mapping: Map<string, string>): void {
   const tsContent = `// 이 파일은 자동 생성됩니다. 직접 수정하지 마세요.
 // 빌드 시점에 scripts/buildImages.ts에서 생성됨
 
-export const IMAGE_MAPPING: Record<string, string> = ${JSON.stringify(mappingObj, null, 2)};
+export const IMAGE_MAPPING = ${JSON.stringify(mappingObj, null, 2)} as const;
 `;
 
   fs.writeFileSync(tsPath, tsContent);
@@ -138,13 +157,29 @@ export const IMAGE_MAPPING: Record<string, string> = ${JSON.stringify(mappingObj
 /**
  * 저장된 이미지 매핑 정보 로드
  */
-export function loadImageMapping(): Map<string, string> {
+export async function loadImageMapping(): Promise<Map<string, OptimizedImage>> {
   const mappingPath = path.join(process.cwd(), "public", "images", "image-mapping.json");
 
   if (!fs.existsSync(mappingPath)) {
     return new Map();
   }
 
-  const mappingObj = JSON.parse(fs.readFileSync(mappingPath, "utf-8"));
-  return new Map(Object.entries(mappingObj));
+  const mappingObj = JSON.parse(fs.readFileSync(mappingPath, "utf-8")) as Record<string, string | OptimizedImage>;
+  const mapping = new Map<string, OptimizedImage>();
+
+  for (const [url, image] of Object.entries(mappingObj)) {
+    const normalizedImage = typeof image === "string" ? { src: image } : image;
+
+    if ((!normalizedImage.width || !normalizedImage.height) && normalizedImage.src.startsWith("/")) {
+      try {
+        Object.assign(normalizedImage, await getImageDimensions(path.join(process.cwd(), "public", normalizedImage.src)));
+      } catch (error) {
+        console.warn(`  ⚠️  기존 이미지 크기 추출 실패: ${normalizedImage.src}`, error);
+      }
+    }
+
+    mapping.set(url, normalizedImage);
+  }
+
+  return mapping;
 }

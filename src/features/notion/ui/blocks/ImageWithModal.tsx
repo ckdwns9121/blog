@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { ImageBlock } from "./ImageBlock";
 import { Modal } from "@/shared/ui";
-import { getOptimizedImageUrl } from "@/shared/utils/imageMapper";
+import { getOptimizedImageData } from "@/shared/utils/imageMapper";
 
 interface ImageWithModalProps {
   url?: string;
@@ -20,8 +20,8 @@ export function ImageWithModal({ url, caption }: ImageWithModalProps) {
 
   if (!url) return null;
 
-  const optimizedImageUrl = getOptimizedImageUrl(url);
-  const isGif = optimizedImageUrl.endsWith(".gif");
+  const optimizedImage = getOptimizedImageData(url);
+  const isGif = optimizedImage.src.endsWith(".gif");
 
   return (
     <>
@@ -30,10 +30,10 @@ export function ImageWithModal({ url, caption }: ImageWithModalProps) {
         {/* 이미지 */}
         <div className="relative w-full h-full flex items-center justify-center">
           <Image
-            src={optimizedImageUrl}
+            src={optimizedImage.src}
             alt={caption || ""}
-            width={0}
-            height={0}
+            width={optimizedImage.width || 0}
+            height={optimizedImage.height || 0}
             sizes="100vw"
             className="max-w-full max-h-[90vh] w-auto h-auto rounded-lg object-contain"
             unoptimized={isGif}
