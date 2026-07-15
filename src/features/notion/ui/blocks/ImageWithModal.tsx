@@ -35,7 +35,7 @@ export function ImageWithModal({ url, caption }: ImageWithModalProps) {
             width={optimizedImage.width || 0}
             height={optimizedImage.height || 0}
             sizes="100vw"
-            className="max-w-full max-h-[90vh] w-auto h-auto rounded-lg object-contain"
+            className="max-w-full max-h-[90vh] w-auto h-auto object-contain"
             unoptimized={isGif}
           />
         </div>
