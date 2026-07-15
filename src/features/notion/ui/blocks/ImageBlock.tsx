@@ -30,7 +30,8 @@ export function ImageBlock({ url, caption, enableModal = false, onImageClick }: 
       width={optimizedImage.width || 0}
       height={optimizedImage.height || 0}
       sizes="(max-width: 640px) calc(100vw - 2rem), 960px"
-      className={`block h-auto rounded-lg mx-auto ${optimizedImage.width ? "w-auto max-w-full" : "w-full"}`}
+      className="block h-auto max-w-full mx-auto"
+      style={optimizedImage.width ? { width: optimizedImage.width } : undefined}
       unoptimized={isGif}
     />
   );
@@ -41,7 +42,7 @@ export function ImageBlock({ url, caption, enableModal = false, onImageClick }: 
         <button
           type="button"
           onClick={onImageClick}
-          className="block max-w-full rounded-lg mx-auto cursor-pointer hover:opacity-90 transition-opacity"
+          className="block max-w-full mx-auto cursor-pointer hover:opacity-90 transition-opacity"
           aria-label={caption ? `${caption} 크게 보기` : "이미지 크게 보기"}
         >
           {image}
