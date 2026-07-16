@@ -3,6 +3,7 @@ import type { PostMetadata } from "../model/usePostsQuery";
 
 interface PostCardProps {
   post: PostMetadata;
+  onNavigate?: () => void;
 }
 
 function formatDate(date: Date) {
@@ -12,7 +13,7 @@ function formatDate(date: Date) {
   return `${year}.${month}.${day}`;
 }
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, onNavigate }: PostCardProps) {
   return (
     <article className="border-b border-gray-200 py-7 dark:border-gray-800">
       <div className="max-w-3xl">
@@ -24,6 +25,7 @@ export function PostCard({ post }: PostCardProps) {
           <h2 className="mb-2 text-xl font-bold leading-tight text-gray-950 sm:text-2xl dark:text-gray-50">
             <Link
               href={`/posts/${post.slug}`}
+              onClick={onNavigate}
               className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
             >
               {post.title}
