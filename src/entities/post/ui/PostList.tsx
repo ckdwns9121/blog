@@ -9,6 +9,32 @@ interface PostListProps {
   postsPerPage: number;
 }
 
+interface PostListHistoryState {
+  selectedTag: string | null;
+  scrollY: number;
+  visibleCount: number;
+}
+
+const POST_LIST_HISTORY_KEY = "postList";
+
+function getPostListHistoryState(): PostListHistoryState | null {
+  const savedState = window.history.state?.[POST_LIST_HISTORY_KEY] as Partial<PostListHistoryState> | undefined;
+
+  if (
+    !savedState ||
+    !Number.isInteger(savedState.visibleCount) ||
+    (savedState.visibleCount ?? 0) < 0 ||
+    typeof savedState.scrollY !== "number" ||
+    !Number.isFinite(savedState.scrollY) ||
+    savedState.scrollY < 0 ||
+    (savedState.selectedTag !== null && typeof savedState.selectedTag !== "string")
+  ) {
+    return null;
+  }
+
+  return savedState as PostListHistoryState;
+}
+
 // 태그 버튼 스타일 헬퍼
 const getButtonClassName = (isActive: boolean) => {
   const baseClasses = "px-5 py-2.5 rounded-full text-sm font-semibold transition-colors cursor-pointer";
@@ -22,25 +48,69 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
   const [visibleCount, setVisibleCount] = useState(postsPerPage);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const observerRef = useRef<HTMLDivElement>(null);
+  const pendingScrollRestoreRef = useRef<PostListHistoryState | null>(null);
+  const didSyncTagRef = useRef(false);
 
   // URL에서 태그 읽기 (브라우저 네비게이션 지원)
   useEffect(() => {
-    const syncStateWithUrl = () => {
+    const restoreStateFromHistory = () => {
       const params = new URLSearchParams(window.location.search);
       const tag = params.get("tag");
       setSelectedTag(tag);
+
+      const savedState = getPostListHistoryState();
+      if (!savedState || savedState.selectedTag !== tag) return;
+
+      const availableCount = tag
+        ? posts.filter((post) => post.tags.some((postTag) => postTag.name === tag)).length
+        : posts.length;
+      const restoredVisibleCount = Math.min(
+        Math.max(savedState.visibleCount, postsPerPage),
+        availableCount,
+      );
+
+      pendingScrollRestoreRef.current = {
+        ...savedState,
+        visibleCount: restoredVisibleCount,
+      };
+      setVisibleCount(restoredVisibleCount);
     };
 
-    window.addEventListener("popstate", syncStateWithUrl);
-    syncStateWithUrl();
+    const handlePopState = () => restoreStateFromHistory();
+
+    window.addEventListener("popstate", handlePopState);
+    restoreStateFromHistory();
 
     return () => {
-      window.removeEventListener("popstate", syncStateWithUrl);
+      window.removeEventListener("popstate", handlePopState);
     };
-  }, []);
+  }, [posts, postsPerPage]);
+
+  useEffect(() => {
+    const pendingState = pendingScrollRestoreRef.current;
+    if (
+      !pendingState ||
+      pendingState.selectedTag !== selectedTag ||
+      visibleCount < pendingState.visibleCount
+    ) {
+      return;
+    }
+
+    const animationFrame = window.requestAnimationFrame(() => {
+      window.scrollTo(0, pendingState.scrollY);
+      pendingScrollRestoreRef.current = null;
+    });
+
+    return () => window.cancelAnimationFrame(animationFrame);
+  }, [selectedTag, visibleCount]);
 
   // 태그 변경 시 URL 업데이트
   useEffect(() => {
+    if (!didSyncTagRef.current) {
+      didSyncTagRef.current = true;
+      return;
+    }
+
     const url = new URL(window.location.href);
 
     if (selectedTag) {
@@ -50,7 +120,7 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
     }
 
     url.searchParams.delete("page");
-    window.history.replaceState({}, "", url);
+    window.history.replaceState(window.history.state, "", url);
   }, [selectedTag]);
 
   // 태그 카운트와 태그 목록을 한 번에 계산 (성능 최적화)
@@ -79,6 +149,25 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
     setVisibleCount((prev) => prev + postsPerPage);
   }, [postsPerPage]);
 
+  const saveListPosition = useCallback(() => {
+    const currentHistoryState =
+      window.history.state && typeof window.history.state === "object"
+        ? window.history.state
+        : {};
+
+    window.history.replaceState(
+      {
+        ...currentHistoryState,
+        [POST_LIST_HISTORY_KEY]: {
+          selectedTag,
+          scrollY: window.scrollY,
+          visibleCount,
+        } satisfies PostListHistoryState,
+      },
+      "",
+    );
+  }, [selectedTag, visibleCount]);
+
   useEffect(() => {
     const el = observerRef.current;
     if (!el || !hasMore) return;
@@ -98,6 +187,7 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
 
   // 태그 변경 핸들러
   const handleTagClick = (tag: string | null) => {
+    pendingScrollRestoreRef.current = null;
     setSelectedTag(tag);
     setVisibleCount(postsPerPage);
   };
@@ -124,7 +214,7 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
 
       <div className="mb-10 border-t border-gray-200 dark:border-gray-800">
         {visiblePosts.map((post) => (
-          <PostCard key={post.id} post={post} />
+          <PostCard key={post.id} post={post} onNavigate={saveListPosition} />
         ))}
       </div>
 
