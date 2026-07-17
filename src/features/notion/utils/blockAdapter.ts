@@ -120,7 +120,8 @@ export function adaptNotionBlockToContentBlock(block: NotionBlock): ContentBlock
       };
       break;
 
-    case "bookmark": {
+    case "bookmark":
+    case "link_preview": {
       const { url, caption } = extractImageData(content);
       contentBlock = {
         id,
@@ -203,4 +204,3 @@ export function adaptNotionBlockToContentBlock(block: NotionBlock): ContentBlock
 export function adaptNotionBlocksToContentBlocks(blocks: NotionBlock[]): ContentBlockWithChildren[] {
   return blocks.map(adaptNotionBlockToContentBlock);
 }
-
