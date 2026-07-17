@@ -144,6 +144,14 @@ export interface NotionHeading3Block extends NotionBlockBase {
   };
 }
 
+export interface NotionHeading4Block extends NotionBlockBase {
+  type: "heading_4";
+  heading_4: {
+    rich_text: NotionRichText[];
+    color?: string;
+  };
+}
+
 export interface NotionBulletedListItemBlock extends NotionBlockBase {
   type: "bulleted_list_item";
   bulleted_list_item: {
@@ -210,6 +218,13 @@ export interface NotionBookmarkBlock extends NotionBlockBase {
   };
 }
 
+export interface NotionLinkPreviewBlock extends NotionBlockBase {
+  type: "link_preview";
+  link_preview: {
+    url: string;
+  };
+}
+
 export interface NotionTableBlock extends NotionBlockBase {
   type: "table";
   table: {
@@ -231,6 +246,7 @@ export type NotionBlockType =
   | NotionHeading1Block
   | NotionHeading2Block
   | NotionHeading3Block
+  | NotionHeading4Block
   | NotionBulletedListItemBlock
   | NotionNumberedListItemBlock
   | NotionCodeBlock
@@ -239,6 +255,7 @@ export type NotionBlockType =
   | NotionVideoBlock
   | NotionDividerBlock
   | NotionBookmarkBlock
+  | NotionLinkPreviewBlock
   | NotionTableBlock
   | NotionTableRowBlock;
 

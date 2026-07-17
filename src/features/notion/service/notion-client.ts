@@ -483,6 +483,15 @@ function extractBlockContent(block: NotionBlockType): BlockContent {
           annotations: rt.annotations,
         })),
       };
+    case "heading_4":
+      return {
+        type: "rich_text" as const,
+        rich_text: block.heading_4.rich_text.map((rt) => ({
+          plain_text: rt.plain_text,
+          href: rt.href,
+          annotations: rt.annotations,
+        })),
+      };
     case "paragraph":
       return {
         type: "rich_text" as const,
@@ -552,6 +561,12 @@ function extractBlockContent(block: NotionBlockType): BlockContent {
         type: "bookmark" as const,
         url: block.bookmark.url,
         caption: extractText(block.bookmark.caption || []),
+      };
+    }
+    case "link_preview": {
+      return {
+        type: "bookmark" as const,
+        url: block.link_preview.url,
       };
     }
     case "table": {
