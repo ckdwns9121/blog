@@ -268,8 +268,8 @@ export default async function PostPage({ params }: PostPageProps) {
         <div className="py-10">
           <div className="mx-auto w-full">
             <article className="mx-auto max-w-5xl">
-              <header className="mx-auto mb-6 max-w-3xl">
-                <h1 className="mb-6 text-2xl leading-tight font-bold tracking-tight text-gray-950 md:text-3xl dark:text-gray-50">
+              <header className="mx-auto mb-6 max-w-5xl">
+                <h1 className="mb-6 text-3xl leading-tight font-bold tracking-tight text-gray-950 md:text-4xl dark:text-gray-50">
                   {post.title}
                 </h1>
 
@@ -306,7 +306,7 @@ export default async function PostPage({ params }: PostPageProps) {
                 className="mx-auto max-w-5xl text-[1.0625rem] leading-[1.75] text-gray-800 dark:text-gray-200"
               />
 
-              <footer className="mx-auto mt-16 max-w-3xl pt-8">
+              <footer className="mx-auto mt-16 max-w-5xl pt-8">
                 <PostNavigation previousPost={previousPost} nextPost={nextPost} />
 
                 <div className="mt-12 border-t border-gray-200 pt-8 dark:border-gray-800">

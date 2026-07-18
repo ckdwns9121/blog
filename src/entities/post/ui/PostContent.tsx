@@ -10,17 +10,6 @@ interface PostContentProps {
   className?: string;
 }
 
-const WIDE_BLOCK_TYPES = new Set<ContentBlockWithChildren["type"]>([
-  "code",
-  "image",
-  "table",
-  "video",
-]);
-
-function getContentWidthClass(block: ContentBlockWithChildren) {
-  return WIDE_BLOCK_TYPES.has(block.type) ? "max-w-5xl" : "max-w-3xl";
-}
-
 /**
  * 포스트 콘텐츠를 렌더링하는 메인 컴포넌트
  * CMS에 독립적인 공통 블록 배열을 받아서 HTML로 변환
@@ -111,14 +100,7 @@ export default function PostContent({
     return grouped.map((item, index) => {
       // 단일 블록
       if (!Array.isArray(item)) {
-        return (
-          <div
-            key={item.id || index}
-            className={`mx-auto w-full ${getContentWidthClass(item)} ${index === 0 ? "[&>*:first-child]:mt-0" : ""}`}
-          >
-            {renderBlockWithChildren(item, index)}
-          </div>
-        );
+        return renderBlockWithChildren(item, index);
       }
 
       // 리스트 그룹
@@ -132,10 +114,7 @@ export default function PostContent({
           : "my-3 space-y-1 list-disc pl-6";
 
       return (
-        <ListTag
-          key={`list-${index}`}
-          className={`mx-auto max-w-3xl ${listClassName} ${index === 0 ? "mt-0" : ""}`}
-        >
+        <ListTag key={`list-${index}`} className={listClassName}>
           {item.map((block, blockIndex) =>
             renderBlockWithChildren(block, blockIndex),
           )}
@@ -147,6 +126,8 @@ export default function PostContent({
   const groupedBlocks = groupBlocks(blocks);
 
   return (
-    <div className={className}>{renderGroupedBlocks(groupedBlocks)}</div>
+    <div className={`[&>*:first-child]:mt-0 ${className}`}>
+      {renderGroupedBlocks(groupedBlocks)}
+    </div>
   );
 }
