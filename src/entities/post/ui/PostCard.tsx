@@ -15,14 +15,14 @@ function formatDate(date: Date) {
 
 export function PostCard({ post, onNavigate }: PostCardProps) {
   return (
-    <article className="border-b border-gray-200 py-7 dark:border-gray-800">
+    <article className="border-b border-gray-200 py-4 last:border-b-0 dark:border-gray-800">
       <div className="max-w-3xl">
         <div className="min-w-0">
-          <time dateTime={post.publishedAt.toISOString()} className="mb-2 block text-sm font-semibold text-gray-400 sm:text-base dark:text-gray-500">
+          <time dateTime={post.publishedAt.toISOString()} className="mb-1.5 block text-xs text-gray-500 dark:text-gray-400">
             {formatDate(post.publishedAt)}
           </time>
 
-          <h2 className="mb-2 text-xl font-bold leading-tight text-gray-950 sm:text-2xl dark:text-gray-50">
+          <h2 className="mb-1 text-lg font-semibold leading-snug text-gray-900 dark:text-white">
             <Link
               href={`/posts/${post.slug}`}
               onClick={onNavigate}
@@ -32,20 +32,7 @@ export function PostCard({ post, onNavigate }: PostCardProps) {
             </Link>
           </h2>
 
-          {post.excerpt && <p className="mb-4 text-base leading-[1.5] text-gray-500 line-clamp-2 sm:text-lg dark:text-gray-400">{post.excerpt}</p>}
-
-          {post.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
-                <span
-                  key={tag.slug}
-                  className="rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-500 sm:px-3 sm:py-1.5 sm:text-sm dark:bg-gray-800 dark:text-gray-400"
-                >
-                  #{tag.name}
-                </span>
-              ))}
-            </div>
-          )}
+          {post.excerpt && <p className="line-clamp-2 text-sm leading-6 text-gray-600 dark:text-gray-300">{post.excerpt}</p>}
         </div>
       </div>
     </article>
