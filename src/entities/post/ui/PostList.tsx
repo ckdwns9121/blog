@@ -193,7 +193,7 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
   };
 
   return (
-    <>
+    <div className="mx-auto max-w-3xl">
       {/* 태그 필터 */}
       <div className="pt-0 pb-5 sm:pb-7">
         <fieldset className="flex flex-wrap gap-2.5 sm:gap-3">
@@ -234,6 +234,6 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-primary-600" />
         </div>
       )}
-    </>
+    </div>
   );
 }
