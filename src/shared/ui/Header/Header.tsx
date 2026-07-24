@@ -27,8 +27,9 @@ export function Header({ plugins, mobilePlugins = [], className }: HeaderProps) 
 
   return (
     <header className={cn("border-b border-gray-200 dark:border-dark-border", className)}>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+      <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl">
+          <div className="flex items-center justify-between h-16">
           {/* 좌측 섹션 */}
           <div className="flex items-center gap-4">
             {/* 모바일 메뉴 버튼 */}
@@ -49,11 +50,11 @@ export function Header({ plugins, mobilePlugins = [], className }: HeaderProps) 
           <HeaderSection plugins={centerPlugins} position="center" className="hidden md:flex" />
           {/* 우측 섹션 */}
           <HeaderSection plugins={rightPlugins} position="right" />
-        </div>
+          </div>
 
-        {/* 모바일 메뉴 */}
-        {isMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 dark:border-dark-border py-4">
+          {/* 모바일 메뉴 */}
+          {isMenuOpen && (
+            <div className="md:hidden border-t border-gray-200 dark:border-dark-border py-4">
             {/* 모바일 플러그인들 */}
             {mobilePlugins.map((plugin) => (
               <div key={plugin.id} className="mb-4 last:mb-0">
@@ -78,8 +79,9 @@ export function Header({ plugins, mobilePlugins = [], className }: HeaderProps) 
                 About
               </Link>
             </nav>
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
