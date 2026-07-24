@@ -25,8 +25,8 @@ export function loadUtterancesScript(
 /**
  * Utterances iframe에 테마 변경 메시지를 전송하는 함수
  */
-export function updateUtterancesTheme(theme: string): boolean {
-  const iframe = document.querySelector<HTMLIFrameElement>(".utterances-frame");
+export function updateUtterancesTheme(container: HTMLElement, theme: string): boolean {
+  const iframe = container.querySelector<HTMLIFrameElement>(".utterances-frame");
 
   if (iframe?.contentWindow) {
     iframe.contentWindow.postMessage({ type: "set-theme", theme }, "https://utteranc.es");
@@ -39,6 +39,6 @@ export function updateUtterancesTheme(theme: string): boolean {
 /**
  * Utterances iframe이 이미 로드되어 있는지 확인하는 함수
  */
-export function isUtterancesLoaded(): boolean {
-  return document.querySelector<HTMLIFrameElement>(".utterances-frame") !== null;
+export function isUtterancesLoaded(container: HTMLElement): boolean {
+  return container.querySelector<HTMLIFrameElement>(".utterances-frame") !== null;
 }

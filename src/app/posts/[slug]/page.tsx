@@ -311,7 +311,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
                 <div className="mt-12 border-t border-gray-200 pt-8 dark:border-gray-800">
                   <h2 className="mb-6 text-2xl font-bold text-gray-900 dark:text-white">댓글</h2>
-                  <Comment repo="ckdwns9121/blog-comment" issueTerm="pathname" label="Comment" />
+                  <Comment key={slug} repo="ckdwns9121/blog-comment" issueTerm="pathname" label="Comment" />
                 </div>
               </footer>
             </article>
