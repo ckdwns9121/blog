@@ -60,14 +60,14 @@ export default function About() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutPersonSchema) }} />
-      <div className="text-gray-900 dark:text-white">
+      <div className="mx-auto max-w-3xl text-gray-900 dark:text-white">
         <div className="py-16">
           {/* 프로필 헤더 */}
           <div className="flex flex-col md:flex-row gap-8 mb-16 items-center md:items-start">
             {/* 왼쪽: 프로필 이미지 */}
             <div className="flex-shrink-0 flex justify-center md:justify-start">
               <div className="relative w-40 h-40 md:w-48 md:h-48 overflow-hidden">
-                <Image src="/logo.png" alt="박창준 프로필" fill className="object-cover" priority />
+                <Image src="/profile.jpeg" alt="박창준 프로필" fill sizes="(min-width: 768px) 12rem, 10rem" className="object-cover" priority />
               </div>
             </div>
 
