@@ -37,11 +37,11 @@ function getPostListHistoryState(): PostListHistoryState | null {
 
 // 태그 버튼 스타일 헬퍼
 const getButtonClassName = (isActive: boolean) => {
-  const baseClasses = "px-5 py-2.5 rounded-full text-sm font-semibold transition-colors cursor-pointer";
+  const baseClasses = "cursor-pointer rounded-full px-2.5 py-1 text-xs font-medium transition-colors";
   if (isActive) {
     return `${baseClasses} bg-primary-600 text-white hover:bg-primary-700`;
   }
-  return `${baseClasses} bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700`;
+  return `${baseClasses} bg-surface-raised text-fg-muted hover:text-fg`;
 };
 
 export function PostList({ posts, postsPerPage }: PostListProps) {
@@ -196,7 +196,7 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
     <div className="mx-auto max-w-3xl">
       {/* 태그 필터 */}
       <div className="pt-0 pb-5 sm:pb-7">
-        <fieldset className="flex flex-wrap gap-2.5 sm:gap-3">
+        <fieldset className="flex flex-wrap gap-1.5">
           <legend className="sr-only">태그로 글 필터링</legend>
           <button type="button" aria-pressed={selectedTag === null} onClick={() => handleTagClick(null)} className={getButtonClassName(selectedTag === null)}>
             전체 ({posts.length})
