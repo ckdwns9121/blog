@@ -14,28 +14,19 @@ const post: PostMetadata = {
 };
 
 describe("PostCard", () => {
-  it("shows the date, the title, and a one-line excerpt", () => {
+  it("shows only the date and the title", () => {
     render(<PostCard post={post} />);
 
     expect(screen.getByText("2026.07.18")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: post.title })).toBeInTheDocument();
-
-    // truncate가 한 줄을 넘는 요약을 잘라낸다.
-    expect(screen.getByText(post.excerpt!)).toHaveClass("truncate");
   });
 
-  it("omits tags and thumbnail", () => {
+  it("omits the excerpt, tags, and thumbnail", () => {
     render(<PostCard post={post} />);
 
+    expect(screen.queryByText(post.excerpt!)).toBeNull();
     expect(screen.queryByText("#개발")).toBeNull();
     expect(screen.queryByRole("img")).toBeNull();
-  });
-
-  it("renders nothing in place of a missing excerpt", () => {
-    render(<PostCard post={{ ...post, excerpt: "" }} />);
-
-    expect(screen.getByRole("heading", { name: post.title })).toBeInTheDocument();
-    expect(screen.queryByText(post.excerpt!)).toBeNull();
   });
 
   it("links the whole row to the post, named by its title alone", () => {

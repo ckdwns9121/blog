@@ -26,13 +26,9 @@ export function PostCard({ post, onNavigate }: PostCardProps) {
           {formatDate(post.publishedAt)}
         </time>
 
-        <div className="min-w-0 sm:flex-1">
-          <h2 className="text-fg group-hover:text-primary-600 dark:group-hover:text-primary-400 text-base leading-snug font-medium transition-colors">
-            {post.title}
-          </h2>
-
-          {post.excerpt && <p className="text-fg-muted mt-1 truncate text-sm leading-6">{post.excerpt}</p>}
-        </div>
+        <h2 className="text-fg group-hover:text-primary-600 dark:group-hover:text-primary-400 text-base leading-snug font-medium transition-colors sm:flex-1">
+          {post.title}
+        </h2>
       </Link>
     </article>
   );
