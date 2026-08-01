@@ -9,86 +9,65 @@ interface PostNavigationProps {
   className?: string;
 }
 
+interface NavigationItemProps {
+  post: BlogPost;
+  direction: "previous" | "next";
+}
+
+/**
+ * 이전/다음 글 하나를 박스로 렌더링한다.
+ *
+ * 이전에는 두 글을 가로로 나란히 두고 truncate로 잘랐는데, 바깥 flex
+ * 아이템에 min-w-0이 없어 제목이 자기 칸을 넘어 서로 붙어 버렸다.
+ * 세로로 쌓고 line-clamp로 두 줄까지 접어 넘칠 수 없게 한다.
+ */
+function NavigationItem({ post, direction }: NavigationItemProps) {
+  const isPrevious = direction === "previous";
+  const Chevron = isPrevious ? ChevronLeftIcon : ChevronRightIcon;
+
+  return (
+    <Link
+      href={`/posts/${post.slug}`}
+      className={`group border-line hover:border-primary-600 dark:hover:border-primary-400 flex items-center gap-3 border p-4 transition-colors ${
+        isPrevious ? "" : "flex-row-reverse"
+      }`}
+    >
+      <Chevron
+        aria-hidden="true"
+        className={`text-fg-subtle group-hover:text-primary-600 dark:group-hover:text-primary-400 h-5 w-5 shrink-0 transition-all ${
+          isPrevious ? "group-hover:-translate-x-1" : "group-hover:translate-x-1"
+        }`}
+      />
+
+      <div className={`min-w-0 flex-1 ${isPrevious ? "" : "text-right"}`}>
+        <span className="text-fg-subtle block text-xs">{isPrevious ? "이전 글" : "다음 글"}</span>
+        <span className="text-fg group-hover:text-primary-600 dark:group-hover:text-primary-400 mt-1 block line-clamp-2 font-medium transition-colors">
+          {post.title}
+        </span>
+      </div>
+    </Link>
+  );
+}
+
 export default function PostNavigation({ previousPost, nextPost, className = "" }: PostNavigationProps) {
   if (!previousPost && !nextPost) {
     return null;
   }
 
   return (
-    <nav aria-label="글 이동" className={`py-8 border-t border-gray-200 dark:border-gray-700 ${className}`}>
-      {/* 데스크톱 레이아웃 */}
-      <div className="hidden md:flex justify-between items-center">
-        {/* 이전 포스트 */}
-        <div className="flex-1">
-          {previousPost ? (
-            <Link
-              href={`/posts/${previousPost.slug}`}
-              className="group flex items-center space-x-3 text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
-            >
-              <ChevronLeftIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform flex-shrink-0" />
-              <div className="min-w-0 flex-1">
-                <div className="text-sm text-gray-500 dark:text-gray-500">이전 글</div>
-                <div className="font-medium truncate">{previousPost.title}</div>
-              </div>
-            </Link>
-          ) : (
-            <div></div>
-          )}
-        </div>
-
-        {/* 다음 포스트 */}
-        <div className="flex-1 text-right">
-          {nextPost ? (
-            <Link
-              href={`/posts/${nextPost.slug}`}
-              className="group flex items-center justify-end space-x-3 text-gray-600 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors"
-            >
-              <div className="min-w-0 flex-1 text-right">
-                <div className="text-sm text-gray-500 dark:text-gray-500">다음 글</div>
-                <div className="font-medium truncate">{nextPost.title}</div>
-              </div>
-              <ChevronRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform flex-shrink-0" />
-            </Link>
-          ) : (
-            <div></div>
-          )}
-        </div>
-      </div>
-
-      {/* 모바일 레이아웃 */}
-      <div className="md:hidden space-y-4">
-        {/* 이전 포스트 */}
+    <nav aria-label="글 이동" className={`border-line border-t py-8 ${className}`}>
+      <ul className="flex flex-col gap-3">
         {previousPost && (
-          <Link
-            href={`/posts/${previousPost.slug}`}
-            className="group block p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-          >
-            <div className="flex items-center space-x-3">
-              <ChevronLeftIcon className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-              <div className="min-w-0 flex-1">
-                <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">이전 글</div>
-                <div className="font-medium text-gray-900 dark:text-white line-clamp-2">{previousPost.title}</div>
-              </div>
-            </div>
-          </Link>
+          <li>
+            <NavigationItem post={previousPost} direction="previous" />
+          </li>
         )}
-
-        {/* 다음 포스트 */}
         {nextPost && (
-          <Link
-            href={`/posts/${nextPost.slug}`}
-            className="group block p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-          >
-            <div className="flex items-center space-x-3">
-              <div className="min-w-0 flex-1">
-                <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">다음 글</div>
-                <div className="font-medium text-gray-900 dark:text-white line-clamp-2">{nextPost.title}</div>
-              </div>
-              <ChevronRightIcon className="w-5 h-5 text-gray-500 dark:text-gray-400 flex-shrink-0" />
-            </div>
-          </Link>
+          <li>
+            <NavigationItem post={nextPost} direction="next" />
+          </li>
         )}
-      </div>
+      </ul>
     </nav>
   );
 }
