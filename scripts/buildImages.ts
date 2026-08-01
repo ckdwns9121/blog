@@ -2,7 +2,6 @@ import "dotenv/config";
 import { getAllPosts, getPostByPageId } from "../src/features/notion/service/notion-client";
 import { convertPostImages, saveImageMapping, loadImageMapping, type OptimizedImage } from "./convertImages";
 import { collectPostBuildData } from "./postBuildData";
-import { collectPostThumbnails, savePostThumbnails } from "./postThumbnails";
 import { getSearchIndexPath, publishSearchIndex, removeSearchIndex } from "./searchIndex";
 
 /**
@@ -88,10 +87,6 @@ async function main() {
     // 4. 매핑 정보 저장
     console.log("\n" + "━".repeat(60));
     saveImageMapping(allImageMapping);
-
-    // 목록 카드 썸네일용: 포스트별 본문 첫 이미지를 이미 가져온 content에서 추출
-    savePostThumbnails(collectPostThumbnails(postImageData, allImageMapping));
-
     const searchDocuments = await publishSearchIndex(
       postImageData.map(({ post }) => post),
       searchIndexPath,

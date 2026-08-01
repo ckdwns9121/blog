@@ -43,10 +43,8 @@ next-env.d.ts
 # converted images (포스트별 폴더)
 /public/images/*/
 /public/images/image-mapping.json
-/public/images/post-thumbnails.json
 /public/search-index.json
 /src/shared/utils/imageMapping.generated.ts
-/src/shared/utils/postThumbnails.generated.ts
 
 # notion build cache
 /.cache/

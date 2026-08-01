@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { PostThumbnail } from "./PostThumbnail";
 import type { PostMetadata } from "../model/usePostsQuery";
 
 interface PostCardProps {
@@ -20,42 +19,16 @@ export function PostCard({ post, onNavigate }: PostCardProps) {
       <Link
         href={`/posts/${post.slug}`}
         onClick={onNavigate}
-        className="flex items-start gap-4 py-5 sm:gap-5"
+        className="flex flex-col gap-1 py-4 sm:flex-row-reverse sm:items-baseline sm:justify-end sm:gap-6"
         aria-label={post.title}
       >
-        <PostThumbnail
-          slug={post.slug}
-          title={post.title}
-          coverImage={post.coverImage}
-          className="aspect-[4/3] w-24 sm:w-32"
-        />
+        <time dateTime={post.publishedAt.toISOString()} className="text-fg-subtle shrink-0 text-xs tabular-nums">
+          {formatDate(post.publishedAt)}
+        </time>
 
-        <div className="min-w-0 flex-1">
-          <time
-            dateTime={post.publishedAt.toISOString()}
-            className="text-fg-subtle mb-1.5 block text-xs tabular-nums"
-          >
-            {formatDate(post.publishedAt)}
-          </time>
-
-          <h2 className="text-fg group-hover:text-primary-600 dark:group-hover:text-primary-400 mb-1 text-lg leading-snug font-semibold transition-colors">
-            {post.title}
-          </h2>
-
-          {post.excerpt && (
-            <p className="line-clamp-2 hidden text-sm leading-6 text-fg-muted sm:block">{post.excerpt}</p>
-          )}
-
-          {post.tags.length > 0 && (
-            <ul className="mt-2 flex flex-wrap gap-x-2 gap-y-1">
-              {post.tags.slice(0, 3).map((tag) => (
-                <li key={tag.slug} className="text-fg-subtle text-xs">
-                  #{tag.name}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <h2 className="text-fg group-hover:text-primary-600 dark:group-hover:text-primary-400 text-base leading-snug font-medium transition-colors sm:flex-1">
+          {post.title}
+        </h2>
       </Link>
     </article>
   );
