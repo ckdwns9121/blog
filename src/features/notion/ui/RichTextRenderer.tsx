@@ -30,7 +30,9 @@ function RichTextItem({ item }: RichTextItemProps) {
   // 텍스트 스타일 적용
   if (annotations) {
     if (annotations.bold) {
-      text = <strong>{text}</strong>;
+      // 볼드는 본문 색을 그대로 물려받아 검게 나오고 있었다.
+      // 브랜드 컬러를 입혀 강조가 눈에 띄게 한다.
+      text = <strong className="text-primary-700 dark:text-primary-300">{text}</strong>;
     }
     if (annotations.italic) {
       text = <em>{text}</em>;
