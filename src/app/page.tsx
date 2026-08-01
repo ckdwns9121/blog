@@ -4,6 +4,7 @@ import { PostList } from "../entities/post/ui/PostList";
 // Post API 어댑터 초기화
 import "@/app/init-post-api";
 import { BASE_URL, POSTS_PER_PAGE } from "@/shared/constants";
+import { HomeHero } from "@/widgets/home-hero";
 
 // 프로덕션 빌드 시에는 force-static으로 변경 필요
 export const dynamic = "force-static";
@@ -41,9 +42,10 @@ export default async function Home() {
   const sortedPosts = allPosts.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
 
   return (
-    <div className="text-gray-900 dark:text-white">
+    <div className="text-fg">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
-      <h1 className="sr-only">박창준 블로그 글 목록</h1>
+      <HomeHero />
+      <h2 className="sr-only">글 목록</h2>
       <div className="pt-3 pb-8 sm:pt-4">
         {/* 클라이언트 컴포넌트로 전체 포스트 전달 */}
         <PostList posts={sortedPosts} postsPerPage={POSTS_PER_PAGE} />
