@@ -192,7 +192,7 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
         </div>
       )}
 
-      <div className="border-line mb-10 border-t">
+      <div className="mb-10">
         {visiblePosts.map((post) => (
           <PostCard key={post.id} post={post} onNavigate={saveListPosition} />
         ))}
