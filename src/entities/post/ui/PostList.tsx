@@ -35,15 +35,6 @@ function getPostListHistoryState(): PostListHistoryState | null {
   return savedState as PostListHistoryState;
 }
 
-// 태그 버튼 스타일 헬퍼
-const getButtonClassName = (isActive: boolean) => {
-  const baseClasses = "px-5 py-2.5 rounded-full text-sm font-semibold transition-colors cursor-pointer";
-  if (isActive) {
-    return `${baseClasses} bg-primary-600 text-white hover:bg-primary-700`;
-  }
-  return `${baseClasses} bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700`;
-};
-
 export function PostList({ posts, postsPerPage }: PostListProps) {
   const [visibleCount, setVisibleCount] = useState(postsPerPage);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
@@ -123,18 +114,6 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
     window.history.replaceState(window.history.state, "", url);
   }, [selectedTag]);
 
-  // 태그 카운트와 태그 목록을 한 번에 계산 (성능 최적화)
-  const { tagCounts, allTags } = useMemo(() => {
-    const counts = new Map<string, number>();
-    posts.forEach((post) => {
-      post.tags.forEach((tag) => {
-        counts.set(tag.name, (counts.get(tag.name) || 0) + 1);
-      });
-    });
-    const sortedTags = Array.from(counts.keys()).sort();
-    return { tagCounts: counts, allTags: sortedTags };
-  }, [posts]);
-
   // 태그로 필터링된 포스트
   const filteredPosts = useMemo(() => {
     if (!selectedTag) return posts;
@@ -194,25 +173,26 @@ export function PostList({ posts, postsPerPage }: PostListProps) {
 
   return (
     <div className="mx-auto max-w-3xl">
-      {/* 태그 필터 */}
-      <div className="pt-0 pb-5 sm:pb-7">
-        <fieldset className="flex flex-wrap gap-2.5 sm:gap-3">
-          <legend className="sr-only">태그로 글 필터링</legend>
-          <button type="button" aria-pressed={selectedTag === null} onClick={() => handleTagClick(null)} className={getButtonClassName(selectedTag === null)}>
-            전체 ({posts.length})
+      {/*
+        태그 필터 UI는 미니멀 버전에서 노출하지 않는다.
+        다만 ?tag= 딥링크는 계속 동작하도록 필터링 로직 자체는 남겨 둔다.
+      */}
+      {selectedTag && (
+        <div className="border-line flex items-center gap-2 border-b py-4">
+          <span className="text-fg-muted text-sm">
+            <span className="text-fg font-medium">{selectedTag}</span> 태그 글 {filteredPosts.length}개
+          </span>
+          <button
+            type="button"
+            onClick={() => handleTagClick(null)}
+            className="text-fg-subtle hover:text-fg cursor-pointer text-sm underline underline-offset-2 transition-colors"
+          >
+            전체 보기
           </button>
-          {allTags.map((tag) => {
-            const count = tagCounts.get(tag) || 0;
-            return (
-              <button type="button" aria-pressed={selectedTag === tag} key={tag} onClick={() => handleTagClick(tag)} className={getButtonClassName(selectedTag === tag)}>
-                {tag} ({count})
-              </button>
-            );
-          })}
-        </fieldset>
-      </div>
+        </div>
+      )}
 
-      <div className="mb-10 border-t border-gray-200 dark:border-gray-800">
+      <div className="mb-10">
         {visiblePosts.map((post) => (
           <PostCard key={post.id} post={post} onNavigate={saveListPosition} />
         ))}

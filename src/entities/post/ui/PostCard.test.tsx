@@ -10,19 +10,29 @@ const post: PostMetadata = {
   publishedAt: new Date(2026, 6, 18),
   updatedAt: new Date(2026, 6, 18),
   tags: [{ name: "개발", slug: "development", postCount: 1 }],
+  coverImage: "/images/compact-post-card/cover.webp",
 };
 
 describe("PostCard", () => {
-  it("shows only a compact date, title, and summary", () => {
+  it("shows only the date and the title", () => {
     render(<PostCard post={post} />);
 
-    const date = screen.getByText("2026.07.18");
-    const title = screen.getByRole("heading", { name: post.title });
-    const summary = screen.getByText(post.excerpt!);
+    expect(screen.getByText("2026.07.18")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: post.title })).toBeInTheDocument();
+  });
 
-    expect(date.classList.contains("text-xs")).toBe(true);
-    expect(title.classList.contains("text-lg")).toBe(true);
-    expect(summary.classList.contains("text-sm")).toBe(true);
+  it("omits the excerpt, tags, and thumbnail", () => {
+    render(<PostCard post={post} />);
+
+    expect(screen.queryByText(post.excerpt!)).toBeNull();
     expect(screen.queryByText("#개발")).toBeNull();
+    expect(screen.queryByRole("img")).toBeNull();
+  });
+
+  it("links the whole row to the post, named by its title alone", () => {
+    render(<PostCard post={post} />);
+
+    const link = screen.getByRole("link", { name: post.title });
+    expect(link).toHaveAttribute("href", `/posts/${post.slug}`);
   });
 });

@@ -20,11 +20,50 @@
   --color-dark-bg: #070b14; /* 메인 배경 - 매우 어두운 남색 */
   --color-dark-bg-secondary: #0f1419; /* 보조 배경 - 어두운 남색 */
   --color-dark-border: #1a1f2e; /* 테두리 - 진한 남색 */
+
+  /*
+   * Semantic tokens.
+   * 값 자체는 아래 .dark 블록에서 재정의되므로, 컴포넌트는 `dark:` 접두사 없이
+   * bg-surface / text-fg-muted / border-line 처럼 의미만 쓰면 된다.
+   * 다크 모드 배경이 남색 계열인데 중립 gray를 얹으면 탁해 보여서,
+   * 다크 쪽 전경색은 모두 남색 쪽으로 살짝 틀어 둔다.
+   */
+  --color-surface: #ffffff;
+  --color-surface-raised: #f6f7f6;
+  --color-line: #e8eae9;
+  --color-line-strong: #d4d8d5;
+  --color-fg: #16181a;
+  --color-fg-muted: #5b6360;
+  --color-fg-subtle: #8a918e;
+
+  /* 폰트 스택: latin은 Geist, 한글은 Noto Sans KR이 이어받는다. */
+  --font-sans: var(--font-geist-sans), var(--font-noto-sans-kr), -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.dark {
+  --color-surface: #070b14;
+  --color-surface-raised: #0f1419;
+  --color-line: #1a1f2e;
+  --color-line-strong: #2a3142;
+  --color-fg: #e8eaed;
+  --color-fg-muted: #9aa3b2;
+  --color-fg-subtle: #6b7484;
 }
 
 body {
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  /* 한글은 단어 중간에서 줄바꿈되면 가독성이 크게 떨어진다. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 코드에는 한글 줄바꿈 규칙을 적용하지 않는다. */
+pre,
+code {
+  word-break: normal;
 }
 
 :focus-visible {

@@ -45,6 +45,7 @@ import { PostViewCounter } from "@/features/page-views";
 import { PostNavigation } from "@/widgets/post-navigation";
 import { ScrollProgress, BottomNavigation } from "@/shared/ui";
 import { BASE_URL } from "@/shared/constants";
+import { resolvePostImage, toAbsoluteUrl } from "@/shared/lib/postImage";
 import type { Metadata } from "next";
 
 interface PostPageProps {
@@ -81,26 +82,15 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
     // 키워드 생성
     const keywords = [...post.tags.map((tag) => tag.name), "프론트엔드", "개발", "기술블로그", "박창준"];
 
-    // OG Image 우선순위: 1. coverImage, 2. 포스트 내부 첫 번째 이미지, 3. 동적 생성 이미지
-    let ogImageUrl: string | undefined = undefined;
-
-    // 1. 커버 이미지 확인
-    if (post.coverImage) {
-      ogImageUrl = post.coverImage.startsWith("http")
-        ? post.coverImage
-        : `${BASE_URL}${post.coverImage.startsWith("/") ? post.coverImage : `/${post.coverImage}`}`;
-    } else {
-      // 2. 포스트 콘텐츠에서 첫 번째 이미지 찾기
-      const firstImageUrl = getFirstImageFromContent(post.content);
-      if (firstImageUrl) {
-        ogImageUrl = firstImageUrl.startsWith("http")
-          ? firstImageUrl
-          : `${BASE_URL}${firstImageUrl.startsWith("/") ? firstImageUrl : `/${firstImageUrl}`}`;
-      } else {
-        // 3. 이미지가 없으면 동적 생성된 OG 이미지 사용
-        ogImageUrl = `${BASE_URL}/posts/${slug}/opengraph-image`;
-      }
-    }
+    // 우선순위(커버 → 본문 첫 이미지 → 동적 생성)는 resolvePostImage가 관리한다.
+    const ogImageUrl = toAbsoluteUrl(
+      resolvePostImage({
+        coverImage: post.coverImage,
+        contentImage: getFirstImageFromContent(post.content),
+        slug,
+      }).src,
+      BASE_URL,
+    );
 
     return {
       title: `${post.title}`,
@@ -198,28 +188,22 @@ export default async function PostPage({ params }: PostPageProps) {
     const nextPost =
       currentIndex < allPosts.length - 1 ? await getPostBySlugCached(allPosts[currentIndex + 1].slug, false) : undefined;
 
-    // JSON-LD 구조화된 데이터
-    // OG Image와 동일한 로직으로 이미지 선택
-    let jsonLdImage: string | undefined = undefined;
-    if (post.coverImage) {
-      jsonLdImage = post.coverImage.startsWith("http")
-        ? post.coverImage
-        : `${BASE_URL}${post.coverImage.startsWith("/") ? post.coverImage : `/${post.coverImage}`}`;
-    } else {
-      const firstImageUrl = getFirstImageFromContent(post.content);
-      if (firstImageUrl) {
-        jsonLdImage = firstImageUrl.startsWith("http")
-          ? firstImageUrl
-          : `${BASE_URL}${firstImageUrl.startsWith("/") ? firstImageUrl : `/${firstImageUrl}`}`;
-      }
-    }
+    // JSON-LD 구조화된 데이터 — OG Image와 정확히 같은 이미지를 쓴다.
+    const jsonLdImage = toAbsoluteUrl(
+      resolvePostImage({
+        coverImage: post.coverImage,
+        contentImage: getFirstImageFromContent(post.content),
+        slug,
+      }).src,
+      BASE_URL,
+    );
 
     const jsonLd = {
       "@context": "https://schema.org",
       "@type": "BlogPosting",
       headline: post.title,
       description: post.excerpt,
-      ...(jsonLdImage && { image: jsonLdImage }),
+      image: jsonLdImage,
       datePublished: post.publishedAt.toISOString(),
       dateModified: post.updatedAt.toISOString(),
       author: {

@@ -41,7 +41,7 @@ export default async function Home() {
   const sortedPosts = allPosts.sort((a, b) => b.publishedAt.getTime() - a.publishedAt.getTime());
 
   return (
-    <div className="text-gray-900 dark:text-white">
+    <div className="text-fg">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
       <h1 className="sr-only">박창준 블로그 글 목록</h1>
       <div className="pt-3 pb-8 sm:pt-4">
