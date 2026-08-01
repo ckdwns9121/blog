@@ -51,7 +51,7 @@ export function PostThumbnail({ slug, title, coverImage, className }: PostThumbn
   });
 
   return (
-    <div className={`bg-surface-raised relative shrink-0 overflow-hidden rounded-lg ${className ?? ""}`}>
+    <div className={`bg-surface-raised relative shrink-0 overflow-hidden ${className ?? ""}`}>
       {source === "generated" ? (
         <FallbackThumbnail title={title} />
       ) : (
