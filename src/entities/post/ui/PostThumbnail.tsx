@@ -59,7 +59,7 @@ export function PostThumbnail({ slug, title, coverImage, className }: PostThumbn
           src={src}
           alt=""
           fill
-          sizes="(max-width: 640px) 88px, 128px"
+          sizes="(max-width: 640px) 96px, 128px"
           className="object-cover"
           // 변환되지 않은 외부 URL이 남아 있을 수 있어, 원격 이미지는 최적화를 건너뛴다.
           unoptimized={!src.startsWith("/")}

@@ -27,7 +27,7 @@ export function PostCard({ post, onNavigate }: PostCardProps) {
           slug={post.slug}
           title={post.title}
           coverImage={post.coverImage}
-          className="h-[66px] w-[88px] sm:h-24 sm:w-32"
+          className="aspect-[4/3] w-24 sm:w-32"
         />
 
         <div className="min-w-0 flex-1">
