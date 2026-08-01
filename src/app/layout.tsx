@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/shared/providers/ThemeProvider";
 import { Footer } from "@/shared/ui";
@@ -17,6 +17,16 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// 한글 본문용. Geist는 latin subset만 제공하므로 한글은 이 폰트가 담당한다.
+// Google Fonts의 한글 웹폰트는 unicode-range로 잘게 쪼개져 있어,
+// 브라우저가 실제로 쓰인 글자 범위만 내려받는다.
+const notoSansKr = Noto_Sans_KR({
+  variable: "--font-noto-sans-kr",
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -130,7 +140,7 @@ export default async function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col bg-white dark:bg-dark-bg`}
+        className={`${geistSans.variable} ${geistMono.variable} ${notoSansKr.variable} bg-surface antialiased min-h-screen flex flex-col`}
       >
         <a
           href="#main-content"
