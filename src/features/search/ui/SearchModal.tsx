@@ -88,7 +88,8 @@ export function SearchModal({
               />
             </svg>
             <input
-              type="search"
+              type="text"
+              role="searchbox"
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value);
@@ -98,28 +99,13 @@ export function SearchModal({
               aria-label="포스트 검색"
               placeholder="검색어를 입력하세요..."
               className={cn(
-                'w-full pl-10 pr-12 py-3 bg-gray-50 dark:bg-gray-900',
+                'w-full pl-10 pr-10 py-3 bg-gray-50 dark:bg-gray-900',
                 'border border-gray-300 dark:border-gray-700 rounded-lg',
                 'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent',
                 'text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400',
               )}
               autoFocus
             />
-            {query && (
-              <button
-                type="button"
-                onClick={() => {
-                  setQuery('');
-                  setSelectedIndex(-1);
-                }}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                aria-label="검색어 지우기"
-              >
-                <svg aria-hidden="true" className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
           </div>
         </div>
 
@@ -237,7 +223,7 @@ function SearchResultItem({
     <button
       type="button"
       className={cn(
-        'px-4 py-3 cursor-pointer transition-colors',
+        'w-full px-4 py-3 cursor-pointer transition-colors',
         'border-b border-gray-100 dark:border-gray-800 last:border-b-0',
         isSelected
           ? 'bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800'

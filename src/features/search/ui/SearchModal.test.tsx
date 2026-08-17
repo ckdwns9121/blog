@@ -91,4 +91,24 @@ describe('SearchModal', () => {
     expect(screen.queryByText('검색을 준비하는 중...')).not.toBeInTheDocument();
     expect(screen.queryByText('검색 데이터를 불러오는 중...')).not.toBeInTheDocument();
   });
+
+  it('renders every search result as a full-width row', () => {
+    renderModal({ status: 'success', posts: [post] });
+
+    const result = screen.getByRole('button', { name: /검색 포스트/ });
+    expect(result).toHaveClass('w-full');
+  });
+
+  it('does not render a second clear icon inside the search field', () => {
+    renderModal({ status: 'success', posts: [post] });
+    fireEvent.change(screen.getByRole('searchbox', { name: '포스트 검색' }), {
+      target: { value: '검색' },
+    });
+
+    expect(screen.queryByRole('button', { name: '검색어 지우기' })).not.toBeInTheDocument();
+    expect(screen.getByRole('searchbox', { name: '포스트 검색' })).toHaveAttribute(
+      'type',
+      'text',
+    );
+  });
 });
