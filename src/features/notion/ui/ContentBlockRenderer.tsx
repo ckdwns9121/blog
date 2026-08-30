@@ -5,7 +5,7 @@ import type { ContentBlockWithChildren } from "@/shared/types/content";
 import type { TableCell } from "@/shared/types/content";
 import { RichTextRenderer } from "@/features/notion/ui/RichTextRenderer";
 import { CodeBlock } from "@/features/notion/ui/blocks/CodeBlock";
-import { ImageBlock } from "@/features/notion/ui/blocks/ImageBlock";
+import { ImageWithModal } from "@/features/notion/ui/blocks/ImageWithModal";
 import { VideoBlock } from "@/features/notion/ui/blocks/VideoBlock";
 
 interface ContentBlockRendererProps {
@@ -60,7 +60,7 @@ export function ContentBlockRenderer({
       );
 
     case "image":
-      return <ImageBlock url={block.url || ""} caption={block.caption} />;
+      return <ImageWithModal url={block.url || ""} caption={block.caption} />;
 
     case "video":
       return <VideoBlock url={block.url || ""} caption={block.caption} />;

@@ -36,6 +36,7 @@ import "@/app/init-post-api";
 
 // entities.
 import PostContent from "@/entities/post/ui/PostContent";
+import TableOfContents from "@/entities/post/ui/TableOfContents";
 import { Comment } from "@/entities/comment";
 
 // features
@@ -178,6 +179,8 @@ export default async function PostPage({ params }: PostPageProps) {
   try {
     const post = await getPostBySlugCached(slug);
     const toc = generateTableOfContents(post.content);
+    const wordCount = countWordsInBlocks(post.content);
+    const readingMinutes = Math.max(1, Math.ceil(wordCount / 500));
 
     // 이전/다음 포스트 조회 (콘텐츠 블록 불필요)
     const allPosts = await getAllPostsCached();
@@ -222,7 +225,7 @@ export default async function PostPage({ params }: PostPageProps) {
       },
       keywords: [...post.tags.map((tag) => tag.name)].join(", "),
       articleSection: post.tags.map((tag) => tag.name).join(", "),
-      wordCount: countWordsInBlocks(post.content),
+      wordCount,
     };
 
     const breadcrumbJsonLd = {
@@ -250,8 +253,8 @@ export default async function PostPage({ params }: PostPageProps) {
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
         <ScrollProgress />
         <div className="py-10">
-          <div className="mx-auto w-full">
-            <article className="mx-auto max-w-3xl">
+          <div className="relative mx-auto w-full max-w-3xl">
+            <article className="min-w-0 max-w-3xl">
               <header className="mx-auto mb-6 max-w-3xl">
                 <h1 className="mb-6 text-3xl leading-tight font-bold tracking-tight text-gray-950 md:text-4xl dark:text-gray-50">
                   {post.title}
@@ -259,6 +262,8 @@ export default async function PostPage({ params }: PostPageProps) {
 
                 <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600 dark:text-gray-400">
                   <time dateTime={post.publishedAt.toISOString()}>{post.publishedAt.toLocaleDateString("ko-KR")}</time>
+                  <span>·</span>
+                  <span>{readingMinutes}분 읽기</span>
                   <span>·</span>
                   <PostViewCounter slug={slug} />
                   {post.tags.length > 0 && (
@@ -299,6 +304,14 @@ export default async function PostPage({ params }: PostPageProps) {
                 </div>
               </footer>
             </article>
+
+            {toc.length > 0 && (
+              <aside className="absolute inset-y-0 left-full ml-6 hidden w-56 xl:block" aria-label="글 목차">
+                <div className="sticky top-24 border-l border-gray-200 pl-5 dark:border-gray-800">
+                  <TableOfContents items={toc} className="px-0 py-1" />
+                </div>
+              </aside>
+            )}
           </div>
         </div>
 
