@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { TableOfContentsItem } from "../model";
+import { cn } from "@/shared/lib/cn";
 
 interface TableOfContentsProps {
   items: TableOfContentsItem[];
@@ -77,7 +78,7 @@ export default function TableOfContents({ items, className = "" }: TableOfConten
   }
 
   return (
-    <div className={`p-4 ${className}`}>
+    <div className={cn("p-4", className)}>
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">목차</h3>
       <nav
         ref={navRef}
