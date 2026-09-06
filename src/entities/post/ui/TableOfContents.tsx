@@ -20,10 +20,17 @@ const indentClasses: Record<number, string> = {
 } as const;
 
 export default function TableOfContents({ items, className = "" }: TableOfContentsProps) {
+  // 본문에서 현재 읽고 있는 heading의 id입니다.
+  // 이 값으로 목차 링크의 활성 스타일과 aria-current를 함께 갱신합니다.
   const [activeId, setActiveId] = useState<string>("");
+
+  // 본문 스크롤과 별개로 목차 자체가 긴 경우가 있어,
+  // 활성 링크를 목차 스크롤 영역 안으로 이동시키는 데 사용합니다.
   const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
+    // Observer 하나로 글 본문의 모든 heading을 관찰합니다.
+    // heading이 감지 영역에 들어오면 해당 id를 현재 목차 항목으로 선택합니다.
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -33,25 +40,37 @@ export default function TableOfContents({ items, className = "" }: TableOfConten
         });
       },
       {
+        // 상단 고정 UI 아래 80px부터 화면 높이의 상단 약 20%까지만
+        // 감지 영역으로 사용합니다. heading이 이 좁은 띠를 통과할 때
+        // 목차가 바뀌므로 화면 아래의 다음 heading이 너무 일찍 활성화되지 않습니다.
         rootMargin: "-80px 0px -80% 0px",
+
+        // 감지 영역과 조금이라도 교차하면 callback을 실행합니다.
         threshold: 0,
       }
     );
 
+    // 목차를 만들 때 사용한 id와 본문 heading의 id가 같기 때문에,
+    // 별도의 DOM 목록을 만들지 않고 실제 heading을 찾아 관찰할 수 있습니다.
     const headingElements = items.map((item) => document.getElementById(item.id)).filter((el) => el !== null);
 
+    // 여러 heading을 같은 Observer 인스턴스에 등록합니다.
     headingElements.forEach((el) => {
       if (el) observer.observe(el);
     });
 
     return () => {
+      // 목차가 사라지거나 items가 바뀌면 등록했던 heading만 관찰 해제합니다.
+      // unobserve는 대상 하나씩 해제하며, disconnect를 사용하면 이 Observer가
+      // 관찰하는 모든 대상이 한 번에 해제됩니다.
       headingElements.forEach((el) => {
         if (el) observer.unobserve(el);
       });
     };
   }, [items]);
 
-  // 활성화된 항목이 목차 영역 내에서만 보이도록 스크롤
+  // 본문의 현재 heading이 바뀌어도 해당 목차 링크가 목차 영역 밖에
+  // 숨어 있을 수 있습니다. 이 경우에만 목차 컨테이너를 별도로 스크롤합니다.
   useEffect(() => {
     if (activeId && navRef.current) {
       const activeLink = navRef.current.querySelector(`a[href="#${activeId}"]`);
@@ -60,8 +79,10 @@ export default function TableOfContents({ items, className = "" }: TableOfConten
         const linkRect = activeLink.getBoundingClientRect();
         const containerRect = container.getBoundingClientRect();
 
-        // 링크가 컨테이너 밖에 있는 경우에만 스크롤
+        // 링크가 이미 보인다면 스크롤하지 않아 사용자의 목차 탐색을 방해하지 않습니다.
         if (linkRect.top < containerRect.top || linkRect.bottom > containerRect.bottom) {
+          // 활성 링크의 중심과 목차 컨테이너의 중심 차이를 계산해
+          // 활성 항목이 목차 가운데에 오도록 이동합니다.
           const scrollOffset = linkRect.top - containerRect.top - container.clientHeight / 2 + linkRect.height / 2;
 
           container.scrollTo({
@@ -100,6 +121,8 @@ const TocItem = ({ item, index, activeId }: { item: TableOfContentsItem; index: 
   // Tailwind의 정적 클래스 사용 (동적 클래스는 작동하지 않음)
 
   const indentClass = indentClasses[item.level] || "";
+
+  // Observer가 선택한 heading id와 링크 대상 id를 비교합니다.
   const isActive = activeId === item.id;
 
   return (
