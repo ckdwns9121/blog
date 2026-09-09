@@ -1,6 +1,7 @@
 import type { PostApi } from "@/entities/post/api";
 import type { BlogPost } from "@/entities/post/model";
 import { getAllPosts as notionGetAllPosts, getPostBySlug as notionGetPostBySlug } from "../service/notion-client";
+import { getPostThumbnail } from "../service/post-thumbnail";
 import type { NotionPost } from "../types";
 
 /**
@@ -18,7 +19,7 @@ export class NotionPostAdapter implements PostApi {
   > {
     const notionPosts = await notionGetAllPosts();
 
-    return notionPosts.map((post: NotionPost) => ({
+    return Promise.all(notionPosts.map(async (post: NotionPost) => ({
       id: post.id,
       title: post.title,
       slug: post.slug,
@@ -30,8 +31,8 @@ export class NotionPostAdapter implements PostApi {
         slug: tag.slug,
         postCount: 0, // NotionPost에는 postCount가 없으므로 0으로 설정
       })),
-      coverImage: post.coverImage,
-    }));
+      coverImage: await getPostThumbnail(post),
+    })));
   }
 
   /**
