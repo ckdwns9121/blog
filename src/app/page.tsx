@@ -43,11 +43,7 @@ export default async function Home() {
   return (
     <div className="text-fg">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
-      <section className="mx-auto max-w-3xl border-b border-line pt-12 pb-8 sm:pt-16 sm:pb-10">
-        <p className="mb-3 text-sm font-medium text-primary-600 dark:text-primary-400">박창준 · 프론트엔드 개발자</p>
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">개발하며 배운 것들</h1>
-        <p className="mt-4 text-sm leading-7 text-fg-muted sm:text-base">코드의 동작 원리부터 제품을 만들며 마주친 문제와 선택까지.</p>
-      </section>
+      <h1 className="sr-only">박창준 블로그 글 목록</h1>
       <div className="pb-12">
         {/* 클라이언트 컴포넌트로 전체 포스트 전달 */}
         <PostList posts={sortedPosts} postsPerPage={POSTS_PER_PAGE} />
