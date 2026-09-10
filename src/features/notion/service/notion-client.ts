@@ -25,7 +25,30 @@ let lastNotionRequestAt = 0;
 let notionRequestQueue: Promise<void> = Promise.resolve();
 
 const NOTION_MIN_REQUEST_INTERVAL_MS = 400;
-const NOTION_MAX_RETRY_COUNT = 5;
+const NOTION_MAX_RETRY_COUNT = 8;
+const NOTION_MAX_RETRY_DELAY_MS = 30_000;
+
+// 같은 프로세스에서 전체 글 목록 조회를 중복하지 않기 위한 메모 (빌드 워커가 글마다 재조회하던 문제)
+const ALL_POSTS_MEMO_TTL_MS = 60_000;
+let allPostsMemo: { promise: Promise<NotionPost[]>; createdAt: number } | null = null;
+
+export class InvalidPostSlugError extends Error {
+  constructor(slug: string) {
+    super(`Invalid slug format: "${slug}". Expected format: slug-{32-char-page-id}`);
+    this.name = "InvalidPostSlugError";
+  }
+}
+
+/**
+ * "해당 글이 없다"고 확정할 수 있는 에러인지 판별한다.
+ * 페이지 라우트는 이 경우에만 404를 내야 한다. 속도 제한·네트워크 오류 같은
+ * 일시적 실패를 404로 바꾸면 정상 글이 404 페이지로 굳어 버린다.
+ */
+export function isNotionNotFoundError(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) return false;
+  const notionError = error as { code?: string; name?: string };
+  return notionError.code === "object_not_found" || notionError.name === "InvalidPostSlugError";
+}
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -64,8 +87,33 @@ function isRateLimitError(error: unknown): boolean {
   return notionError.status === 429 || notionError.code === "rate_limited";
 }
 
-function getRetryDelayMs(attempt: number): number {
-  return Math.min(1000 * 2 ** attempt, 10000);
+/**
+ * Notion이 Retry-After 헤더를 보내면 그 값을 따르고, 없으면 지수 백오프를 쓴다.
+ */
+function getRetryDelayMs(attempt: number, error: unknown): number {
+  const retryAfterSeconds = readRetryAfterSeconds(error);
+  if (retryAfterSeconds !== null) {
+    return Math.min(retryAfterSeconds * 1000, NOTION_MAX_RETRY_DELAY_MS);
+  }
+  return Math.min(1000 * 2 ** attempt, NOTION_MAX_RETRY_DELAY_MS);
+}
+
+function readRetryAfterSeconds(error: unknown): number | null {
+  if (typeof error !== "object" || error === null) return null;
+  const headers = (error as { headers?: unknown }).headers;
+  if (!headers) return null;
+
+  let raw: string | null | undefined;
+  if (typeof (headers as Headers).get === "function") {
+    raw = (headers as Headers).get("retry-after");
+  } else if (typeof headers === "object") {
+    const record = headers as Record<string, string | undefined>;
+    raw = record["retry-after"] ?? record["Retry-After"];
+  }
+
+  if (!raw) return null;
+  const seconds = Number(raw);
+  return Number.isFinite(seconds) && seconds >= 0 ? seconds : null;
 }
 
 async function runNotionRequest<T>(request: () => Promise<T>): Promise<T> {
@@ -79,7 +127,7 @@ async function runNotionRequest<T>(request: () => Promise<T>): Promise<T> {
         throw error;
       }
 
-      const retryDelayMs = getRetryDelayMs(attempt);
+      const retryDelayMs = getRetryDelayMs(attempt, error);
       console.warn(`Notion API rate limited. Retrying in ${retryDelayMs}ms...`);
       await sleep(retryDelayMs);
     }
@@ -105,8 +153,27 @@ function getClient(): Client {
   return client!;
 }
 
-// 포스트 메타데이터 조회
+/**
+ * 포스트 메타데이터 조회.
+ * 같은 프로세스 안에서는 60초 동안 결과를 공유한다. 빌드 워커가 글 페이지마다
+ * 전체 목록을 다시 받아오면 요청 수가 글 수의 제곱으로 늘어 속도 제한에 걸리기 때문이다.
+ */
 export async function getAllPosts(): Promise<NotionPost[]> {
+  const now = Date.now();
+  if (allPostsMemo && now - allPostsMemo.createdAt < ALL_POSTS_MEMO_TTL_MS) {
+    return allPostsMemo.promise;
+  }
+
+  const promise = fetchAllPosts();
+  allPostsMemo = { promise, createdAt: now };
+  promise.catch(() => {
+    if (allPostsMemo?.promise === promise) allPostsMemo = null;
+  });
+
+  return promise;
+}
+
+async function fetchAllPosts(): Promise<NotionPost[]> {
   const results: NotionPost[] = [];
   let cursor: string | undefined;
   let hasMore = true;
@@ -204,9 +271,9 @@ export async function getPostBySlug(slug: string, fetchContent = true): Promise<
   const parts = decodedSlug.split("-");
   const pageIdWithoutHyphens = parts[parts.length - 1];
 
-  // pageId가 32자리인지 확인
-  if (pageIdWithoutHyphens.length !== 32) {
-    throw new Error(`Invalid slug format: "${slug}". Expected format: slug-{32-char-page-id}`);
+  // pageId가 32자리 hex인지 확인
+  if (!/^[0-9a-f]{32}$/i.test(pageIdWithoutHyphens)) {
+    throw new InvalidPostSlugError(slug);
   }
 
   // pageId에 하이픈 추가 (UUID 형식으로 복원: 8-4-4-4-12)

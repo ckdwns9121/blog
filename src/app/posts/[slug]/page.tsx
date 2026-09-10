@@ -3,6 +3,7 @@ import { cache } from "react";
 
 // Post API (entities 레이어)
 import { getAllPosts, getPostBySlug } from "@/entities/post/api";
+import { isNotionNotFoundError } from "@/features/notion";
 
 // Notion feature (유틸리티만 사용)
 import { generateTableOfContents } from "@/features/notion";
@@ -320,7 +321,15 @@ export default async function PostPage({ params }: PostPageProps) {
       </>
     );
   } catch (error) {
-    console.error("Error fetching post:", error);
-    notFound();
+    // Notion이 "페이지 없음"이라고 답한 경우만 404로 처리한다.
+    // 속도 제한이나 네트워크 오류 같은 일시적 실패를 404로 바꾸면
+    // 빌드/ISR이 정상 글을 404 페이지로 굳혀 버리므로 그대로 던져서
+    // 빌드는 실패시키고, 런타임은 마지막으로 성공한 페이지를 유지하게 한다.
+    if (isNotionNotFoundError(error)) {
+      notFound();
+    }
+
+    console.error(`Error fetching post "${slug}":`, error);
+    throw error;
   }
 }
