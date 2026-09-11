@@ -9,8 +9,11 @@ import type { NotionBlock } from "../types";
  * - 로컬/CI 빌드 시간을 극적으로 단축
  *
  * 캐시 구조:
- *   .cache/notion/
+ *   .next/cache/notion/
  *   └── pages/{pageId}.json   { lastEditedTime, blocks }
+ *
+ * Vercel은 .next/cache를 빌드 간에 보존하므로 수정되지 않은 글은 다음 빌드에서
+ * 블록 API 호출 없이 캐시에서 읽힌다.
  *
  * 주의: Edge Runtime(opengraph-image 등)에서는 fs/path를 사용할 수 없으므로
  * Node 런타임에서만 동작하고, Edge에서는 자동으로 no-op가 됩니다.
@@ -40,7 +43,9 @@ const CACHE_DISABLED = typeof process !== "undefined" && process.env.NOTION_CACH
 function getCachePaths() {
   const mods = getNodeModules();
   if (!mods) return null;
-  const root = mods.path.join(process.cwd(), ".cache", "notion");
+  // .next/cache 아래에 두면 Vercel이 빌드 간에 보존해 주므로, 수정되지 않은 글의
+  // 블록 조회가 다음 빌드에서 생략된다. (process.cwd()/.cache는 매 빌드마다 사라짐)
+  const root = mods.path.join(process.cwd(), ".next", "cache", "notion");
   return {
     fs: mods.fs,
     path: mods.path,

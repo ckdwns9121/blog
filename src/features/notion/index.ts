@@ -6,7 +6,15 @@
  */
 
 // API Client Functions
-export { getAllPosts, getPostBySlug, getPostByPageId, getPostBlocks, getPostsByTag } from "./service/notion-client";
+export {
+  getAllPosts,
+  getPostBySlug,
+  getPostByPageId,
+  getPostBlocks,
+  getPostsByTag,
+  isNotionNotFoundError,
+  InvalidPostSlugError,
+} from "./service/notion-client";
 
 // Types
 export type {
