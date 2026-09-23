@@ -59,7 +59,7 @@ const getPostBySlugCached = cache(async (slug: string, fetchContent = true) => g
 
 // 프로덕션 빌드 시에는 force-static으로 변경 필요
 export const dynamic = "force-static";
-export const revalidate = 3600; // 1시간마다 재검증
+export const revalidate = false; // 시간 기반 재검증을 쓰지 않는다. 갱신은 /api/revalidate 가 트리거한다
 
 // SSG를 위한 정적 경로 생성
 export async function generateStaticParams() {

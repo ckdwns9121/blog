@@ -1,0 +1,46 @@
+name: Revalidate
+
+# 글 페이지는 시간 기반 재검증을 쓰지 않는다. 대신 이 워크플로가 주기적으로
+# 재검증 엔드포인트를 호출해 "바뀐 글이 있는지"를 한 번만 확인하게 한다.
+#
+# 글을 발행하고 바로 반영하고 싶으면 Actions 탭에서 Run workflow 를 누르면 된다.
+# 크론은 그걸 깜빡했을 때를 위한 안전망이다.
+
+on:
+  schedule:
+    # 30분 간격이라 타임존과 무관하다. GitHub 예약 실행은 몇 분 늦을 수 있다.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: "특정 글만 갱신할 때의 slug (비우면 최근 수정된 글 전체)"
+        required: false
+        type: string
+
+jobs:
+  revalidate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger revalidation
+        env:
+          # 저장소 변수로 덮어쓸 수 있게 두되, 없으면 운영 도메인을 쓴다.
+          SITE_URL: ${{ vars.SITE_URL || 'https://www.changjun.dev' }}
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+          SLUG: ${{ inputs.slug }}
+        run: |
+          if [ -z "$REVALIDATE_SECRET" ]; then
+            echo "REVALIDATE_SECRET 이 설정되지 않았습니다. 저장소 Secrets 에 추가하세요."
+            exit 1
+          fi
+
+          if [ -n "$SLUG" ]; then
+            payload=$(printf '{"slug":"%s"}' "$SLUG")
+          else
+            payload='{}'
+          fi
+
+          # -f 로 에러 응답에서 실패시켜야 재검증이 조용히 멈추는 일이 없다.
+          curl -fsS -X POST "$SITE_URL/api/revalidate" \
+            -H "Authorization: Bearer $REVALIDATE_SECRET" \
+            -H "Content-Type: application/json" \
+            -d "$payload"

@@ -1,6 +1,10 @@
 import { Feed } from "feed";
 import { getAllPosts } from "@/entities/post/api";
 import "@/app/init-post-api";
+// 피드는 방문자 요청마다 Notion을 부르지 않도록 정적으로 생성한다.
+// 갱신은 /api/revalidate 가 이 경로를 무효화할 때 일어난다.
+export const dynamic = "force-static";
+
 
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://changjun.dev";
