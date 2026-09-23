@@ -13,6 +13,12 @@ export interface NotionPost {
   }>;
   excerpt?: string;
   coverImage?: string;
+  /**
+   * Notion의 type 속성. 글과 노트를 한 데이터베이스에서 구분한다.
+   * 값이 비어 있으면 "post"로 본다. 속성을 깜빡했다고 글이 목록에서
+   * 사라지면 안 되므로, note는 명시적으로 지정했을 때만 note다.
+   */
+  contentType: "post" | "note";
 }
 
 // Notion API 응답 타입들

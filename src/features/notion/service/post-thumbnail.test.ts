@@ -10,7 +10,7 @@ jest.mock("../../../shared/utils/thumbnailMap", () => ({ lookupPrecomputedThumbn
 
 const post: NotionPost = {
   id: "post", title: "Article", slug: "article", published: true,
-  createdAt: "2026-09-09", publishedAt: "2026-09-09", updatedAt: "2026-09-09", tags: [],
+  createdAt: "2026-09-09", publishedAt: "2026-09-09", updatedAt: "2026-09-09", tags: [], contentType: "post",
 };
 const image = (url: string): NotionBlock => ({ id: url, type: "image", content: { type: "image", url } });
 

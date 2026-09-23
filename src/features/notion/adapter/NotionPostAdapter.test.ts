@@ -20,6 +20,7 @@ describe("NotionPostAdapter", () => {
       tags: [{ name: "cover", slug: "cover" }],
       excerpt: "Cover excerpt",
       coverImage: "https://example.com/cover.png",
+      contentType: "post",
     };
     jest.mocked(notionGetAllPosts).mockResolvedValue([notionPost]);
 

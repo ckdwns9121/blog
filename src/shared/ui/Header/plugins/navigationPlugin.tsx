@@ -7,6 +7,7 @@ import { HeaderPlugin } from '../types';
 function NavigationLinks() {
   const pathname = usePathname();
   const isPostActive = pathname === "/" || pathname.startsWith("/posts");
+  const isNoteActive = pathname.startsWith("/notes");
   const isAboutActive = pathname === "/about";
 
   const getLinkClassName = (isActive: boolean) =>
@@ -18,6 +19,9 @@ function NavigationLinks() {
     <nav aria-label="주요 네비게이션" className="hidden md:flex items-center gap-5">
       <Link href="/" aria-current={isPostActive ? "page" : undefined} className={getLinkClassName(isPostActive)}>
         Post
+      </Link>
+      <Link href="/notes" aria-current={isNoteActive ? "page" : undefined} className={getLinkClassName(isNoteActive)}>
+        Note
       </Link>
       <Link href="/about" aria-current={isAboutActive ? "page" : undefined} className={getLinkClassName(isAboutActive)}>
         About

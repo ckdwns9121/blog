@@ -10,6 +10,7 @@ import type {
   NotionTitleProperty,
   NotionRichTextProperty,
   NotionMultiSelectProperty,
+  NotionSelectProperty,
   NotionUrlProperty,
   NotionFileProperty,
   NotionDateProperty,
@@ -242,6 +243,7 @@ async function fetchAllPosts(): Promise<NotionPost[]> {
               })),
               excerpt: getPlainText(properties.excerpt),
               coverImage,
+              contentType: getContentType(properties.type),
             } as NotionPost);
             continue;
           }
@@ -414,6 +416,16 @@ function getPlainText(property: NotionPropertyValue | undefined): string {
   }
 
   return "";
+}
+
+/**
+ * Notion select 값을 읽는다. 비어 있거나 모르는 값이면 "post"로 본다.
+ * 분류를 지정하지 않았다는 이유로 글이 어느 목록에도 안 나오는 상황을 막기 위해서다.
+ */
+function getContentType(property: NotionPropertyValue | undefined): "post" | "note" {
+  if (property?.type !== "select") return "post";
+  const name = (property as NotionSelectProperty).select?.name;
+  return name === "note" ? "note" : "post";
 }
 
 function getMultiSelect(property: NotionPropertyValue | undefined): string[] {
