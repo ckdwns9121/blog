@@ -1,10 +1,12 @@
 import { getPostThumbnail } from "./post-thumbnail";
 import { getPostBlocks } from "./notion-client";
 import { readPageBlocksCache, writePageBlocksCache } from "./notion-cache";
+import { lookupPrecomputedThumbnail } from "../../../shared/utils/thumbnailMap";
 import type { NotionBlock, NotionPost } from "../types";
 
 jest.mock("./notion-client", () => ({ getPostBlocks: jest.fn() }));
 jest.mock("./notion-cache", () => ({ readPageBlocksCache: jest.fn(), writePageBlocksCache: jest.fn() }));
+jest.mock("../../../shared/utils/thumbnailMap", () => ({ lookupPrecomputedThumbnail: jest.fn() }));
 
 const post: NotionPost = {
   id: "post", title: "Article", slug: "article", published: true,
@@ -15,6 +17,22 @@ const image = (url: string): NotionBlock => ({ id: url, type: "image", content: 
 beforeEach(() => {
   jest.clearAllMocks();
   jest.mocked(readPageBlocksCache).mockReturnValue(null);
+  // 기본은 "빌드 맵에 없는 글" 상태로 두고, 필요한 테스트에서만 값을 준다.
+  jest.mocked(lookupPrecomputedThumbnail).mockReturnValue(undefined);
+});
+
+it("uses the thumbnail resolved at build time without loading the article body", async () => {
+  jest.mocked(lookupPrecomputedThumbnail).mockReturnValue("/precomputed.webp");
+  expect(await getPostThumbnail(post)).toBe("/precomputed.webp");
+  expect(getPostBlocks).not.toHaveBeenCalled();
+  expect(readPageBlocksCache).not.toHaveBeenCalled();
+});
+
+it("trusts the build map when it recorded that an article has no image", async () => {
+  // 빈 문자열은 "확인했고 이미지가 없었다"는 뜻이므로 본문을 다시 받지 않는다.
+  jest.mocked(lookupPrecomputedThumbnail).mockReturnValue("");
+  expect(await getPostThumbnail(post)).toBeUndefined();
+  expect(getPostBlocks).not.toHaveBeenCalled();
 });
 
 it("uses the cover without loading the article body", async () => {

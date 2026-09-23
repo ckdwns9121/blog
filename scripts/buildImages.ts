@@ -3,6 +3,7 @@ import { getAllPosts, getPostByPageId } from "../src/features/notion/service/not
 import { convertPostImages, saveImageMapping, loadImageMapping, type OptimizedImage } from "./convertImages";
 import { collectPostBuildData } from "./postBuildData";
 import { getSearchIndexPath, publishSearchIndex, removeSearchIndex } from "./searchIndex";
+import { buildThumbnailMap, saveThumbnailMap } from "./thumbnailMap";
 
 /**
  * 증분 빌드: 변경된 이미지만 변환
@@ -87,6 +88,15 @@ async function main() {
     // 4. 매핑 정보 저장
     console.log("\n" + "━".repeat(60));
     saveImageMapping(allImageMapping);
+
+    // 목록 화면이 런타임에 본문 블록을 다시 받아오지 않도록 대표 이미지를 미리 확정한다
+    const thumbnailMap = buildThumbnailMap(
+      postImageData.map(({ post, imageUrls }) => ({ id: post.id, imageUrls })),
+    );
+    const thumbnailMapPath = saveThumbnailMap(thumbnailMap);
+    const thumbnailCount = Object.values(thumbnailMap).filter((url) => url.length > 0).length;
+    console.log(`\n🖼️  대표 이미지 맵 저장: ${thumbnailMapPath}`);
+    console.log(`   - 이미지 있는 글: ${thumbnailCount}개 / 전체 ${Object.keys(thumbnailMap).length}개`);
     const searchDocuments = await publishSearchIndex(
       postImageData.map(({ post }) => post),
       searchIndexPath,
