@@ -94,6 +94,20 @@ Required environment variables:
 
 - `NOTION_API_KEY` - Your Notion integration token
 - `REDIS_URL` - For caching (optional but recommended)
+- `REVALIDATE_SECRET` - Bearer token for `POST /api/revalidate`. Without it the endpoint rejects every request.
+
+### Content Freshness
+
+Pages are statically generated and **do not revalidate on a timer**. Time-based ISR made every visitor a potential Notion caller, which hit the rate limit and baked failures into the cache.
+
+Refresh instead goes through `POST /api/revalidate` (`Authorization: Bearer $REVALIDATE_SECRET`):
+
+- `{}` - revalidates list pages plus any post edited within the lookback window (default 24h, override with `lookbackHours`)
+- `{"slug": "..."}` - revalidates one post plus list pages, without calling Notion at all
+
+`revalidatePath` only marks paths stale; the actual render happens on the next visit. If the post list cannot be loaded the endpoint changes nothing and returns 502, so a broken Notion never invalidates a working page.
+
+`.github/workflows/revalidate.yaml` calls the endpoint every 30 minutes and can be run manually from the Actions tab (with an optional slug) right after publishing.
 
 ### Content Structure in Notion
 

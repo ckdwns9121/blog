@@ -7,7 +7,7 @@ import { BASE_URL, POSTS_PER_PAGE } from "@/shared/constants";
 
 // 프로덕션 빌드 시에는 force-static으로 변경 필요
 export const dynamic = "force-static";
-export const revalidate = 3600; // 1시간마다 재검증
+export const revalidate = false; // 시간 기반 재검증을 쓰지 않는다. 갱신은 /api/revalidate 가 트리거한다
 
 const websiteJsonLd = {
   "@context": "https://schema.org",
