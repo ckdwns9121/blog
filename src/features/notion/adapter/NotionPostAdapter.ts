@@ -19,7 +19,11 @@ export class NotionPostAdapter implements PostApi {
   > {
     const notionPosts = await notionGetAllPosts();
 
-    return Promise.all(notionPosts.map(async (post: NotionPost) => ({
+    // 노트는 별도 탭에서만 보여준다. type을 지정하지 않은 글은 post로 취급하므로
+    // 속성을 깜빡했다고 글이 목록에서 사라지지는 않는다.
+    const articles = notionPosts.filter((post: NotionPost) => post.contentType !== "note");
+
+    return Promise.all(articles.map(async (post: NotionPost) => ({
       id: post.id,
       title: post.title,
       slug: post.slug,

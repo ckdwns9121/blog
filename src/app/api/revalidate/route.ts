@@ -26,7 +26,7 @@ import "@/app/init-post-api";
 export const dynamic = "force-dynamic";
 
 /** 글이 추가·수정되면 함께 바뀌는 목록성 경로 */
-const LIST_PATHS = ["/", "/tags", "/feed.xml", "/atom.xml", "/feed.json", "/sitemap.xml"] as const;
+const LIST_PATHS = ["/", "/notes", "/tags", "/feed.xml", "/atom.xml", "/feed.json", "/sitemap.xml"] as const;
 
 const DEFAULT_LOOKBACK_HOURS = 24;
 const MAX_LOOKBACK_HOURS = 24 * 30;
