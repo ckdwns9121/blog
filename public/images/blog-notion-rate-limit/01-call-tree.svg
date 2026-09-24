@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420" role="img" aria-labelledby="title desc">
+  <title id="title">글 한 장을 열 때 Notion 호출이 불어나는 흐름</title><desc id="desc">글 한 장을 렌더링하면 이전·다음 글 때문에 목록을 조회하고, 그 목록이 썸네일 때문에 글 36개의 본문을 전부 조회해서 Notion 호출이 100회를 넘긴다</desc>
+  <rect width="900" height="420" fill="#fff"/>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#99c0ff"/>
+    </marker>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#e5484d"/>
+    </marker>
+  </defs>
+  <style>text{font-family:Pretendard,Apple SD Gothic Neo,sans-serif}.s{font-size:19px;fill:#37445c}.r{font-size:19px;font-weight:800;fill:#c62a2f}.tot{font-size:23px;font-weight:800;fill:#c62a2f}</style>
+
+  <rect x="150" y="50" width="600" height="64" rx="14" fill="#fff" stroke="#99c0ff" stroke-width="2"/>
+  <text x="450" y="89" text-anchor="middle" class="s">글 한 장 렌더링</text>
+
+  <path d="M450 114 V 146" fill="none" stroke="#99c0ff" stroke-width="2" marker-end="url(#a)"/>
+
+  <rect x="150" y="150" width="600" height="64" rx="14" fill="#fff" stroke="#99c0ff" stroke-width="2"/>
+  <text x="450" y="189" text-anchor="middle" class="s">이전 글·다음 글 때문에 목록 조회</text>
+
+  <path d="M450 214 V 246" fill="none" stroke="#e5484d" stroke-width="2" marker-end="url(#ar)"/>
+
+  <rect x="150" y="250" width="600" height="64" rx="14" fill="#ffeff0" stroke="#e5484d" stroke-width="2"/>
+  <text x="450" y="289" text-anchor="middle" class="r">썸네일 때문에 글 36개 본문을 전부 조회</text>
+
+  <text x="450" y="370" text-anchor="middle" class="tot">Notion 호출 100회 이상</text>
+</svg>
