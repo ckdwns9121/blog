@@ -108,7 +108,7 @@ export default function About() {
                   <br />
                   어떤 문제라도 함께 고민한다면 해결할 수 있다고 믿고 있어요.
                   <br />
-                  요즘은 팀 생산성과 자동화에 관심이 많습니다.
+                  요즘은 AI를 활용한 팀 생산성에도 관심이 많습니다.
                 </p>
                 <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                   현재는{" "}
