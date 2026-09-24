@@ -17,6 +17,12 @@ importers:
       '@radix-ui/react-dialog':
         specifier: ^1.1.15
         version: 1.1.15(@types/react-dom@19.2.1(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      '@rive-app/canvas':
+        specifier: 2.42.2
+        version: 2.42.2
+      '@rive-app/react-canvas':
+        specifier: 4.34.3
+        version: 4.34.3(react@19.1.0)
       '@tanstack/react-query':
         specifier: ^5.62.0
         version: 5.90.11(react@19.1.0)
@@ -1136,6 +1142,14 @@ packages:
     engines: {node: '>= 18'}
     peerDependencies:
       '@redis/client': ^5.10.0
+
+  '@rive-app/canvas@2.42.2':
+    resolution: {integrity: sha512-NlSngaccl6L0XambU8XuK+0MT9cIbQBQrBod+/tWPLIjL/G82cXs7c6hj6wdrfk9YSVj8ZNuXcUEKoEo6YABYg==}
+
+  '@rive-app/react-canvas@4.34.3':
+    resolution: {integrity: sha512-imxE0KGOQ45dZq84rBzWu/IFsabra71rwcpJi/dVw7o/WzOwhL+ueQ44545ODS2zUzw3E5e30ogQMf5VLXzi8w==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
@@ -5109,6 +5123,13 @@ snapshots:
   '@redis/time-series@5.10.0(@redis/client@5.10.0)':
     dependencies:
       '@redis/client': 5.10.0
+
+  '@rive-app/canvas@2.42.2': {}
+
+  '@rive-app/react-canvas@4.34.3(react@19.1.0)':
+    dependencies:
+      '@rive-app/canvas': 2.42.2
+      react: 19.1.0
 
   '@rtsao/scc@1.1.0': {}
 
