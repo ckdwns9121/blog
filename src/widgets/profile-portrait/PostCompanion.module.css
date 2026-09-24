@@ -1,0 +1,19 @@
+.companion {
+  width: 144px;
+  height: 144px;
+  margin: 8px 0 32px auto;
+}
+
+/* Keep the entire hit area outside the centered 896px content column. */
+@media (min-width: 1280px) {
+  .companion {
+    position: fixed;
+    right: 8px;
+    bottom: 160px;
+    z-index: 20;
+    width: min(256px, calc((100vw - 896px) / 2 - 16px));
+    height: auto;
+    aspect-ratio: 1;
+    margin: 0;
+  }
+}

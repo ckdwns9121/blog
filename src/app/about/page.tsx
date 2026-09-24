@@ -1,4 +1,5 @@
 import Image from "next/image";
+import PostCompanion from "@/widgets/profile-portrait/PostCompanion";
 import Link from "next/link";
 import { CodeBracketIcon } from "@heroicons/react/24/outline";
 import type { Metadata } from "next";
@@ -127,6 +128,7 @@ export default function About() {
           </div>
         </div>
       </div>
+      <PostCompanion />
     </>
   );
 }

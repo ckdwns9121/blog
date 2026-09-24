@@ -18,6 +18,8 @@
     "@heroicons/react": "^2.2.0",
     "@notionhq/client": "^5.1.0",
     "@radix-ui/react-dialog": "^1.1.15",
+    "@rive-app/canvas": "2.42.2",
+    "@rive-app/react-canvas": "4.34.3",
     "@tanstack/react-query": "^5.62.0",
     "@types/react-syntax-highlighter": "^15.5.13",
     "clsx": "^2.1.1",
