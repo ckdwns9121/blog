@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="440" viewBox="0 0 900 440" role="img" aria-labelledby="title desc">
-  <title id="title">기존 구조</title><desc id="desc">빌드할 때 Notion에서 글을 전부 받아 정적 페이지를 만들고, 1시간이 지난 뒤 들어온 방문자가 재검증을 유발해 다시 Notion을 호출하는 구조</desc>
-  <rect width="900" height="440" fill="#fff"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="470" viewBox="0 0 900 470" role="img" aria-labelledby="title desc">
+  <title id="title">기존 구조</title><desc id="desc">배포할 때 한 번 Notion에서 글을 받아 페이지를 만들어두지만, 방문자가 올 때마다 1시간이 지났는지 확인해서 지났으면 그 자리에서 Notion을 100번 넘게 호출한다</desc>
+  <rect width="900" height="470" fill="#fff"/>
   <defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0 0 L10 5 L0 10 z" fill="#99c0ff"/>
@@ -8,39 +8,48 @@
     <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0 0 L10 5 L0 10 z" fill="#e5484d"/>
     </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#16a34a"/>
+    </marker>
   </defs>
-  <style>text{font-family:Pretendard,Apple SD Gothic Neo,sans-serif}.s{font-size:18px;fill:#37445c}.m{font-size:14px;fill:#8b9cb5}.r{font-size:18px;font-weight:800;fill:#c62a2f}.rm{font-size:14px;fill:#c0686b}</style>
+  <style>text{font-family:Pretendard,Apple SD Gothic Neo,sans-serif}.zone{font-size:15px;font-weight:800;fill:#0061ff}.zoner{font-size:15px;font-weight:800;fill:#c62a2f}.s{font-size:17px;fill:#37445c}.m{font-size:13px;fill:#8b9cb5}.r{font-size:17px;font-weight:800;fill:#c62a2f}.rm{font-size:13px;fill:#c0686b}.g{font-size:17px;fill:#15803d}</style>
 
-  <!-- 빌드 흐름 -->
-  <rect x="30" y="48" width="190" height="64" rx="14" fill="#ccdfff" stroke="#0061ff" stroke-width="2"/>
-  <text x="125" y="87" text-anchor="middle" class="s">Notion</text>
+  <!-- ① 배포할 때 -->
+  <rect x="30" y="52" width="840" height="120" rx="16" fill="#fafcff" stroke="#c9dcf5" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="52" y="44" class="zone">① 배포할 때 — 딱 한 번</text>
 
-  <path d="M220 80 H 302" fill="none" stroke="#99c0ff" stroke-width="2" marker-end="url(#a)"/>
-  <text x="261" y="68" text-anchor="middle" class="m">전부 조회</text>
+  <rect x="62" y="88" width="180" height="56" rx="12" fill="#ccdfff" stroke="#0061ff" stroke-width="2"/>
+  <text x="152" y="122" text-anchor="middle" class="s">Notion</text>
+  <path d="M242 116 H 314" fill="none" stroke="#99c0ff" stroke-width="2" marker-end="url(#a)"/>
 
-  <rect x="310" y="48" width="190" height="64" rx="14" fill="#fff" stroke="#99c0ff" stroke-width="2"/>
-  <text x="405" y="87" text-anchor="middle" class="s">next build</text>
+  <rect x="322" y="88" width="180" height="56" rx="12" fill="#fff" stroke="#99c0ff" stroke-width="2"/>
+  <text x="412" y="122" text-anchor="middle" class="s">빌드</text>
+  <path d="M502 116 H 574" fill="none" stroke="#99c0ff" stroke-width="2" marker-end="url(#a)"/>
 
-  <path d="M500 80 H 582" fill="none" stroke="#99c0ff" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="582" y="88" width="256" height="56" rx="12" fill="#fff" stroke="#99c0ff" stroke-width="2"/>
+  <text x="710" y="122" text-anchor="middle" class="s">페이지 36개 만들어둠</text>
 
-  <rect x="590" y="48" width="270" height="64" rx="14" fill="#fff" stroke="#99c0ff" stroke-width="2"/>
-  <text x="725" y="80" text-anchor="middle" class="s">정적 HTML</text>
-  <text x="725" y="100" text-anchor="middle" class="m">36개, 1시간 유통기한</text>
+  <!-- ② 방문자가 올 때 -->
+  <rect x="30" y="252" width="840" height="188" rx="16" fill="#fffafa" stroke="#f3c4c6" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="52" y="244" class="zoner">② 방문자가 올 때마다</text>
 
-  <!-- 방문자 -->
-  <rect x="610" y="196" width="230" height="56" rx="28" fill="#fafcff" stroke="#99c0ff" stroke-width="2"/>
-  <text x="725" y="231" text-anchor="middle" class="s">방문자</text>
-  <path d="M725 196 V 120" fill="none" stroke="#99c0ff" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="62" y="316" width="150" height="56" rx="28" fill="#fff" stroke="#99c0ff" stroke-width="2"/>
+  <text x="137" y="350" text-anchor="middle" class="s">방문자</text>
 
-  <!-- 재검증 -->
-  <path d="M725 252 V 316" fill="none" stroke="#e5484d" stroke-width="2" marker-end="url(#ar)"/>
-  <text x="741" y="290" class="rm">1시간 지났으면</text>
+  <path d="M212 344 H 284" fill="none" stroke="#99c0ff" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="292" y="316" width="180" height="56" rx="12" fill="#fff" stroke="#99c0ff" stroke-width="2"/>
+  <text x="382" y="342" text-anchor="middle" class="s">페이지 확인</text>
+  <text x="382" y="360" text-anchor="middle" class="m">1시간 지났나?</text>
 
-  <rect x="590" y="320" width="270" height="72" rx="14" fill="#ffeff0" stroke="#e5484d" stroke-width="2"/>
-  <text x="725" y="352" text-anchor="middle" class="r">재검증</text>
-  <text x="725" y="375" text-anchor="middle" class="rm">Notion 호출 100회 이상</text>
+  <!-- 갈림길 -->
+  <path d="M472 344 H 512 V 302 H 554" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#ag)"/>
+  <path d="M472 344 H 512 V 392 H 554" fill="none" stroke="#e5484d" stroke-width="2" marker-end="url(#ar)"/>
 
-  <!-- 재검증이 다시 Notion으로 -->
-  <path d="M590 356 H 125 V 124" fill="none" stroke="#e5484d" stroke-width="2" marker-end="url(#ar)"/>
-  <text x="147" y="344" class="rm">다시 조회</text>
+  <rect x="562" y="276" width="276" height="52" rx="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="700" y="300" text-anchor="middle" class="g">아니오 → 그대로 보여줌</text>
+  <text x="700" y="318" text-anchor="middle" class="m">Notion 호출 0회</text>
+
+  <rect x="562" y="366" width="276" height="56" rx="12" fill="#ffeff0" stroke="#e5484d" stroke-width="2"/>
+  <text x="700" y="390" text-anchor="middle" class="r">예 → 그 자리에서 다시 그림</text>
+  <text x="700" y="410" text-anchor="middle" class="rm">Notion 호출 100회 이상</text>
 </svg>

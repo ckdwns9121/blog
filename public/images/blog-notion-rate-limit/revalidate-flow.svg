@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="470" viewBox="0 0 900 470" role="img" aria-labelledby="title desc">
-  <title id="title">고친 뒤 구조</title><desc id="desc">30분마다 크론이 Notion에 한 번만 물어보고 바뀐 경로에 표시만 남긴다. 실제 렌더링은 다음 방문자가 왔을 때 한 번 일어나고, 표시가 없으면 Notion을 호출하지 않는다</desc>
+  <title id="title">고친 뒤 구조</title><desc id="desc">30분마다 크론이 Notion에 한 번만 물어보고 바뀐 페이지에 표시만 남긴다. 방문자가 올 때 표시가 없으면 Notion을 호출하지 않고, 표시가 있을 때만 한 번 다시 그린다</desc>
   <rect width="900" height="470" fill="#fff"/>
   <defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
@@ -9,39 +9,48 @@
       <path d="M0 0 L10 5 L0 10 z" fill="#16a34a"/>
     </marker>
   </defs>
-  <style>text{font-family:Pretendard,Apple SD Gothic Neo,sans-serif}.s{font-size:18px;fill:#37445c}.m{font-size:14px;fill:#8b9cb5}.g{font-size:17px;font-weight:800;fill:#15803d}.gm{font-size:14px;fill:#4d9163}</style>
+  <style>text{font-family:Pretendard,Apple SD Gothic Neo,sans-serif}.zone{font-size:15px;font-weight:800;fill:#0061ff}.s{font-size:17px;fill:#37445c}.m{font-size:13px;fill:#8b9cb5}.g{font-size:17px;fill:#15803d}.gm{font-size:13px;fill:#4d9163}</style>
 
-  <!-- 크론 -->
-  <rect x="40" y="40" width="230" height="64" rx="14" fill="#ccdfff" stroke="#0061ff" stroke-width="2"/>
-  <text x="155" y="79" text-anchor="middle" class="s">30분 크론</text>
+  <!-- ① 크론 -->
+  <rect x="30" y="52" width="840" height="120" rx="16" fill="#fafcff" stroke="#c9dcf5" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="52" y="44" class="zone">① 30분마다 — 크론이 대신</text>
 
-  <path d="M270 72 H 332" fill="none" stroke="#99c0ff" stroke-width="2" marker-end="url(#a)"/>
-  <text x="301" y="60" text-anchor="middle" class="m">1회</text>
+  <rect x="62" y="88" width="150" height="56" rx="12" fill="#ccdfff" stroke="#0061ff" stroke-width="2"/>
+  <text x="137" y="122" text-anchor="middle" class="s">크론</text>
 
-  <rect x="340" y="40" width="230" height="64" rx="14" fill="#fff" stroke="#99c0ff" stroke-width="2"/>
-  <text x="455" y="72" text-anchor="middle" class="s">Notion</text>
-  <text x="455" y="92" text-anchor="middle" class="m">바뀐 글 있어?</text>
+  <path d="M212 116 H 284" fill="none" stroke="#99c0ff" stroke-width="2" marker-end="url(#a)"/>
+  <text x="248" y="106" text-anchor="middle" class="m">1회</text>
 
-  <!-- 표시만 남김 -->
-  <path d="M455 104 V 162" fill="none" stroke="#99c0ff" stroke-width="2" marker-end="url(#a)"/>
-  <rect x="290" y="166" width="330" height="70" rx="14" fill="#fafcff" stroke="#99c0ff" stroke-width="2" stroke-dasharray="6 5"/>
-  <text x="455" y="197" text-anchor="middle" class="s">바뀐 경로에 표시만 남김</text>
-  <text x="455" y="219" text-anchor="middle" class="m">이 단계에서는 렌더링하지 않는다</text>
+  <rect x="292" y="88" width="200" height="56" rx="12" fill="#fff" stroke="#99c0ff" stroke-width="2"/>
+  <text x="392" y="114" text-anchor="middle" class="s">Notion</text>
+  <text x="392" y="132" text-anchor="middle" class="m">바뀐 글 있어?</text>
 
-  <!-- 방문자 -->
-  <path d="M455 236 V 286" fill="none" stroke="#99c0ff" stroke-width="2" marker-end="url(#a)"/>
-  <rect x="340" y="290" width="230" height="56" rx="28" fill="#fff" stroke="#99c0ff" stroke-width="2"/>
-  <text x="455" y="325" text-anchor="middle" class="s">방문자 도착</text>
+  <path d="M492 116 H 564" fill="none" stroke="#99c0ff" stroke-width="2" marker-end="url(#a)"/>
 
-  <!-- 분기 -->
-  <path d="M455 346 V 372 H 200 V 396" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#ag)"/>
-  <path d="M455 346 V 372 H 710 V 396" fill="none" stroke="#99c0ff" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="572" y="84" width="266" height="64" rx="12" fill="#fff" stroke="#99c0ff" stroke-width="2"/>
+  <text x="705" y="110" text-anchor="middle" class="s">바뀐 페이지에 표시만</text>
+  <text x="705" y="132" text-anchor="middle" class="m">여기서는 아직 안 그린다</text>
 
-  <rect x="60" y="400" width="280" height="56" rx="14" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
-  <text x="200" y="424" text-anchor="middle" class="g">표시 없음 → 그대로 응답</text>
-  <text x="200" y="444" text-anchor="middle" class="gm">Notion 호출 0회</text>
+  <!-- ② 방문자 -->
+  <rect x="30" y="252" width="840" height="188" rx="16" fill="#fafcff" stroke="#c9dcf5" stroke-width="2" stroke-dasharray="7 5"/>
+  <text x="52" y="244" class="zone">② 방문자가 올 때</text>
 
-  <rect x="570" y="400" width="280" height="56" rx="14" fill="#fff" stroke="#99c0ff" stroke-width="2"/>
-  <text x="710" y="424" text-anchor="middle" class="s">표시 있음 → 한 번 렌더</text>
-  <text x="710" y="444" text-anchor="middle" class="m">Notion 호출 3회</text>
+  <rect x="62" y="316" width="150" height="56" rx="28" fill="#fff" stroke="#99c0ff" stroke-width="2"/>
+  <text x="137" y="350" text-anchor="middle" class="s">방문자</text>
+
+  <path d="M212 344 H 284" fill="none" stroke="#99c0ff" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="292" y="316" width="180" height="56" rx="12" fill="#fff" stroke="#99c0ff" stroke-width="2"/>
+  <text x="382" y="342" text-anchor="middle" class="s">페이지 확인</text>
+  <text x="382" y="360" text-anchor="middle" class="m">표시 있나?</text>
+
+  <path d="M472 344 H 512 V 302 H 554" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#ag)"/>
+  <path d="M472 344 H 512 V 392 H 554" fill="none" stroke="#99c0ff" stroke-width="2" marker-end="url(#a)"/>
+
+  <rect x="562" y="276" width="276" height="52" rx="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="700" y="300" text-anchor="middle" class="g">아니오 → 그대로 보여줌</text>
+  <text x="700" y="318" text-anchor="middle" class="gm">Notion 호출 0회</text>
+
+  <rect x="562" y="366" width="276" height="56" rx="12" fill="#fff" stroke="#99c0ff" stroke-width="2"/>
+  <text x="700" y="390" text-anchor="middle" class="s">예 → 그때 한 번 그림</text>
+  <text x="700" y="410" text-anchor="middle" class="m">Notion 호출 3회</text>
 </svg>
