@@ -87,13 +87,27 @@ describe("recent-change revalidation", () => {
     expect(revalidatedPaths()).toContain("/posts/stale");
   });
 
-  it("refreshes the list pages even when no article changed", async () => {
-    jest.mocked(getAllPosts).mockResolvedValue([] as Awaited<ReturnType<typeof getAllPosts>>);
+  it("refreshes the list pages together with a changed article", async () => {
+    jest.mocked(getAllPosts).mockResolvedValue([
+      post("fresh", new Date(Date.now() - 60 * 60 * 1000)),
+    ] as Awaited<ReturnType<typeof getAllPosts>>);
 
     await POST(request({}));
 
     expect(revalidatedPaths()).toContain("/");
     expect(revalidatedPaths()).toContain("/sitemap.xml");
+  });
+
+  it("invalidates nothing when no article changed", async () => {
+    // 목록까지 지우면 크론이 돌 때마다 다음 방문자가 목록 렌더를 기다린다.
+    jest.mocked(getAllPosts).mockResolvedValue([
+      post("stale", new Date(Date.now() - 72 * 60 * 60 * 1000)),
+    ] as Awaited<ReturnType<typeof getAllPosts>>);
+
+    const response = await POST(request({}));
+
+    expect(await response.json()).toMatchObject({ revalidated: [], posts: 0 });
+    expect(revalidatePath).not.toHaveBeenCalled();
   });
 
   it("invalidates nothing when the post list cannot be loaded", async () => {

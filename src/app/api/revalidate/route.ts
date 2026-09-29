@@ -15,7 +15,7 @@ import "@/app/init-post-api";
  * 호출 방법:
  *   POST /api/revalidate
  *   Authorization: Bearer <REVALIDATE_SECRET>
- *   {}                      최근 수정된 글 + 목록 페이지
+ *   {}                      최근 수정된 글 + 목록 페이지. 수정된 글이 없으면 아무것도 지우지 않는다
  *   { "slug": "..." }       특정 글 + 목록 페이지
  *   { "lookbackHours": 48 } 되돌아볼 기간 조정 (기본 24시간)
  *
@@ -106,7 +106,9 @@ export async function POST(request: Request) {
     .filter((post) => post.updatedAt.getTime() >= threshold)
     .map((post) => `/posts/${post.slug}`);
 
-  const revalidated = revalidateAll([...changedPaths, ...LIST_PATHS]);
+  // 바뀐 글이 없으면 목록도 지우지 않는다. 지우면 다음 방문자가 다시 렌더를 기다린다.
+  // 글 삭제·비공개 전환은 updatedAt으로 잡히지 않으니 slug를 지정해 수동으로 실행한다.
+  const revalidated = changedPaths.length > 0 ? revalidateAll([...changedPaths, ...LIST_PATHS]) : [];
 
   return NextResponse.json({
     revalidated,
