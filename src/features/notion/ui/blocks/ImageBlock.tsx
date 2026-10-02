@@ -22,6 +22,8 @@ export function ImageBlock({ url, caption, enableModal = false, onImageClick }: 
   // GIF는 Next.js 이미지 최적화를 비활성화하여 애니메이션 보존
   const isGif = optimizedImage.src.endsWith(".gif");
   const isInteractive = enableModal && onImageClick;
+  // GIF(화면 녹화)는 본문 너비를 꽉 채우고, 나머지는 원본 크기 유지
+  const fillWidth = isGif || !optimizedImage.width;
 
   const image = (
     <Image
@@ -30,8 +32,8 @@ export function ImageBlock({ url, caption, enableModal = false, onImageClick }: 
       width={optimizedImage.width || 0}
       height={optimizedImage.height || 0}
       sizes="(max-width: 640px) calc(100vw - 2rem), 960px"
-      className={`block h-auto max-w-full mx-auto ${optimizedImage.width ? "" : "w-full"}`}
-      style={optimizedImage.width ? { width: optimizedImage.width } : undefined}
+      className={`block h-auto max-w-full mx-auto ${fillWidth ? "w-full" : ""}`}
+      style={fillWidth ? undefined : { width: optimizedImage.width }}
       unoptimized={isGif}
     />
   );
@@ -42,7 +44,7 @@ export function ImageBlock({ url, caption, enableModal = false, onImageClick }: 
         <button
           type="button"
           onClick={onImageClick}
-          className="block max-w-full mx-auto cursor-pointer hover:opacity-90 transition-opacity"
+          className={`block max-w-full mx-auto cursor-pointer ${fillWidth ? "w-full" : ""} hover:opacity-90 transition-opacity`}
           aria-label={caption ? `${caption} 크게 보기` : "이미지 크게 보기"}
         >
           {image}

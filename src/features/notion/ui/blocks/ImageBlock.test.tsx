@@ -45,4 +45,12 @@ describe("ImageBlock", () => {
     expect(image).not.toHaveClass("w-full");
     expect(image).toHaveStyle({ width: "640px" });
   });
+
+  it("fills the content width for GIFs even when dimensions are available", () => {
+    mockGetOptimizedImageData.mockReturnValue({ src: "/images/post/1.gif", width: 640, height: 360 });
+
+    render(<ImageBlock url="https://example.com/notion-image.gif" caption="gif image" />);
+
+    expect(screen.getByRole("img", { name: "gif image" })).toHaveClass("w-full");
+  });
 });
