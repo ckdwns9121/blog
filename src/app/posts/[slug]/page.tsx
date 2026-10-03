@@ -55,7 +55,7 @@ interface PostPageProps {
 }
 
 const getAllPostsCached = cache(async () => getAllPosts());
-const getPostBySlugCached = cache(async (slug: string, fetchContent = true) => getPostBySlug(slug, fetchContent));
+const getPostBySlugCached = cache(async (slug: string) => getPostBySlug(slug));
 
 // 프로덕션 빌드 시에는 force-static으로 변경 필요
 export const dynamic = "force-static";
@@ -183,14 +183,13 @@ export default async function PostPage({ params }: PostPageProps) {
     const wordCount = countWordsInBlocks(post.content);
     const readingMinutes = Math.max(1, Math.ceil(wordCount / 500));
 
-    // 이전/다음 포스트 조회 (콘텐츠 블록 불필요)
+    // 이전/다음 글은 제목과 slug만 쓰므로 목록 메타데이터로 충분하다.
+    // 글마다 Notion에 두 번 더 묻던 호출(약 0.8초)을 없애 재생성 시간을 줄인다.
     const allPosts = await getAllPostsCached();
     const currentIndex = allPosts.findIndex((p) => p.slug === slug);
 
-    const previousPost = currentIndex > 0 ? await getPostBySlugCached(allPosts[currentIndex - 1].slug, false) : undefined;
-
-    const nextPost =
-      currentIndex < allPosts.length - 1 ? await getPostBySlugCached(allPosts[currentIndex + 1].slug, false) : undefined;
+    const previousPost = currentIndex > 0 ? allPosts[currentIndex - 1] : undefined;
+    const nextPost = currentIndex >= 0 && currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : undefined;
 
     // JSON-LD 구조화된 데이터 — OG Image와 정확히 같은 이미지를 쓴다.
     const jsonLdImage = toAbsoluteUrl(
