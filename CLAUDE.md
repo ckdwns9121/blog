@@ -102,12 +102,13 @@ Pages are statically generated and **do not revalidate on a timer**. Time-based 
 
 Refresh instead goes through `POST /api/revalidate` (`Authorization: Bearer $REVALIDATE_SECRET`):
 
-- `{}` - revalidates list pages plus any post edited within the lookback window (default 24h, override with `lookbackHours`)
-- `{"slug": "..."}` - revalidates one post plus list pages, without calling Notion at all
+- `{}` - revalidates any post or note edited within the lookback window (default 24h, override with `lookbackHours`) plus the matching list pages. Change detection uses `getAllPosts` from `features/notion`, which keeps notes; the `entities/post` variant filters notes out and must not be used here.
+- `{"slug": "..."}` - revalidates one post plus the post list pages, without calling Notion at all
+- `{"note": "..."}` - revalidates one note (`/notes/<slug>`) plus `/notes`
 
 `revalidatePath` only marks paths stale; the actual render happens on the next visit. If the post list cannot be loaded the endpoint changes nothing and returns 502, so a broken Notion never invalidates a working page.
 
-The endpoint keeps a per-post ledger in Redis (`revalidate:post:<slug>` = last revalidated `updatedAt`) so one edit is invalidated once, not on every cron run inside the lookback window. If Redis is unreachable it falls back to invalidating every recent post. The home page is always invalidated with `revalidatePath("/", "page")`, never `revalidatePath("/")`: on Vercel the bare form was observed to wipe every post page as well (`x-vercel-cache: REVALIDATED`, 2-4s first visits).
+The endpoint keeps a per-page ledger in Redis (`revalidate:page:<notion page id>` = last revalidated `updatedAt`) so one edit is invalidated once, not on every cron run inside the lookback window. If Redis is unreachable it falls back to invalidating every recent post. The home page is always invalidated with `revalidatePath("/", "page")`, never `revalidatePath("/")`: on Vercel the bare form was observed to wipe every post page as well (`x-vercel-cache: REVALIDATED`, 2-4s first visits).
 
 `.github/workflows/revalidate.yaml` calls the endpoint every 30 minutes (GitHub often runs it hours late) and can be run manually from the Actions tab (with an optional slug) right after publishing. After invalidating, the workflow requests each returned path once, then every post URL from the sitemap, so the workflow rather than a visitor pays the regeneration cost.
 

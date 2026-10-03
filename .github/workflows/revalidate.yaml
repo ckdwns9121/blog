@@ -18,7 +18,11 @@ on:
   workflow_dispatch:
     inputs:
       slug:
-        description: "특정 글만 갱신할 때의 slug (비우면 최근 수정된 글 전체)"
+        description: "특정 글만 갱신할 때의 slug (비우면 최근 수정된 글·노트 전체)"
+        required: false
+        type: string
+      note:
+        description: "특정 노트만 갱신할 때의 주소 slug (/notes/ 뒤 부분)"
         required: false
         type: string
 
@@ -33,6 +37,7 @@ jobs:
         env:
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
           SLUG: ${{ inputs.slug }}
+          NOTE: ${{ inputs.note }}
         run: |
           if [ -z "$REVALIDATE_SECRET" ]; then
             echo "REVALIDATE_SECRET 이 설정되지 않았습니다. 저장소 Secrets 에 추가하세요."
@@ -41,6 +46,8 @@ jobs:
 
           if [ -n "$SLUG" ]; then
             payload=$(printf '{"slug":"%s"}' "$SLUG")
+          elif [ -n "$NOTE" ]; then
+            payload=$(printf '{"note":"%s"}' "$NOTE")
           else
             payload='{}'
           fi
