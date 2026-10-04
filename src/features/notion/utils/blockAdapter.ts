@@ -1,6 +1,6 @@
 import type { NotionBlock } from "../types";
 import type { ContentBlockWithChildren, RichTextItem, TableRow } from "@/shared/types/content";
-import { extractText, extractLanguage, extractImageData, extractRichTextArray, extractTableData } from "./blockParser";
+import { extractText, extractLanguage, extractImageData, extractRichTextArray, extractTableData, extractCodeCaption } from "./blockParser";
 
 /**
  * NotionBlock을 공통 ContentBlock으로 변환하는 어댑터
@@ -58,6 +58,7 @@ export function adaptNotionBlockToContentBlock(block: NotionBlock): ContentBlock
         type: "code",
         code: fallbackText,
         language: language || "text",
+        caption: extractCodeCaption(content),
       };
       break;
     }
