@@ -38,13 +38,24 @@ export default function PostContent({
     const headingId = getHeadingId(block);
 
     const isSelfContained = (SELF_CONTAINED_BLOCK_TYPES as readonly string[]).includes(block.type);
+    const hasChildren = Boolean(block.children && block.children.length > 0);
+
+    // 목록 항목의 하위 블록은 <li> 안에 중첩 목록으로 들어가야 한다. <ul> 바로 아래에
+    // <div> 를 두면 보조기기가 목록 구조를 읽지 못한다 (axe: list, listitem).
+    if (block.type === "list_item") {
+      return (
+        <ContentBlockRenderer key={block.id || index} block={block} headingId={headingId}>
+          {hasChildren ? renderGroupedBlocks(groupBlocks(block.children!)) : null}
+        </ContentBlockRenderer>
+      );
+    }
 
     return (
       <Fragment key={block.id || index}>
         <ContentBlockRenderer block={block} headingId={headingId} />
-        {!isSelfContained && block.children && block.children.length > 0 && (
+        {!isSelfContained && hasChildren && (
           <div className="ml-2 pl-2">
-            {block.children.map((child, childIndex) =>
+            {block.children!.map((child, childIndex) =>
               renderBlockWithChildren(child, childIndex),
             )}
           </div>

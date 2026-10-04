@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import type { SearchPostsState } from '@/features/search/api/searchPosts';
@@ -24,6 +24,7 @@ export function SearchModal({
   onRetry,
   contentId,
 }: SearchModalProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const router = useRouter();
@@ -63,6 +64,13 @@ export function SearchModal({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
+        // 대화상자가 열릴 때 초점을 검색 입력으로 옮긴다. autoFocus 속성은 페이지 로드 시점에
+        // 초점을 가로채는 문제 때문에 금지(jsx-a11y/no-autofocus)이고, 대화상자 열림에 맞춰
+        // 초점을 옮기는 것은 WAI-ARIA 대화상자 패턴이 요구하는 동작이다.
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          inputRef.current?.focus();
+        }}
         id={contentId}
         className="w-full max-w-2xl h-[600px] md:h-[700px] max-h-[80vh] overflow-hidden flex flex-col p-0"
       >
@@ -98,13 +106,13 @@ export function SearchModal({
               onKeyDown={handleKeyDown}
               aria-label="포스트 검색"
               placeholder="검색어를 입력하세요..."
+              ref={inputRef}
               className={cn(
                 'w-full pl-10 pr-10 py-3 bg-gray-50 dark:bg-gray-900',
                 'border border-gray-300 dark:border-gray-700 rounded-lg',
                 'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent',
                 'text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400',
               )}
-              autoFocus
             />
           </div>
         </div>

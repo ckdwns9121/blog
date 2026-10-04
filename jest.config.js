@@ -11,7 +11,8 @@ const createJestConfig = nextJest({
 const customJestConfig = {
   setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
   testEnvironment: "jest-environment-jsdom",
-  testPathIgnorePatterns: ["<rootDir>/.next/", "<rootDir>/node_modules/"],
+  // e2e/ 는 Playwright 가 돌린다. jest 가 *.spec.ts 를 주워 가지 않게 뺀다.
+  testPathIgnorePatterns: ["<rootDir>/.next/", "<rootDir>/node_modules/", "<rootDir>/e2e/"],
   moduleDirectories: ["node_modules", "<rootDir>/"],
   // jest.mock()은 next/jest가 tsconfig paths를 적용하기 전에 경로를 풀기 때문에
   // "@/..." 별칭을 직접 매핑해준다. 이게 없으면 모듈 모킹이 해석에 실패한다.

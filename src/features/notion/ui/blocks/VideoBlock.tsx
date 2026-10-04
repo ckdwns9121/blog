@@ -88,6 +88,9 @@ export function VideoBlock({ url, caption }: VideoBlockProps) {
   // 일반 비디오 파일 (.mp4, .webm, .ogg 등)
   return (
     <figure className="my-8">
+      {/* Notion 에 올린 영상 파일에는 자막 트랙이 없다. 만들 수 없는 <track> 을 빈 값으로 넣어
+          규칙을 속이는 대신, 캡션을 figcaption 으로 두고 규칙은 여기서만 끈다. */}
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
       <video src={url} controls className="w-full h-auto rounded-lg shadow-lg">
         Your browser does not support the video tag.
       </video>

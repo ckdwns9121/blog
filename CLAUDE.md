@@ -158,6 +158,16 @@ When adding header plugins:
 2. Register the plugin in `src/app/ClientLayout.tsx`
 3. The `HeaderSection` component automatically sorts and renders plugins by position
 
+## Accessibility
+
+Accessibility is enforced, not advised:
+
+- `eslint-plugin-jsx-a11y` runs with the **strict** preset and every rule at **error** level (`eslint.config.mjs`). `pnpm lint` fails on violations. Disable a rule only on the offending line, with a comment saying why (see `VideoBlock.tsx`).
+- Component tests use `jest-axe` through `src/test/a11y.tsx` (`expectNoA11yViolations`). Every user-facing component gets a `*.a11y.test.tsx` next to it. The helper turns off layout-dependent rules (color contrast, page landmarks) because jsdom has no layout; those are covered by the e2e scan.
+- `e2e/a11y.spec.ts` runs axe-core (WCAG 2.1 A/AA + best practices) against a deployed site, on desktop and mobile, light and dark. `.github/workflows/a11y.yaml` runs it after every successful Vercel deployment (preview and production) and can be run manually with a URL. Locally: `A11Y_BASE_URL=https://... pnpm test:a11y`.
+- Color tokens in `globals.css` must keep at least 4.5:1 against both `--color-surface` and `--color-surface-raised` in light and dark mode. `--color-fg-subtle` is the one that tends to drift.
+- Nested Notion list items render inside their parent `<li>` (never a `<div>` directly inside `<ul>`), code block `<pre>` elements are focusable, and links that open a new tab carry an `sr-only` "(새 탭에서 열림)" suffix.
+
 ## Important Implementation Details
 
 ### Image Optimization Pipeline

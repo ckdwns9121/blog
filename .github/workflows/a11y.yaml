@@ -1,0 +1,54 @@
+name: Accessibility
+
+# Vercel 이 배포를 끝낼 때마다 그 주소를 axe-core 로 검사한다.
+# PR 의 미리보기 배포도 검사하므로, 접근성 위반이 있는 코드는 머지 전에 드러난다.
+# 로컬 서버를 띄우지 않는 이유: 글 페이지는 Notion 데이터와 빌드가 있어야 나온다.
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "검사할 주소 (비우면 운영 사이트)"
+        required: false
+        type: string
+
+jobs:
+  axe:
+    # deployment_status 는 pending/failure 로도 들어오므로 성공한 배포만 검사한다.
+    if: github.event_name == 'workflow_dispatch' || github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      A11Y_BASE_URL: ${{ inputs.url || github.event.deployment_status.environment_url || 'https://www.changjun.dev' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # PR 미리보기 배포면 그 커밋의 테스트로 검사한다.
+          ref: ${{ github.event.deployment.sha || github.sha }}
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run axe against ${{ env.A11Y_BASE_URL }}
+        run: pnpm test:a11y
+
+      - name: Upload report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
