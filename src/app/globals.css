@@ -34,7 +34,8 @@
   --color-line-strong: #d4d8d5;
   --color-fg: #16181a;
   --color-fg-muted: #5b6360;
-  --color-fg-subtle: #8a918e;
+  /* 작은 글씨(날짜, 저작권)에 쓰이므로 흰 배경에서 4.5:1 을 넘겨야 한다. #8a918e 는 3.2:1 이었다. */
+  --color-fg-subtle: #687069;
 
   /* 폰트 스택: latin은 Geist, 한글은 Noto Sans KR이 이어받는다. */
   --font-sans: var(--font-geist-sans), var(--font-noto-sans-kr), -apple-system, BlinkMacSystemFont,
@@ -49,7 +50,8 @@
   --color-line-strong: #2a3142;
   --color-fg: #e8eaed;
   --color-fg-muted: #9aa3b2;
-  --color-fg-subtle: #6b7484;
+  /* #6b7484 는 어두운 배경에서 4.2:1 로 모자랐다. */
+  --color-fg-subtle: #848d9c;
 }
 
 body {

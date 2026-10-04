@@ -51,3 +51,7 @@ next-env.d.ts
 
 # notion build cache
 /.cache/
+
+# playwright
+/playwright-report
+/test-results

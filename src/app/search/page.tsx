@@ -12,17 +12,19 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     <div className="py-8 text-gray-900 dark:text-white">
       <h1 className="mb-4 text-2xl font-bold">검색</h1>
       <form action="/search" className="mb-6">
-        <label htmlFor="site-search" className="sr-only">
-          블로그 글 검색
+        {/* 레이블이 입력을 감싸면서 htmlFor 로도 가리킨다. 둘 중 하나만 있어도 보조기기는 읽지만,
+            둘 다 두면 레이블을 눌러 입력에 초점을 줄 수 있고 구조가 바뀌어도 연결이 끊기지 않는다. */}
+        <label htmlFor="site-search" className="block">
+          <span className="sr-only">블로그 글 검색</span>
+          <input
+            id="site-search"
+            type="search"
+            name="q"
+            defaultValue={query}
+            placeholder="검색어를 입력하세요"
+            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 focus-visible:border-primary-600 focus-visible:ring-2 focus-visible:ring-primary-500 dark:border-gray-700 dark:bg-gray-900"
+          />
         </label>
-        <input
-          id="site-search"
-          type="search"
-          name="q"
-          defaultValue={query}
-          placeholder="검색어를 입력하세요"
-          className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 focus-visible:border-primary-600 focus-visible:ring-2 focus-visible:ring-primary-500 dark:border-gray-700 dark:bg-gray-900"
-        />
       </form>
 
       <SearchResults query={query} />

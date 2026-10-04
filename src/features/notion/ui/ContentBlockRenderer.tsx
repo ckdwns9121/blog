@@ -1,6 +1,6 @@
 "use client";
 
-import { createElement } from "react";
+import { createElement, type ReactNode } from "react";
 import type { ContentBlockWithChildren } from "@/shared/types/content";
 import type { TableCell } from "@/shared/types/content";
 import { RichTextRenderer } from "@/features/notion/ui/RichTextRenderer";
@@ -11,6 +11,11 @@ import { VideoBlock } from "@/features/notion/ui/blocks/VideoBlock";
 interface ContentBlockRendererProps {
   block: ContentBlockWithChildren;
   headingId?: string;
+  /**
+   * 하위 블록을 이미 그려서 넘겨받는 자리. 목록 항목(list_item)만 쓴다.
+   * <ul> 은 <li> 만 직접 자식으로 가질 수 있어서, 하위 목록은 부모 <li> 안에 들어가야 한다.
+   */
+  children?: ReactNode;
 }
 
 /**
@@ -20,6 +25,7 @@ interface ContentBlockRendererProps {
 export function ContentBlockRenderer({
   block,
   headingId,
+  children,
 }: ContentBlockRendererProps) {
   switch (block.type) {
     case "text":
@@ -94,6 +100,7 @@ export function ContentBlockRenderer({
           ) : (
             <span>{block.fallbackText || ""}</span>
           )}
+          {children}
         </li>
       );
 
@@ -126,8 +133,9 @@ export function ContentBlockRenderer({
       if (rows.length === 0) {
         return null;
       }
+      // 좁은 화면에서 가로로 스크롤되므로 키보드로도 초점을 받아야 한다 (axe: scrollable-region-focusable).
       return (
-        <div className="my-5 overflow-x-auto">
+        <div className="my-5 overflow-x-auto" tabIndex={0} role="group" aria-label="가로로 넘겨 볼 수 있는 표">
           <table className="min-w-full border-collapse border border-gray-300 dark:border-gray-600">
             <tbody>
               {rows.map((row, rowIndex) => {
