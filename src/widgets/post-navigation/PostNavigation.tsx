@@ -3,14 +3,17 @@ import Link from "next/link";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import type { BlogPost } from "@/entities/post/model";
 
+/** 링크를 그리는 데는 제목과 slug만 있으면 된다. 본문까지 받아올 필요가 없게 좁혀 둔다. */
+type NavigablePost = Pick<BlogPost, "slug" | "title">;
+
 interface PostNavigationProps {
-  previousPost?: BlogPost;
-  nextPost?: BlogPost;
+  previousPost?: NavigablePost;
+  nextPost?: NavigablePost;
   className?: string;
 }
 
 interface NavigationItemProps {
-  post: BlogPost;
+  post: NavigablePost;
   direction: "previous" | "next";
 }
 

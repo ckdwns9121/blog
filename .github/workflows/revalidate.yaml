@@ -3,8 +3,13 @@ name: Revalidate
 # 글 페이지는 시간 기반 재검증을 쓰지 않는다. 대신 이 워크플로가 주기적으로
 # 재검증 엔드포인트를 호출해 "바뀐 글이 있는지"를 한 번만 확인하게 한다.
 #
+# revalidatePath 는 캐시를 지우기만 하고, 다시 만드는 일은 다음 방문자가 떠안는다
+# (Notion 호출을 포함해 2~4초). 그 "다음 방문자"가 사람이 아니라 이 워크플로가 되도록,
+# 지운 경로를 바로 이어서 한 번씩 요청해 캐시를 다시 채운다.
+#
 # 글을 발행하고 바로 반영하고 싶으면 Actions 탭에서 Run workflow 를 누르면 된다.
-# 크론은 그걸 깜빡했을 때를 위한 안전망이다.
+# 크론은 그걸 깜빡했을 때를 위한 안전망이다. GitHub 예약 실행은 수십 분에서 몇 시간
+# 늦을 수 있으니 "30분마다"를 믿지 말 것.
 
 on:
   schedule:
@@ -13,20 +18,26 @@ on:
   workflow_dispatch:
     inputs:
       slug:
-        description: "특정 글만 갱신할 때의 slug (비우면 최근 수정된 글 전체)"
+        description: "특정 글만 갱신할 때의 slug (비우면 최근 수정된 글·노트 전체)"
+        required: false
+        type: string
+      note:
+        description: "특정 노트만 갱신할 때의 주소 slug (/notes/ 뒤 부분)"
         required: false
         type: string
 
 jobs:
   revalidate:
     runs-on: ubuntu-latest
+    env:
+      # 저장소 변수로 덮어쓸 수 있게 두되, 없으면 운영 도메인을 쓴다.
+      SITE_URL: ${{ vars.SITE_URL || 'https://www.changjun.dev' }}
     steps:
       - name: Trigger revalidation
         env:
-          # 저장소 변수로 덮어쓸 수 있게 두되, 없으면 운영 도메인을 쓴다.
-          SITE_URL: ${{ vars.SITE_URL || 'https://www.changjun.dev' }}
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
           SLUG: ${{ inputs.slug }}
+          NOTE: ${{ inputs.note }}
         run: |
           if [ -z "$REVALIDATE_SECRET" ]; then
             echo "REVALIDATE_SECRET 이 설정되지 않았습니다. 저장소 Secrets 에 추가하세요."
@@ -35,6 +46,8 @@ jobs:
 
           if [ -n "$SLUG" ]; then
             payload=$(printf '{"slug":"%s"}' "$SLUG")
+          elif [ -n "$NOTE" ]; then
+            payload=$(printf '{"note":"%s"}' "$NOTE")
           else
             payload='{}'
           fi
@@ -43,4 +56,47 @@ jobs:
           curl -fsS -X POST "$SITE_URL/api/revalidate" \
             -H "Authorization: Bearer $REVALIDATE_SECRET" \
             -H "Content-Type: application/json" \
-            -d "$payload"
+            -d "$payload" \
+            -o response.json
+          cat response.json; echo
+
+      - name: Warm the pages that were just invalidated
+        run: |
+          if [ "$(jq '.revalidated | length' response.json)" = "0" ]; then
+            echo "지운 경로가 없어 데울 것도 없습니다."
+            exit 0
+          fi
+
+          # 한 경로를 요청하고 캐시 상태를 기록한다. REVALIDATED 는 이 요청이 재생성을
+          # 떠안았다는 뜻이고, 그 다음 방문자부터는 HIT 가 된다. 실패해도 워크플로를
+          # 깨뜨리지 않는다. 데우기는 보너스이지 재검증의 조건이 아니다.
+          warm() {
+            local url="$1" hdr meta cache
+            hdr=$(mktemp)
+            meta=$(curl -s -o /dev/null -D "$hdr" -w '%{http_code} %{time_starttransfer}s' "$url" || echo "000 -")
+            cache=$(grep -i '^x-vercel-cache:' "$hdr" | awk '{print $2}' | tr -d '\r')
+            printf '%-12s %-14s %s\n' "${cache:-?}" "$meta" "${url#"$SITE_URL"}"
+            rm -f "$hdr"
+          }
+
+          echo "== 지운 경로 =="
+          jq -r '.revalidated[]' response.json | while read -r path; do
+            warm "$SITE_URL$path"
+          done
+
+          # 홈을 지운 뒤 글 페이지 전부가 함께 지워지는 부수 효과가 Vercel 에서 관찰된 적이 있다.
+          # 이번 수정으로 사라졌어야 하지만, 혹시 남아 있어도 방문자가 아니라 여기서 값을 치르도록
+          # 모든 글을 순서대로 한 번씩 요청한다. 캐시가 살아 있으면 HIT 라 거의 비용이 없고,
+          # 순차 요청이라 Notion 속도 제한에도 걸리지 않는다.
+          echo "== 모든 글 (안전망) =="
+          curl -fsS "$SITE_URL/sitemap.xml" \
+            | grep -o '<loc>[^<]*/posts/[^<]*</loc>' \
+            | sed -E 's#</?loc>##g' \
+            | while read -r url; do warm "$url"; done \
+            | tee warm.log
+
+          regenerated=$(grep -c '^REVALIDATED' warm.log || true)
+          echo "글 페이지 중 재생성을 떠안은 수: $regenerated"
+          if [ "$regenerated" -gt 1 ]; then
+            echo "::warning::수정하지 않은 글까지 캐시가 지워져 있었습니다. 홈 재검증의 부수 효과가 아직 남아 있는지 확인하세요."
+          fi
