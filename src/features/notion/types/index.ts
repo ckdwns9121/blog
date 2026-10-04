@@ -292,6 +292,8 @@ export interface CodeContent {
   text?: string;
   rich_text?: RichTextItem[];
   language?: string;
+  /** Notion 코드 블록의 캡션. "sandbox" 같은 렌더링 지시어를 담는다. */
+  caption?: string;
 }
 
 export interface ImageContent {

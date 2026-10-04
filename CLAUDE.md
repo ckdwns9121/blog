@@ -141,6 +141,16 @@ When adding new Notion block types:
 3. Update the block adapter and mapper utilities
 4. Add corresponding CSS styles if needed
 
+### Runnable code blocks (Sandpack)
+
+A Notion code block becomes an editable, runnable playground (react.dev style, powered by `@codesandbox/sandpack-react`) when its **caption** is a sandbox directive:
+
+- `sandbox` - template inferred from the block language (`tsx`/`typescript` → `react-ts`, `javascript`/`jsx` → `react`, `html` → `static`)
+- `sandbox:react` - explicit template; allowed values are `react`, `react-ts`, `vanilla`, `vanilla-ts`, `static`
+- Split the body into files with a marker line such as `// @file /Button.tsx` (also `# @file`, `/* @file */`, `<!-- @file -->`). Text before the first marker is the template's entry file (`/App.tsx` for `react-ts`).
+
+Implementation lives in `src/features/notion/ui/blocks/sandbox/`. `sandboxSpec.ts` parses the directive; `SandpackBlock` renders the normal highlighted `CodeBlock` first and swaps in the dynamically imported `SandpackPlayground` only when the block scrolls near, so pages without a sandbox never download Sandpack and static HTML keeps the plain code. The bundler runs in a CodeSandbox-hosted iframe, so reader edits cannot hang the page. Captions that are not a directive are ignored and the block renders as before.
+
 When adding header plugins:
 
 1. Create a plugin factory function returning a `HeaderPlugin` object:

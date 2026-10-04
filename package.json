@@ -16,6 +16,7 @@
     "test:a11y": "playwright test"
   },
   "dependencies": {
+    "@codesandbox/sandpack-react": "^2.20.0",
     "@heroicons/react": "^2.2.0",
     "@notionhq/client": "^5.1.0",
     "@radix-ui/react-dialog": "^1.1.15",

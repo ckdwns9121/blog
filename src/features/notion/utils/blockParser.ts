@@ -39,6 +39,18 @@ export function extractLanguage(content: NotionBlock["content"]): string {
 }
 
 /**
+ * 코드 블록의 캡션 추출. 글쓴이가 Notion 에서 코드 블록 아래에 적는 짧은 텍스트로,
+ * "sandbox" 처럼 블록을 실행 가능한 플레이그라운드로 바꾸는 지시어를 담는다.
+ */
+export function extractCodeCaption(content: NotionBlock["content"]): string | undefined {
+  if (typeof content === "object" && content !== null && "caption" in content) {
+    const caption = (content as CodeContent).caption;
+    return typeof caption === "string" && caption.trim() ? caption.trim() : undefined;
+  }
+  return undefined;
+}
+
+/**
  * Image/Video 블록의 URL과 caption 추출
  */
 export function extractImageData(content: NotionBlock["content"]): { url?: string; caption?: string } {

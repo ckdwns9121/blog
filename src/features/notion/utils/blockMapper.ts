@@ -1,5 +1,5 @@
 import type { NotionBlock, RichTextItem } from "../types";
-import { extractText, extractLanguage, extractImageData, extractRichTextArray, extractTableData } from "./blockParser";
+import { extractText, extractLanguage, extractImageData, extractRichTextArray, extractTableData, extractCodeCaption } from "./blockParser";
 
 /**
  * Notion 블록을 렌더링에 필요한 Props로 매핑
@@ -28,6 +28,7 @@ export interface ParsedCodeBlock {
   type: "code";
   code: string;
   language: string;
+  caption?: string;
 }
 
 export interface ParsedQuoteBlock {
@@ -135,6 +136,7 @@ export function parseNotionBlock(block: NotionBlock): ParsedBlock {
         type: "code",
         code: fallbackText,
         language: extractLanguage(content),
+        caption: extractCodeCaption(content),
       };
 
     case "quote":

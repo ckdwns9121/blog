@@ -47,6 +47,8 @@ export interface CodeBlock {
   type: "code";
   code: string;
   language: string;
+  /** 코드 블록 캡션. "sandbox" 로 시작하면 실행 가능한 플레이그라운드로 그린다. */
+  caption?: string;
 }
 
 /**

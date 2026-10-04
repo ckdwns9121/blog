@@ -603,6 +603,8 @@ function extractBlockContent(block: NotionBlockType): BlockContent {
         type: "code" as const,
         text: extractText(block.code.rich_text),
         language: block.code.language,
+        // 캡션은 "sandbox" 처럼 블록을 어떻게 그릴지 정하는 지시어로 쓴다.
+        caption: block.code.caption?.length ? extractText(block.code.caption) : undefined,
       };
     case "quote":
       return {

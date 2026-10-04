@@ -16,6 +16,11 @@ async function scan(page: Page) {
     .withTags(TAGS)
     // 댓글은 utterances(GitHub) iframe 이라 우리가 고칠 수 없다.
     .exclude("iframe.utterances-frame")
+    // Sandpack 내부 UI 의 업스트림 문제: 탭 div 안에 button 이 들어 있고(nested-interactive),
+    // CodeMirror 스크롤 영역이 초점을 못 받는다(scrollable-region-focusable). 둘 다 우리 코드가
+    // 아니다. 색 대비는 sandpackTheme.ts 로 우리가 맞추므로 검사에 남긴다.
+    .exclude(".sp-tabs")
+    .exclude(".cm-scroller")
     .analyze();
 
   // 실패 메시지에 어느 요소가 어떤 규칙을 어겼는지 그대로 남긴다.

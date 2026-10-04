@@ -5,6 +5,8 @@ import type { ContentBlockWithChildren } from "@/shared/types/content";
 import type { TableCell } from "@/shared/types/content";
 import { RichTextRenderer } from "@/features/notion/ui/RichTextRenderer";
 import { CodeBlock } from "@/features/notion/ui/blocks/CodeBlock";
+import { SandpackBlock } from "@/features/notion/ui/blocks/sandbox/SandpackBlock";
+import { parseSandboxCaption } from "@/features/notion/ui/blocks/sandbox/sandboxSpec";
 import { ImageWithModal } from "@/features/notion/ui/blocks/ImageWithModal";
 import { VideoBlock } from "@/features/notion/ui/blocks/VideoBlock";
 
@@ -58,6 +60,10 @@ export function ContentBlockRenderer({
     }
 
     case "code":
+      // 캡션이 "sandbox" 로 시작하면 편집·실행할 수 있는 플레이그라운드로 그린다.
+      if (parseSandboxCaption(block.caption)) {
+        return <SandpackBlock code={block.code || ""} language={block.language || "text"} caption={block.caption} />;
+      }
       return (
         <CodeBlock
           code={block.code || ""}
