@@ -40,7 +40,7 @@ const eslintConfig = [
       // Next 의 <Link> 는 href 를 받아 <a> 로 그리므로 a 요소로 취급해 검사한다.
       "jsx-a11y/anchor-is-valid": [
         "error",
-        { components: ["Link"], specialLink: ["hrefLeft", "hrefRight"], aspects: ["invalidHref", "preferButton"] },
+        { components: ["Link"], specialLink: ["hrefLeft", "hrefRight"], aspects: ["noHref", "invalidHref", "preferButton"] },
       ],
     },
   },

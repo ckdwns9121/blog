@@ -3,6 +3,12 @@ name: Accessibility
 # Vercel 이 배포를 끝낼 때마다 그 주소를 axe-core 로 검사한다.
 # PR 의 미리보기 배포도 검사하므로, 접근성 위반이 있는 코드는 머지 전에 드러난다.
 # 로컬 서버를 띄우지 않는 이유: 글 페이지는 Notion 데이터와 빌드가 있어야 나온다.
+#
+# 미리보기 배포는 Vercel Deployment Protection(SSO) 뒤에 있을 수 있다. 그대로 열면
+# Vercel 로그인 페이지가 검사되어 엉뚱한 위반이 나온다. Vercel 프로젝트 설정의
+# "Protection Bypass for Automation" 시크릿을 저장소 Secrets 에
+# VERCEL_AUTOMATION_BYPASS_SECRET 으로 넣으면 그 헤더로 통과한다. 없으면 보호된
+# 배포는 검사하지 않고 경고만 남긴다. 운영 배포는 보호가 없어 항상 검사된다.
 
 on:
   deployment_status:
@@ -13,40 +19,101 @@ on:
         required: false
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   axe:
     # deployment_status 는 pending/failure 로도 들어오므로 성공한 배포만 검사한다.
     if: github.event_name == 'workflow_dispatch' || github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      A11Y_BASE_URL: ${{ inputs.url || github.event.deployment_status.environment_url || 'https://www.changjun.dev' }}
     steps:
+      - name: Resolve the URL to scan
+        id: target
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_URL: ${{ inputs.url }}
+          DEPLOYMENT_URL: ${{ github.event.deployment_status.environment_url }}
+          ENVIRONMENT: ${{ github.event.deployment_status.environment }}
+          BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            url="${INPUT_URL:-https://www.changjun.dev}"
+          else
+            # 배포 상태가 success 여도 environment_url 이 비어 올 수 있다. 그때 운영 사이트로
+            # 대체하면 미리보기를 검사한 척하고 통과하므로, 대신 실패시킨다.
+            if [ -z "$DEPLOYMENT_URL" ]; then
+              echo "::error::deployment_status 이벤트에 environment_url 이 없습니다. 검사할 배포 주소를 알 수 없습니다."
+              exit 1
+            fi
+            url="$DEPLOYMENT_URL"
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "검사 대상: $url ($ENVIRONMENT)"
+
+          # 보호된 배포인지 확인한다. 보호되어 있으면 Vercel SSO 로 302 가 돌아온다.
+          probe() { curl -s -o /dev/null -w "%{http_code} %{redirect_url}" "$@" "$url"; }
+          if [ -n "$BYPASS_SECRET" ]; then
+            result=$(probe -H "x-vercel-protection-bypass: $BYPASS_SECRET")
+          else
+            result=$(probe)
+          fi
+          code=${result%% *}; redirect=${result#* }
+          case "$redirect" in
+            *vercel.com/sso-api*|*vercel.com/login*)
+              if [ -n "$BYPASS_SECRET" ]; then
+                echo "::error::보호 우회 시크릿을 보냈는데도 Vercel 로그인으로 넘어갑니다. VERCEL_AUTOMATION_BYPASS_SECRET 값을 확인하세요."
+                exit 1
+              fi
+              echo "::warning::이 배포는 Vercel Deployment Protection 뒤에 있어 검사하지 않습니다. 저장소 Secrets 에 VERCEL_AUTOMATION_BYPASS_SECRET 을 추가하면 미리보기도 검사됩니다."
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              if [ "$code" != "200" ]; then
+                echo "::error::$url 이 $code 를 돌려줍니다. 검사할 수 없습니다."
+                exit 1
+              fi
+              echo "skip=false" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
       - uses: actions/checkout@v4
+        if: steps.target.outputs.skip != 'true'
         with:
           # PR 미리보기 배포면 그 커밋의 테스트로 검사한다.
           ref: ${{ github.event.deployment.sha || github.sha }}
+          # 이 잡은 git 에 쓰지 않는다. 의존성 설치나 테스트가 토큰을 읽지 못하게 한다.
+          persist-credentials: false
 
       - uses: pnpm/action-setup@v4
+        if: steps.target.outputs.skip != 'true'
         with:
           version: 10
 
       - uses: actions/setup-node@v4
+        if: steps.target.outputs.skip != 'true'
         with:
           node-version: 20
           cache: pnpm
 
       - name: Install dependencies
+        if: steps.target.outputs.skip != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Install Chromium
+        if: steps.target.outputs.skip != 'true'
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Run axe against ${{ env.A11Y_BASE_URL }}
+      - name: Run axe against ${{ steps.target.outputs.url }}
+        if: steps.target.outputs.skip != 'true'
+        env:
+          A11Y_BASE_URL: ${{ steps.target.outputs.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: pnpm test:a11y
 
       - name: Upload report
-        if: failure()
+        if: failure() && steps.target.outputs.skip != 'true'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report

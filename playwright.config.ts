@@ -16,6 +16,14 @@ export default defineConfig({
   use: {
     baseURL: process.env.A11Y_BASE_URL ?? "https://www.changjun.dev",
     trace: "retain-on-failure",
+    // Vercel Deployment Protection 뒤의 미리보기 배포를 열기 위한 헤더.
+    // 쿠키도 받아 두어 페이지가 내는 후속 요청(이미지, RSC 페이로드)도 통과하게 한다.
+    extraHTTPHeaders: process.env.VERCEL_AUTOMATION_BYPASS_SECRET
+      ? {
+          "x-vercel-protection-bypass": process.env.VERCEL_AUTOMATION_BYPASS_SECRET,
+          "x-vercel-set-bypass-cookie": "true",
+        }
+      : {},
   },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },

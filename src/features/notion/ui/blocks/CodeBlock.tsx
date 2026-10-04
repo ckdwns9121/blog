@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentPropsWithoutRef } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight, oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -64,8 +64,16 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
 
   // 긴 코드는 가로로 스크롤된다. 스크롤 영역은 키보드로도 초점을 받을 수 있어야
   // 마우스 없이 좌우로 움직일 수 있다 (axe: scrollable-region-focusable).
-  const FocusablePre = (props: ComponentPropsWithoutRef<"pre">) => (
-    <pre {...props} tabIndex={0} role="group" aria-label={`${normalizedLanguage} 코드`} />
+  // 컴포넌트 정의를 렌더마다 새로 만들면 React 가 <pre> 를 매번 다시 마운트해서
+  // 복사 버튼을 누르거나 테마가 바뀔 때 초점과 가로 스크롤 위치가 날아간다.
+  // 언어가 바뀔 때만 새로 만든다.
+  const preLabel = `${normalizedLanguage} 코드`;
+  const FocusablePre = useMemo(
+    () =>
+      function FocusablePre(props: ComponentPropsWithoutRef<"pre">) {
+        return <pre {...props} tabIndex={0} role="group" aria-label={preLabel} />;
+      },
+    [preLabel],
   );
 
   return (
