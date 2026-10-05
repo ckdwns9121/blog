@@ -4,9 +4,10 @@ import { HeaderPlugin } from '../types';
 /**
  * 헤더 로고. 캐리커처 선화를 벡터(/logo-mark.svg)로 추적한 것이라 어떤 크기에서도 또렷하다.
  *
- * <img> 로 넣으면 SVG 안의 currentColor 가 페이지 글자색을 읽지 못해 다크 모드에서 검은 선이
- * 그대로 남는다. 그래서 SVG 를 CSS mask 로 쓰고 배경을 currentColor 로 칠한다. 글자색이
- * 바뀌면(다크 모드, 호버) 로고 선 색도 같이 바뀐다.
+ * 다크 모드에서도 라이트 모드와 똑같이 "흰 바탕에 검은 선"으로 보이게 한다. 선 색을 글자색에
+ * 따라가게 하면 다크 모드에서 머리카락이 희게, 얼굴이 검게 반전되어 전혀 다른 그림이 된다.
+ * 그래서 흰 원형 배지 위에 SVG 를 CSS mask 로 뜨고 고정된 검정으로 칠한다. 라이트 모드에서는
+ * 흰 원이 배경과 같아 선화만 보이고, 다크 모드에서는 흰 배지로 보인다.
  */
 export function createLogoPlugin(): HeaderPlugin {
   return {
@@ -16,12 +17,14 @@ export function createLogoPlugin(): HeaderPlugin {
     priority: 20, // 가장 높은 우선순위
     render: () => (
       <div className="hidden md:flex items-center">
-        <Link href="/" className="flex items-center text-fg hover:text-primary-600 dark:hover:text-primary-400 transition-colors" aria-label="홈으로 이동">
+        <Link href="/" className="flex items-center rounded-full transition-opacity hover:opacity-80" aria-label="홈으로 이동">
           <span
             role="img"
             aria-label="박창준 블로그 로고"
-            className="block h-10 w-10 bg-current [mask-image:url(/logo-mark.svg)] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:center]"
-          />
+            className="block h-10 w-10 overflow-hidden rounded-full bg-white"
+          >
+            <span className="block h-full w-full bg-[#16181a] [mask-image:url(/logo-mark.svg)] [mask-size:contain] [mask-repeat:no-repeat] [mask-position:center]" />
+          </span>
         </Link>
       </div>
     ),
