@@ -4,6 +4,11 @@
   "description": "프론트엔드 개발자 박창준의 블로그입니다. React, Next.js, TypeScript 등 웹 개발 경험과 지식을 공유합니다.",
   "icons": [
     {
+      "src": "/favicon/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
       "src": "/favicon/favicon.ico",
       "sizes": "any",
       "type": "image/x-icon"
