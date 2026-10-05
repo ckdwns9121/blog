@@ -97,6 +97,8 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   icons: {
     icon: [
+      // SVG 파비콘이 먼저다. 어떤 배율에서도 또렷하고 OS 다크 모드에 맞춰 선 색이 바뀐다.
+      { url: "/favicon/favicon.svg", type: "image/svg+xml" },
       { url: "/favicon/favicon.ico", sizes: "any" },
       { url: "/favicon/favicon-192x192.png", sizes: "192x192", type: "image/png" },
     ],
