@@ -100,7 +100,7 @@ export const metadata: Metadata = {
       { url: "/favicon/favicon.ico", sizes: "any" },
       { url: "/favicon/favicon-192x192.png", sizes: "192x192", type: "image/png" },
     ],
-    apple: [{ url: "/favicon/favicon-192x192.png", sizes: "192x192", type: "image/png" }],
+    apple: [{ url: "/favicon/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 
