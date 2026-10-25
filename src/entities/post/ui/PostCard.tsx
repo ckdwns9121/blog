@@ -16,14 +16,9 @@ function formatDate(date: Date) {
 
 export function PostCard({ post, onNavigate }: PostCardProps) {
   return (
-    <article className="border-line border-b py-7 last:border-b-0 sm:py-9">
-      <Link
-        href={`/posts/${post.slug}`}
-        onClick={onNavigate}
-        className="group flex items-start gap-5 sm:gap-9"
-        aria-label={post.title}
-      >
-        <div className="min-w-0 flex-1">
+    <article className="border-line flex items-start gap-5 border-b py-7 last:border-b-0 sm:gap-9 sm:py-9">
+      <div className="min-w-0 flex-1">
+        <Link href={`/posts/${post.slug}`} onClick={onNavigate} className="group block" aria-label={post.title}>
           <h2 className="text-fg group-hover:text-primary-600 dark:group-hover:text-primary-400 text-xl leading-snug font-bold tracking-tight transition-colors sm:text-2xl">
             {post.title}
           </h2>
@@ -32,10 +27,28 @@ export function PostCard({ post, onNavigate }: PostCardProps) {
               {post.excerpt}
             </p>
           )}
+        </Link>
+        <div className="text-fg-muted mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
+          <time dateTime={post.publishedAt.toISOString()} className="tabular-nums">
+            {formatDate(post.publishedAt)}
+          </time>
+          {post.tags.slice(0, 2).map((tag) => (
+            <a
+              key={tag.slug}
+              href={`/?tag=${encodeURIComponent(tag.name)}`}
+              onClick={onNavigate}
+              className="bg-surface-raised hover:text-primary-600 dark:hover:text-primary-400 rounded-full px-2.5 py-1 transition-colors"
+            >
+              {tag.name}
+            </a>
+          ))}
         </div>
-        {post.coverImage && (
-          // External Notion images fall back to their original URL when not mapped at build time.
-          // eslint-disable-next-line @next/next/no-img-element
+      </div>
+      {post.coverImage && (
+        // The thumbnail repeats the title link for pointer users only, so it stays out of tab order and the a11y tree.
+        <Link href={`/posts/${post.slug}`} onClick={onNavigate} tabIndex={-1} aria-hidden="true" className="shrink-0">
+          {/* External Notion images fall back to their original URL when not mapped at build time. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={getOptimizedImageUrl(post.coverImage)}
             alt=""
@@ -43,25 +56,10 @@ export function PostCard({ post, onNavigate }: PostCardProps) {
             height={112}
             loading="lazy"
             decoding="async"
-            className="h-20 w-20 shrink-0 rounded-sm object-cover sm:h-28 sm:w-40"
+            className="h-20 w-20 rounded-sm object-cover sm:h-28 sm:w-40"
           />
-        )}
-      </Link>
-      <div className="text-fg-muted mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs">
-        <time dateTime={post.publishedAt.toISOString()} className="tabular-nums">
-          {formatDate(post.publishedAt)}
-        </time>
-        {post.tags.slice(0, 2).map((tag) => (
-          <a
-            key={tag.slug}
-            href={`/?tag=${encodeURIComponent(tag.name)}`}
-            onClick={onNavigate}
-            className="bg-surface-raised hover:text-primary-600 dark:hover:text-primary-400 rounded-full px-2.5 py-1 transition-colors"
-          >
-            {tag.name}
-          </a>
-        ))}
-      </div>
+        </Link>
+      )}
     </article>
   );
 }
