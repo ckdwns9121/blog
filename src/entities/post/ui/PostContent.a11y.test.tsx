@@ -3,16 +3,6 @@ import type { ContentBlockWithChildren, RichTextItem } from "@/shared/types/cont
 import PostContent from "./PostContent";
 import { expectNoA11yViolations } from "@/test/a11y";
 
-// react-syntax-highlighter 의 ESM 스타일 번들은 jest 가 변환하지 못한다.
-// 코드 블록의 접근성은 CodeBlock 자체 테스트가 맡고, 여기서는 본문 조립만 본다.
-jest.mock("@/features/notion/ui/blocks/CodeBlock", () => ({
-  CodeBlock: ({ code, language }: { code: string; language: string }) => (
-    <pre data-language={language}>
-      <code>{code}</code>
-    </pre>
-  ),
-}));
-
 jest.mock("@/shared/utils/imageMapper", () => ({
   getOptimizedImageData: (url: string) => ({ src: url, width: 800, height: 600 }),
   getOptimizedImageUrl: (url: string) => url,

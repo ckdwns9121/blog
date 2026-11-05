@@ -1,47 +1,29 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import type { ComponentPropsWithoutRef } from "react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneLight, oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { useTheme } from "next-themes";
-import { withAccessibleContrast } from "./accessibleTheme";
-
-// oneLight 는 함수·문자열·주석 색이 WCAG AA(4.5:1)에 못 미친다. 색상은 두고 명도만 보정한 사본을 쓴다.
-const accessibleOneLight = withAccessibleContrast(oneLight);
-const accessibleOneDark = withAccessibleContrast(oneDark);
+import React, { useEffect, useRef, useState } from "react";
+import { tokenizeCode } from "../../utils/tokenizeCode";
 
 interface CodeBlockProps {
   code: string;
   language: string;
 }
 
-// Notion API의 언어 이름과 Prism이 인식하는 언어 키가 다른 경우 매핑
-const PRISM_LANGUAGE_MAP: Record<string, string> = {
-  "c++": "cpp",
-  "c#": "csharp",
-  "f#": "fsharp",
-  "objective-c": "objectivec",
-  "plain text": "text",
-  shell: "bash",
-  "vb.net": "vbnet",
+export const TOKEN_COLORS = {
+  text: "",
+  comment: "text-[#4b5563] dark:text-[#9ca3af]",
+  string: "text-[#15803d] dark:text-[#86efac]",
+  keyword: "text-[#7e22ce] dark:text-[#d8b4fe]",
+  number: "text-[#b45309] dark:text-[#fcd34d]",
+  literal: "text-[#1d4ed8] dark:text-[#93c5fd]",
 };
-
-function normalizeLanguage(language: string): string {
-  const lower = language.toLowerCase();
-  return PRISM_LANGUAGE_MAP[lower] ?? lower;
-}
 
 /**
  * 코드 블록을 렌더링하는 컴포넌트
  */
 export function CodeBlock({ code, language }: CodeBlockProps) {
-  // theme 은 "system" 일 수 있다. 실제로 적용된 값은 resolvedTheme 이다.
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
   const [copied, setCopied] = useState(false);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const normalizedLanguage = normalizeLanguage(language);
+  const normalizedLanguage = language.trim().toLowerCase();
 
   useEffect(() => {
     return () => {
@@ -62,23 +44,9 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
     resetTimerRef.current = setTimeout(() => setCopied(false), 2000);
   };
 
-  // 긴 코드는 가로로 스크롤된다. 스크롤 영역은 키보드로도 초점을 받을 수 있어야
-  // 마우스 없이 좌우로 움직일 수 있다 (axe: scrollable-region-focusable).
-  // 컴포넌트 정의를 렌더마다 새로 만들면 React 가 <pre> 를 매번 다시 마운트해서
-  // 복사 버튼을 누르거나 테마가 바뀔 때 초점과 가로 스크롤 위치가 날아간다.
-  // 언어가 바뀔 때만 새로 만든다.
-  const preLabel = `${normalizedLanguage} 코드`;
-  const FocusablePre = useMemo(
-    () =>
-      function FocusablePre(props: ComponentPropsWithoutRef<"pre">) {
-        return <pre {...props} tabIndex={0} role="group" aria-label={preLabel} />;
-      },
-    [preLabel],
-  );
-
   return (
     <div className="my-5 overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-gray-950">
-      <div className="flex h-10 items-center justify-between border-b border-gray-200 px-3 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
+      <div className="flex h-10 items-center justify-between border-b border-gray-200 px-3 text-xs text-gray-600 dark:border-gray-800 dark:text-gray-400">
         <span className="font-mono">{normalizedLanguage}</span>
         <button
           type="button"
@@ -89,17 +57,20 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
           {copied ? "복사됨" : "복사"}
         </button>
       </div>
-      <SyntaxHighlighter
-        language={normalizedLanguage}
-        style={isDark ? accessibleOneDark : accessibleOneLight}
-        className="!m-0"
-        customStyle={{ borderRadius: 0 }}
-        showLineNumbers={false}
-        wrapLines={true}
-        PreTag={FocusablePre}
+      <pre
+        tabIndex={0}
+        role="group"
+        aria-label={`${normalizedLanguage} 코드`}
+        className="m-0 overflow-x-auto p-4 text-sm leading-relaxed text-gray-800 dark:text-gray-200"
       >
-        {code}
-      </SyntaxHighlighter>
+        <code className="font-mono whitespace-pre">
+          {tokenizeCode(code, normalizedLanguage).map((token, index) => (
+            <span key={index} className={TOKEN_COLORS[token.type] || undefined}>
+              {token.value}
+            </span>
+          ))}
+        </code>
+      </pre>
     </div>
   );
 }

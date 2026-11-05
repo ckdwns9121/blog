@@ -2,15 +2,6 @@ import { act, render, screen } from "@testing-library/react";
 import { SandpackBlock } from "./SandpackBlock";
 import { expectNoA11yViolations } from "@/test/a11y";
 
-// react-syntax-highlighter 의 ESM 번들은 jest 가 변환하지 못한다. 정적 표시만 흉내 낸다.
-jest.mock("../CodeBlock", () => ({
-  CodeBlock: ({ code, language }: { code: string; language: string }) => (
-    <pre data-testid="static-code" data-language={language}>
-      <code>{code}</code>
-    </pre>
-  ),
-}));
-
 // Sandpack 본체는 CodeSandbox 번들러 iframe 이 필요하므로 자리만 표시한다.
 jest.mock("./SandpackPlayground", () => ({
   __esModule: true,
@@ -59,7 +50,7 @@ describe("SandpackBlock", () => {
   it("renders a plain code block when the caption is not a sandbox directive", async () => {
     const { container } = render(<SandpackBlock code="const a = 1;" language="typescript" caption="예제" />);
 
-    expect(screen.getByTestId("static-code")).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: /코드$/ })).toBeInTheDocument();
     expect(screen.queryByRole("region")).toBeNull();
     await expectNoA11yViolations(container);
   });
@@ -70,7 +61,7 @@ describe("SandpackBlock", () => {
     );
 
     expect(screen.getByRole("region", { name: "편집하고 실행해 볼 수 있는 코드 예제" })).toBeInTheDocument();
-    expect(screen.getByTestId("static-code")).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: /코드$/ })).toBeInTheDocument();
     await expectNoA11yViolations(container);
 
     act(() => intersect?.());
@@ -78,7 +69,7 @@ describe("SandpackBlock", () => {
     const playground = await screen.findByTestId("playground");
     expect(playground).toHaveAttribute("data-template", "react-ts");
     expect(playground).toHaveAttribute("data-files", "/App.tsx,/Button.tsx");
-    expect(screen.queryByTestId("static-code")).toBeNull();
+    expect(screen.queryByRole("group", { name: /코드$/ })).toBeNull();
     await expectNoA11yViolations(container);
   });
 
@@ -86,7 +77,7 @@ describe("SandpackBlock", () => {
     const { container } = render(<SandpackBlock code="x" language="typescript" caption="sandbox:angular" />);
 
     expect(screen.getByRole("alert")).toHaveTextContent("angular");
-    expect(screen.getByTestId("static-code")).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: /코드$/ })).toBeInTheDocument();
     await expectNoA11yViolations(container);
   });
 });
