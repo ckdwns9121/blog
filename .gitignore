@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/crates/code-tokenizer/target/
 /.pnp
 .pnp.*
 .yarn/*

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { tokenizeCode } from "../../utils/tokenizeCode";
+import { supportsHighlighting, tokenizeCode, type CodeToken } from "../../wasm/tokenizeCode";
 
 interface CodeBlockProps {
   code: string;
@@ -24,6 +24,22 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const normalizedLanguage = language.trim().toLowerCase();
+  const [highlighted, setHighlighted] = useState<{ code: string; language: string; tokens: CodeToken[] }>();
+
+  useEffect(() => {
+    if (!supportsHighlighting(normalizedLanguage)) return;
+    let active = true;
+    void tokenizeCode(code, normalizedLanguage).then((tokens) => {
+      if (active) setHighlighted({ code, language: normalizedLanguage, tokens });
+    }).catch(() => {
+      // Loading failures leave the original readable, copyable code in place.
+    });
+    return () => { active = false; };
+  }, [code, normalizedLanguage]);
+
+  const tokens = highlighted?.code === code && highlighted.language === normalizedLanguage
+    ? highlighted.tokens
+    : [{ type: "text" as const, value: code }];
 
   useEffect(() => {
     return () => {
@@ -64,7 +80,7 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
         className="m-0 overflow-x-auto p-4 text-sm leading-relaxed text-gray-800 dark:text-gray-200"
       >
         <code className="font-mono whitespace-pre">
-          {tokenizeCode(code, normalizedLanguage).map((token, index) => (
+          {tokens.map((token, index) => (
             <span key={index} className={TOKEN_COLORS[token.type] || undefined}>
               {token.value}
             </span>
