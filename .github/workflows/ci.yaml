@@ -38,3 +38,25 @@ jobs:
 
       - name: Test
         run: pnpm test:ci
+
+  wasm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: dtolnay/rust-toolchain@1.94.1
+        with:
+          targets: wasm32-unknown-unknown
+      - name: Install pinned wasm-pack
+        run: cargo install wasm-pack --version 0.15.0 --locked
+      - name: Rebuild and test the real Wasm module
+        run: |
+          node scripts/buildWasm.mjs
+          cargo test --locked --manifest-path crates/code-tokenizer/Cargo.toml
+          node --test scripts/tokenizerWasm.check.mjs
+      - name: Check generated artifacts are current
+        run: git diff --exit-code -- src/features/notion/wasm/generated public/wasm

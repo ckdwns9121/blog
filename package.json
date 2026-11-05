@@ -13,7 +13,9 @@
     "test:ci": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "export": "next build && next export",
-    "test:a11y": "playwright test"
+    "test:a11y": "playwright test",
+    "build:wasm": "node scripts/buildWasm.mjs",
+    "test:wasm": "cargo test --locked --manifest-path crates/code-tokenizer/Cargo.toml && node --test scripts/tokenizerWasm.check.mjs"
   },
   "dependencies": {
     "@codesandbox/sandpack-react": "^2.20.0",

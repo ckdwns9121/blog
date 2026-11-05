@@ -70,6 +70,14 @@ src/
 - **CMS-Agnostic Types**: `src/shared/types/content.ts` defines generic block types (TextBlock, HeadingBlock, CodeBlock, etc.)
 - Rich text is rendered with proper styling and annotations
 - Code blocks support syntax highlighting
+- JavaScript/TypeScript syntax tokens come from `crates/code-tokenizer/` (Rust/Wasm).
+  `CodeBlock` first renders plain code, then loads the shared async Wasm adapter at
+  `src/features/notion/wasm/tokenizeCode.ts`; loading failure keeps the plain source.
+  No JavaScript tokenizer fallback is maintained. JSX, regex literals and template
+  interpolation remain outside the tokenizer's scope. No speedup is claimed.
+  After Rust changes, run `pnpm build:wasm` and `pnpm test:wasm` with the pinned
+  toolchain and wasm-pack 0.15.0, then commit Cargo.lock and generated JS/types/Wasm.
+  Normal deploys use checked-in artifacts and require no Rust installation.
 - Table of contents is generated from heading blocks
 
 ### State Management
