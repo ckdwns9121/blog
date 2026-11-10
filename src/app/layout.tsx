@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono, Noto_Sans_KR } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { Providers } from "@/shared/providers/ThemeProvider";
 import { Footer } from "@/shared/ui";
@@ -158,6 +159,7 @@ export default async function RootLayout({
           </ClientLayout>
           <Footer />
         </Providers>
+        <Analytics />
       </body>
     </html>
   );
