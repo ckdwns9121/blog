@@ -8,13 +8,17 @@ interface CodeBlockProps {
   language: string;
 }
 
-export const TOKEN_COLORS = {
+export const TOKEN_COLORS: Record<CodeToken["type"], string> = {
   text: "",
-  comment: "text-[#4b5563] dark:text-[#9ca3af]",
+  comment: "text-[#6b7280] dark:text-[#9ca3af]",
   string: "text-[#15803d] dark:text-[#86efac]",
   keyword: "text-[#7e22ce] dark:text-[#d8b4fe]",
   number: "text-[#b45309] dark:text-[#fcd34d]",
-  literal: "text-[#1d4ed8] dark:text-[#93c5fd]",
+  literal: "text-[#b45309] dark:text-[#fcd34d]",
+  function: "text-[#1d4ed8] dark:text-[#93c5fd]",
+  type: "text-[#0e7490] dark:text-[#67e8f9]",
+  tag: "text-[#be123c] dark:text-[#fda4af]",
+  attr: "text-[#b45309] dark:text-[#fcd34d]",
 };
 
 /**

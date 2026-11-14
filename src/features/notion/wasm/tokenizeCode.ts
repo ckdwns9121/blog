@@ -1,12 +1,12 @@
 export type CodeToken = {
-  type: "text" | "comment" | "string" | "keyword" | "number" | "literal";
+  type: "text" | "comment" | "string" | "keyword" | "number" | "literal" | "function" | "type" | "tag" | "attr";
   value: string;
 };
 
 let tokenizer: Promise<typeof import("./generated/code_tokenizer")> | undefined;
 
 export function supportsHighlighting(language: string): boolean {
-  return /^(javascript|js|typescript|ts)$/i.test(language.trim());
+  return /^(javascript|js|jsx|typescript|ts|tsx)$/i.test(language.trim());
 }
 
 export async function tokenizeCode(code: string, language: string): Promise<CodeToken[]> {

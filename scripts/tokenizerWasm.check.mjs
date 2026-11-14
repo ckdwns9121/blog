@@ -8,7 +8,7 @@ const tokenize = (code, language) => JSON.parse(tokenizeCode(code, language));
 
 test("compiled Wasm preserves Unicode, CRLF, whitespace, incomplete strings and empty input", () => {
   for (const code of ["", "\tconst 안녕 = '😀';\r\n", "/* unfinished\nconst value", "'unfinished", "`multiline\nconst value", '<script>alert("x")</script>']) {
-    for (const language of ["js", "javascript", "ts", "typescript", " TypeScript "]) {
+    for (const language of ["js", "javascript", "jsx", "ts", "typescript", "tsx", " TypeScript "]) {
       assert.equal(tokenize(code, language).map(({ value }) => value).join(""), code);
     }
   }
@@ -29,8 +29,27 @@ test("compiled Wasm keeps strings, escaped quotes, templates and comments ahead 
   assert.deepEqual(tokens.filter(({ type }) => type === "number"), [{ type: "number", value: "42" }]);
 });
 
+test("compiled Wasm colors JSX tags, attributes and calls while leaving child text as prose", () => {
+  const code = '// 탭\n<Tab value={tab} onChange={(next) => setTab(next)}>\n  <Tab.Trigger value="home">if you return</Tab.Trigger>\n</Tab>';
+  for (const language of ["typescript", "tsx"]) {
+    const tokens = tokenize(code, language);
+    const values = (type) => tokens.filter((token) => token.type === type).map(({ value }) => value);
+    assert.equal(tokens.map(({ value }) => value).join(""), code);
+    assert.deepEqual(values("tag"), ["Tab", "Tab.Trigger", "Tab.Trigger", "Tab"]);
+    assert.deepEqual(values("attr"), ["value", "onChange", "value"]);
+    assert.deepEqual(values("function"), ["setTab"]);
+    assert.deepEqual(values("keyword"), []);
+  }
+});
+
+test("compiled Wasm keeps comparisons and TypeScript generics out of JSX", () => {
+  const tokens = tokenize("if (a <b) {}\nconst id = <T,>(value: T) => value;\nconst box: Array<string> = [];", "ts");
+  assert.deepEqual(tokens.filter(({ type }) => type === "tag"), []);
+  assert.deepEqual(tokens.filter(({ type }) => type === "type").map(({ value }) => value), ["T", "T", "Array", "string"]);
+});
+
 test("compiled Wasm leaves unsupported languages plain", () => {
-  for (const language of ["", "text", "python", "html", "tsx"]) {
+  for (const language of ["", "text", "python", "html"]) {
     assert.deepEqual(tokenize("const value = 42;\n", language), [{ type: "text", value: "const value = 42;\n" }]);
   }
 });
