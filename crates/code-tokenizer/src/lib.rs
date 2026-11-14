@@ -1,4 +1,5 @@
 use serde::Serialize;
+use std::collections::{BTreeMap, BTreeSet};
 use wasm_bindgen::prelude::*;
 
 const LANGUAGES: &[&str] = &["javascript", "js", "jsx", "typescript", "ts", "tsx"];
@@ -114,6 +115,11 @@ struct Lexer<'a> {
     spans: Vec<(&'static str, usize, usize)>,
     prev: Prev,
     last_word: &'a str,
+    /// `<` positions that already failed as JSX. Parsing from a position never depends on outer
+    /// state, so retrying is wasted work; nested failures would otherwise double it per level.
+    rejected_jsx: BTreeSet<usize>,
+    /// Last offset of each `</name`, so checking for a closing tag is a lookup, not a scan.
+    last_closing_tag: BTreeMap<&'a str, usize>,
 }
 
 impl<'a> Lexer<'a> {
@@ -361,7 +367,9 @@ impl<'a> Lexer<'a> {
     /// Tries to read a JSX element at `<`. On failure nothing is consumed, so `<` stays a comparison
     /// or a TypeScript generic.
     fn jsx_element(&mut self) -> bool {
-        if !self.rest()[1..].starts_with(|c: char| c == '>' || is_ident_start(c)) {
+        if !self.rest()[1..].starts_with(|c: char| c == '>' || is_ident_start(c))
+            || self.rejected_jsx.contains(&self.pos)
+        {
             return false;
         }
         let (pos, spans) = (self.pos, self.spans.len());
@@ -370,6 +378,7 @@ impl<'a> Lexer<'a> {
         }
         self.pos = pos;
         self.spans.truncate(spans);
+        self.rejected_jsx.insert(pos);
         false
     }
 
@@ -421,14 +430,39 @@ impl<'a> Lexer<'a> {
             }
         }
         // `<T>(value: T) => value` also reaches here; only a later closing tag makes it JSX.
-        self.has_closing_tag(name) && self.jsx_children()
+        !self.starts_generic_arrow() && self.has_closing_tag(name) && self.jsx_children()
+    }
+
+    /// `(…) =>` or `(…): Return =>` right after `>` is a generic arrow function's signature.
+    /// Children such as `(선택)` or `(참고): …` lack the arrow and stay JSX.
+    fn starts_generic_arrow(&self) -> bool {
+        let rest = self.rest();
+        if !rest.starts_with('(') {
+            return false;
+        }
+        let mut depth = 0usize;
+        for (at, c) in rest.char_indices() {
+            match c {
+                '(' => depth += 1,
+                ')' => {
+                    depth -= 1;
+                    if depth == 0 {
+                        let after = rest[at + 1..].trim_start();
+                        let line = after.split(['\n', '\r']).next().unwrap_or("");
+                        return after.starts_with("=>")
+                            || (after.starts_with(':') && line.contains("=>"));
+                    }
+                }
+                _ => {}
+            }
+        }
+        false
     }
 
     fn has_closing_tag(&self, name: &str) -> bool {
-        let closing = format!("</{name}");
-        self.rest()
-            .match_indices(&closing)
-            .any(|(at, _)| !self.rest()[at + closing.len()..].starts_with(is_jsx_name_char))
+        self.last_closing_tag
+            .get(name)
+            .is_some_and(|&at| at >= self.pos)
     }
 
     fn jsx_children(&mut self) -> bool {
@@ -480,6 +514,17 @@ fn tokenize<'a>(code: &'a str, language: &str) -> Vec<Token<'a>> {
         spans: Vec::new(),
         prev: Prev::Start,
         last_word: "",
+        rejected_jsx: BTreeSet::new(),
+        last_closing_tag: code
+            .match_indices("</")
+            .map(|(at, _)| {
+                let name = &code[at + 2..];
+                let end = name
+                    .find(|c: char| !is_jsx_name_char(c))
+                    .unwrap_or(name.len());
+                (&name[..end], at)
+            })
+            .collect(),
     };
     lexer.lex_js(false);
     let mut tokens: Vec<Token<'a>> = Vec::new();
@@ -608,6 +653,29 @@ const answer = 42;"#;
             of_kind(&tokens, "type"),
             ["T", "T", "Array", "string", "K", "T", "K"]
         );
+    }
+
+    #[test]
+    fn generic_arrows_stay_code_even_with_a_matching_closing_tag_elsewhere() {
+        for code in [
+            "const id = <T>(x: T) => x; const closing = \"</T>\";",
+            "const id = <T>(x: T): T => x; const closing = \"</T>\";",
+        ] {
+            let tokens = tokenize(code, "ts");
+            assert!(of_kind(&tokens, "tag").is_empty(), "{code}");
+            assert_eq!(of_kind(&tokens, "keyword"), ["const", "const"]);
+        }
+        let tokens = tokenize("<>\n<p>(선택)</p>\n<p>(참고): 내용</p>\n</>", "tsx");
+        assert_eq!(of_kind(&tokens, "tag"), ["p", "p", "p", "p"]);
+    }
+
+    #[test]
+    fn nested_failing_jsx_candidates_are_tried_once() {
+        let depth = 300;
+        let code = format!("{}0{}", "<A p={".repeat(depth), "}>".repeat(depth));
+        let tokens = tokenize(&code, "ts");
+        assert_eq!(tokens.iter().map(|t| t.value).collect::<String>(), code);
+        assert!(of_kind(&tokens, "tag").is_empty());
     }
 
     #[test]
