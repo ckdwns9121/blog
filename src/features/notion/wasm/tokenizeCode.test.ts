@@ -36,3 +36,9 @@ it("preserves source when UTF-16 cannot round-trip through Rust", async () => {
   const { tokenizeCode } = await import("./tokenizeCode");
   expect(await tokenizeCode("\ud800", "js")).toEqual([{ type: "text", value: "\ud800" }]);
 });
+
+it("highlights JSX and TSX alongside plain JavaScript and TypeScript", async () => {
+  const { supportsHighlighting } = await import("./tokenizeCode");
+  for (const language of ["js", "JavaScript", "jsx", "ts", "typescript", " TSX "]) expect(supportsHighlighting(language)).toBe(true);
+  for (const language of ["python", "html", "text", ""]) expect(supportsHighlighting(language)).toBe(false);
+});
