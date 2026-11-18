@@ -57,6 +57,9 @@ async function main() {
           console.log(`\n📸 [${post.title}] ${newImageUrls.length}개의 새 이미지 변환 중...\n`);
 
           // 새 이미지만 변환
+          // 품질 85로 만든 WebP가 곧 브라우저가 받는 최종 파일이다.
+          // next.config.ts의 images.unoptimized가 켜져 있어 런타임 변환이 없으므로,
+          // 이 숫자를 낮추면 화질이 그대로 내려간다.
           const postMapping = await convertPostImages(post.slug, newImageUrls, 85);
 
           // 전체 매핑에 추가
