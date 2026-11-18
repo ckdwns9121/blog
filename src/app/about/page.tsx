@@ -26,8 +26,9 @@ export const metadata: Metadata = {
     images: [
       {
         url: `${BASE_URL}/logo.png`,
+        // logo.png는 정사각형(1200x1200)이다. 실제 크기를 적어야 공유 카드가 잘리지 않는다.
         width: 1200,
-        height: 630,
+        height: 1200,
         alt: "박창준 블로그 - 소개",
       },
     ],

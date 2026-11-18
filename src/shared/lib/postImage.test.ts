@@ -1,4 +1,15 @@
-import { resolvePostImage, toAbsoluteUrl } from "./postImage";
+import { getOptimizedImageData } from "@/shared/utils/imageMapper";
+import { resolveOgImage, resolvePostImage, toAbsoluteUrl } from "./postImage";
+
+jest.mock("@/shared/utils/imageMapper", () => ({
+  getOptimizedImageData: jest.fn((url: string) => ({ src: url })),
+}));
+
+const mockGetOptimizedImageData = jest.mocked(getOptimizedImageData);
+
+beforeEach(() => {
+  mockGetOptimizedImageData.mockImplementation((url: string) => ({ src: url }));
+});
 
 describe("resolvePostImage", () => {
   it("prefers the cover image when present", () => {
@@ -24,6 +35,37 @@ describe("resolvePostImage", () => {
   it("treats blank strings as missing", () => {
     expect(resolvePostImage({ coverImage: "   ", contentImage: "", slug: "a" }).source).toBe("generated");
   });
+
+  it("exchanges a Notion proxy url for the locally built image", () => {
+    const notionUrl = "https://www.notion.so/image/https%3A%2F%2Fexample.com%2Fa.png?table=block";
+    mockGetOptimizedImageData.mockReturnValue({ src: "/images/a/1.webp", width: 1200, height: 630 });
+
+    expect(resolvePostImage({ coverImage: notionUrl, slug: "a" })).toEqual({
+      src: "/images/a/1.webp",
+      source: "cover",
+      width: 1200,
+      height: 630,
+    });
+  });
+});
+
+describe("resolveOgImage", () => {
+  it("keeps an image the site serves itself", () => {
+    expect(resolveOgImage({ coverImage: "/images/a/cover.webp", slug: "a" }).src).toBe("/images/a/cover.webp");
+  });
+
+  it("does not hand social crawlers a Notion proxy url that the build did not copy", () => {
+    const notionUrl = "https://www.notion.so/image/https%3A%2F%2Fexample.com%2Fa.png?table=block";
+
+    expect(resolveOgImage({ coverImage: notionUrl, slug: "a" })).toEqual({
+      src: "/posts/a/opengraph-image",
+      source: "generated",
+    });
+  });
+
+  it("keeps the generated image when there is nothing else", () => {
+    expect(resolveOgImage({ slug: "a" }).src).toBe("/posts/a/opengraph-image");
+  });
 });
 
 describe("toAbsoluteUrl", () => {
@@ -37,5 +79,11 @@ describe("toAbsoluteUrl", () => {
 
   it("normalises missing and duplicated slashes", () => {
     expect(toAbsoluteUrl("images/a.webp", "https://blog.test/")).toBe("https://blog.test/images/a.webp");
+  });
+
+  it("does not repeat a base path the image already carries", () => {
+    // BASE_URL이 하위 경로를 포함하고, 매핑이 같은 경로를 돌려주는 경우
+    expect(toAbsoluteUrl("/blog/images/a.webp", "https://example.com/blog")).toBe("https://example.com/blog/images/a.webp");
+    expect(toAbsoluteUrl("/images/a.webp", "https://example.com/blog")).toBe("https://example.com/blog/images/a.webp");
   });
 });

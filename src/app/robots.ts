@@ -1,8 +1,7 @@
 import { MetadataRoute } from "next";
+import { BASE_URL } from "@/shared/constants";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://changjun.dev";
-
   return {
     rules: [
       {
@@ -11,6 +10,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/"], // API 경로는 크롤링 차단
       },
     ],
-    sitemap: `${baseUrl}/sitemap.xml`, // 사이트맵 위치 알려주기
+    sitemap: `${BASE_URL}/sitemap.xml`, // 사이트맵 위치 알려주기
   };
 }
