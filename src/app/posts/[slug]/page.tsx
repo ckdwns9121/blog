@@ -48,7 +48,7 @@ import { PostViewCounter } from "@/features/page-views";
 import { PostNavigation } from "@/widgets/post-navigation";
 import { ScrollProgress, BottomNavigation } from "@/shared/ui";
 import { BASE_URL } from "@/shared/constants";
-import { resolvePostImage, toAbsoluteUrl } from "@/shared/lib/postImage";
+import { resolveOgImage, toAbsoluteUrl } from "@/shared/lib/postImage";
 import type { Metadata } from "next";
 
 interface PostPageProps {
@@ -85,15 +85,16 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
     // 키워드 생성
     const keywords = [...post.tags.map((tag) => tag.name), "프론트엔드", "개발", "기술블로그", "박창준"];
 
-    // 우선순위(커버 → 본문 첫 이미지 → 동적 생성)는 resolvePostImage가 관리한다.
-    const ogImageUrl = toAbsoluteUrl(
-      resolvePostImage({
-        coverImage: post.coverImage,
-        contentImage: getFirstImageFromContent(post.content),
-        slug,
-      }).src,
-      BASE_URL,
-    );
+    // 우선순위(커버 → 본문 첫 이미지 → 동적 생성)와 사이트가 서빙하는 이미지만
+    // 쓴다는 규칙은 resolveOgImage가 관리한다. 빌드 매핑에 없는 Notion 프록시
+    // 주소는 OG 메타데이터로 내보내지 않는다.
+    const ogImage = resolveOgImage({
+      coverImage: post.coverImage,
+      contentImage: getFirstImageFromContent(post.content),
+      slug,
+    });
+    const ogImageUrl = toAbsoluteUrl(ogImage.src, BASE_URL);
+    const ogImageSize = ogImage.width && ogImage.height ? { width: ogImage.width, height: ogImage.height } : {};
 
     return {
       title: `${post.title}`,
@@ -136,8 +137,8 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
         images: [
           {
             url: ogImageUrl,
-            width: 1200,
-            height: 630,
+            // 커버 이미지의 실제 크기를 안다면 그 값을 그대로 알린다.
+            ...ogImageSize,
             alt: post.title,
           },
         ],
@@ -194,7 +195,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
     // JSON-LD 구조화된 데이터 — OG Image와 정확히 같은 이미지를 쓴다.
     const jsonLdImage = toAbsoluteUrl(
-      resolvePostImage({
+      resolveOgImage({
         coverImage: post.coverImage,
         contentImage: getFirstImageFromContent(post.content),
         slug,
