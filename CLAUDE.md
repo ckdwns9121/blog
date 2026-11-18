@@ -63,6 +63,13 @@ src/
 - Images are optimized and stored in `public/images/[post-slug]/`
 - A mapping file `public/images/image-mapping.json` tracks URL transformations
 - The image build script supports incremental builds to avoid re-downloading existing images
+- `next.config.ts` sets `images.unoptimized: true`. Every image is already a sized WebP from
+  the build, so sending it through `/_next/image` again only spends Vercel Image
+  Optimization quota on a near-identical result. Remote Notion URLs that the build never
+  copied render as plain `<img>` sources, so they stay outside that quota too.
+- Consequence worth knowing: there is no `srcset` any more. `PostCard` thumbnails still
+  point at the full-size file, so adding a small variant at build time would be the next
+  win if list pages get heavy.
 
 ### Content Rendering
 
@@ -88,11 +95,23 @@ src/
 
 ### SEO & Performance
 
+- Every absolute URL comes from `BASE_URL` (`src/shared/constants`). It normalises
+  `NEXT_PUBLIC_SITE_URL` to `https://www.changjun.dev`: apex is upgraded to `www` because
+  production 308-redirects there, a missing scheme gets `https`, and the trailing slash is
+  removed. `robots.ts`, the sitemap and the three feeds all import it; none of them reads the
+  environment variable on its own.
 - Static generation with ISR support
 - RSS feeds (`/atom.xml`, `/feed.json`, `/feed.xml`)
 - Sitemap generation
-- Open Graph images for posts
-- Image optimization with WebP/AVIF formats
+- Open Graph images for posts: `resolveOgImage` in `src/shared/lib/postImage` prefers a
+  locally built image and falls back to `/posts/[slug]/opengraph-image` instead of handing
+  crawlers a Notion proxy URL. That route runs on the Node runtime (not Edge) so it can read
+  `public/fonts/og-noto-sans-kr-bold.ttf` at build time. Without a supplied font,
+  `ImageResponse` still renders Korean through its built-in fallback, but the weight and face
+  differ from the site; the bundled Noto Sans KR makes the card match. satori reads
+  TTF/OTF/WOFF only, never woff2 — see `public/fonts/README.md`.
+- `next.config.ts` adds `X-Content-Type-Options`, `X-Frame-Options: SAMEORIGIN` and
+  `Referrer-Policy` to every path alongside the long-lived `/images` cache header.
 
 ## Development Guidelines
 
