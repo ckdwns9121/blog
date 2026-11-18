@@ -28,10 +28,11 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   // 이미지 최적화
-  // `build:images`가 빌드 때 Notion 이미지를 모두 내려받아 WebP로 바꿔 public/images에
-  // 두므로, 런타임에는 이미 최적화된 로컬 파일만 남는다. 그 파일들을 다시
-  // /_next/image로 넘기면 Vercel Image Optimization 변환 한도만 축내고 결과물은
-  // 거의 같다. 그래서 Vercel의 변환을 쓰지 않고 정적 파일을 그대로 서빙한다.
+  // `build:images`가 빌드 때 내려받아 WebP로 바꾼 이미지는 public/images에 있고,
+  // 그 파일들을 다시 /_next/image로 넘기면 Vercel Image Optimization 변환 한도만
+  // 축내고 결과물은 거의 같다. 그래서 Vercel의 변환을 쓰지 않고 정적 파일을 그대로
+  // 서빙한다. 빌드가 매핑하지 못한 Notion 이미지는 원격 주소 그대로 나간다 — 그런
+  // 이미지는 로컬에 없다는 뜻이므로, 깨져 보이면 `build:images` 로그를 먼저 보면 된다.
   // (원격 이미지 최적화를 다시 켜려면 unoptimized를 false로 바꾸고 remotePatterns를
   //  함께 되살려야 한다.)
   images: {

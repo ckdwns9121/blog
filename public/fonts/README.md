@@ -11,7 +11,7 @@ Noto Sans KR 파일은 대부분 woff2라서, 아래처럼 TTF로 만들어 이 
   (한글 음절 11,172자 전체 + 라틴/기호). 글리프 11,663자, 약 2.4MB
 - 레이아웃 테이블(GSUB/GPOS)은 OG 이미지에 필요 없어 제외
 
-다시 만들어야 할 때:
+다시 만들어야 할 때는 이 폴더(`public/fonts`)에서 실행한다. 저장소 루트에서 돌리면 결과물이 루트에 떨어지고 라우트는 예전 파일을 계속 읽는다.
 
 ```sh
 curl -L -o NotoSansKR-VF.ttf "https://github.com/google/fonts/raw/main/ofl/notosanskr/NotoSansKR%5Bwght%5D.ttf"

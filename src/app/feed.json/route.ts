@@ -23,7 +23,8 @@ export async function GET() {
     updated: new Date(),
     generator: "Feed for Node.js",
     feedLinks: {
-      rss2: `${BASE_URL}/feed.xml`,
+      // feed 5.x의 RSS 렌더러는 feedLinks.rss를 읽는다. rss2 키는 무시되어 rel="self" 링크가 빠진다.
+      rss: `${BASE_URL}/feed.xml`,
       json: `${BASE_URL}/feed.json`,
       atom: `${BASE_URL}/atom.xml`,
     },

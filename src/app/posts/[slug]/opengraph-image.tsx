@@ -3,20 +3,22 @@ import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { getPostBySlug } from "@/features/notion";
 import { BASE_URL } from "@/shared/constants";
+import { OG_IMAGE_SIZE } from "@/shared/lib/postImage";
 
 export const alt = "박창준 블로그 글 표지";
-export const size = {
-  width: 1200,
-  height: 630,
-};
+export const size = OG_IMAGE_SIZE;
 export const contentType = "image/png";
 
-// satori(ImageResponse)는 ttf/otf/woff만 읽고 woff2는 읽지 못하고, 폰트를 넘기지 않으면
-// 라틴 문자 기본 폰트로 그려 한글 제목이 네모로 나온다. 빌드 때 public/fonts에 둔
-// 한글 서브셋을 읽어 넘긴다(전체 주소는 public/fonts/README.md 참고).
+// satori(ImageResponse)는 ttf/otf/woff만 읽고 woff2는 읽지 못한다. 폰트를 넘기지 않아도
+// @vercel/og의 기본 폰트로 한글이 나오지만 굵기·모양이 본문과 다르다. 빌드 때 public/fonts에
+// 둔 한글 서브셋을 읽어 넘긴다(전체 주소는 public/fonts/README.md 참고).
 const FONT_FAMILY = "Noto Sans KR";
 const FONT_PATH = ["public", "fonts", "og-noto-sans-kr-bold.ttf"];
 const FONT_URL_PATH = "/fonts/og-noto-sans-kr-bold.ttf";
+const FONT_FETCH_TIMEOUT_MS = 3000;
+
+// truetype(0x00010000, "true"), opentype("OTTO"), woff("wOFF")
+const FONT_SIGNATURES = [0x00010000, 0x74727565, 0x4f54544f, 0x774f4646];
 
 /**
  * 폰트는 모듈이 처음 로드될 때 한 번만 준비한다.
@@ -25,22 +27,38 @@ const FONT_URL_PATH = "/fonts/og-noto-sans-kr-bold.ttf";
  * 빌드 이후 발행되어 요청 시점에 그려지는 글은 서버리스 함수에서 실행되는데,
  * 그 환경에는 public/이 함수 번들에 들어 있지 않을 수 있어 같은 배포의 정적
  * 자산을 한 번 더 시도한다. 둘 다 실패하면 폰트 없이 그린다 — 이미지 생성이
- * 실패하는 것보다는 라틴 기본 폰트로라도 나오는 편이 낫다.
+ * 실패하는 것보다는 기본 폰트로라도 나오는 편이 낫다.
  */
 const fontData = await loadFontData();
+
+function isFontData(data: ArrayBuffer): boolean {
+  if (data.byteLength < 4) return false;
+
+  const signature = new DataView(data).getUint32(0, false);
+  return FONT_SIGNATURES.includes(signature);
+}
 
 async function loadFontData(): Promise<ArrayBuffer | null> {
   try {
     const file = await readFile(join(process.cwd(), ...FONT_PATH));
-    return file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) as ArrayBuffer;
+    const data = file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) as ArrayBuffer;
+    if (isFontData(data)) return data;
   } catch {
     // 아래 fetch로 넘어간다.
   }
 
   try {
-    const response = await fetch(new URL(FONT_URL_PATH, BASE_URL));
+    // 이 호출은 모듈 로드를 붙잡는다. 응답이 매달리면 첫 요청이 그대로 멈추므로
+    // 짧게 끊고, 폰트가 아닌 본문(리라이트된 HTML 등)은 서명으로 걸러낸다.
+    const response = await fetch(new URL(FONT_URL_PATH, BASE_URL), {
+      signal: AbortSignal.timeout(FONT_FETCH_TIMEOUT_MS),
+    });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return await response.arrayBuffer();
+
+    const data = await response.arrayBuffer();
+    if (isFontData(data)) return data;
+
+    throw new Error("폰트 파일이 아닌 응답");
   } catch (error) {
     console.warn("OG 이미지용 한글 폰트를 불러오지 못해 기본 폰트로 그립니다.", error);
     return null;
@@ -56,8 +74,14 @@ function titleFontSize(title: string): number {
   return 68;
 }
 
+/**
+ * 이모지처럼 두 코드 유닛을 쓰는 글자를 반으로 자르지 않도록 코드 포인트 단위로 센다.
+ */
 function truncateTitle(title: string): string {
-  return title.length > TITLE_MAX_LENGTH ? `${title.slice(0, TITLE_MAX_LENGTH).trimEnd()}…` : title;
+  const characters = Array.from(title);
+  if (characters.length <= TITLE_MAX_LENGTH) return title;
+
+  return `${characters.slice(0, TITLE_MAX_LENGTH).join("").trimEnd()}…`;
 }
 
 interface ImageProps {
@@ -113,6 +137,8 @@ export default async function Image({ params }: ImageProps) {
               color: "#111827",
               lineHeight: 1.32,
               letterSpacing: "-0.02em",
+              // 띄어쓰기가 없는 긴 제목(URL, 영문 식별자)도 상자 안에서 접히게 한다.
+              wordBreak: "break-word",
               maxWidth: "1040px",
             }}
           >

@@ -48,7 +48,7 @@ import { PostViewCounter } from "@/features/page-views";
 import { PostNavigation } from "@/widgets/post-navigation";
 import { ScrollProgress, BottomNavigation } from "@/shared/ui";
 import { BASE_URL } from "@/shared/constants";
-import { resolveOgImage, toAbsoluteUrl } from "@/shared/lib/postImage";
+import { resolveOgImage, toAbsoluteUrl, OG_IMAGE_SIZE } from "@/shared/lib/postImage";
 import type { Metadata } from "next";
 
 interface PostPageProps {
@@ -94,7 +94,13 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
       slug,
     });
     const ogImageUrl = toAbsoluteUrl(ogImage.src, BASE_URL);
-    const ogImageSize = ogImage.width && ogImage.height ? { width: ogImage.width, height: ogImage.height } : {};
+    // 생성 이미지는 크기가 정해져 있고, 커버 이미지는 빌드 매핑에 크기가 있을 때만 안다.
+    // 모르는 값을 1200x630이라고 우기지 않는다.
+    const ogImageSize = ogImage.width && ogImage.height
+      ? { width: ogImage.width, height: ogImage.height }
+      : ogImage.source === "generated"
+        ? { ...OG_IMAGE_SIZE }
+        : {};
 
     return {
       title: `${post.title}`,

@@ -63,10 +63,10 @@ src/
 - Images are optimized and stored in `public/images/[post-slug]/`
 - A mapping file `public/images/image-mapping.json` tracks URL transformations
 - The image build script supports incremental builds to avoid re-downloading existing images
-- `next.config.ts` sets `images.unoptimized: true`. Every image is already a sized WebP from
-  the build, so sending it through `/_next/image` again only spends Vercel Image
-  Optimization quota on a near-identical result. Remote Notion URLs that the build never
-  copied render as plain `<img>` sources, so they stay outside that quota too.
+- `next.config.ts` sets `images.unoptimized: true`. Images that `build:images` copied are
+  already sized WebP files, so sending them through `/_next/image` again only spends Vercel
+  Image Optimization quota on a near-identical result. A Notion URL the build never copied
+  still renders as a plain `<img>` pointing at Notion, which also stays outside that quota.
 - Consequence worth knowing: there is no `srcset` any more. `PostCard` thumbnails still
   point at the full-size file, so adding a small variant at build time would be the next
   win if list pages get heavy.
@@ -95,7 +95,8 @@ src/
 
 ### SEO & Performance
 
-- Every absolute URL comes from `BASE_URL` (`src/shared/constants`). It normalises
+- Every absolute URL for this site comes from `BASE_URL` (`src/shared/constants`); URLs that
+  point at other services (Utterances, CodeSandbox) are written where they are used. It normalises
   `NEXT_PUBLIC_SITE_URL` to `https://www.changjun.dev`: apex is upgraded to `www` because
   production 308-redirects there, a missing scheme gets `https`, and the trailing slash is
   removed. `robots.ts`, the sitemap and the three feeds all import it; none of them reads the

@@ -17,6 +17,20 @@ describe("normalizeSiteUrl", () => {
     expect(normalizeSiteUrl("changjun.dev")).toBe("https://www.changjun.dev");
   });
 
+  it("forces https on the production domain", () => {
+    expect(normalizeSiteUrl("http://changjun.dev")).toBe("https://www.changjun.dev");
+    expect(normalizeSiteUrl("http://www.changjun.dev")).toBe("https://www.changjun.dev");
+  });
+
+  it("keeps http for a local development origin", () => {
+    expect(normalizeSiteUrl("http://localhost:3000")).toBe("http://localhost:3000");
+  });
+
+  it("rejects a scheme that is not http or https", () => {
+    expect(normalizeSiteUrl("file:///etc/passwd")).toBe(SITE_URL);
+    expect(normalizeSiteUrl("javascript://alert(1)")).toBe(SITE_URL);
+  });
+
   it("leaves another domain alone", () => {
     expect(normalizeSiteUrl("https://blog.example.com/")).toBe("https://blog.example.com");
   });

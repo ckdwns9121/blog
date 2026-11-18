@@ -80,4 +80,10 @@ describe("toAbsoluteUrl", () => {
   it("normalises missing and duplicated slashes", () => {
     expect(toAbsoluteUrl("images/a.webp", "https://blog.test/")).toBe("https://blog.test/images/a.webp");
   });
+
+  it("does not repeat a base path the image already carries", () => {
+    // BASE_URL이 하위 경로를 포함하고, 매핑이 같은 경로를 돌려주는 경우
+    expect(toAbsoluteUrl("/blog/images/a.webp", "https://example.com/blog")).toBe("https://example.com/blog/images/a.webp");
+    expect(toAbsoluteUrl("/images/a.webp", "https://example.com/blog")).toBe("https://example.com/blog/images/a.webp");
+  });
 });

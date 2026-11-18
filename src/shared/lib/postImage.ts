@@ -18,6 +18,12 @@ import { getOptimizedImageData } from "@/shared/utils/imageMapper";
 
 export type PostImageSource = "cover" | "content" | "generated";
 
+/**
+ * 동적 생성 OG 이미지의 크기. 라우트(`opengraph-image.tsx`)와 메타데이터가 같은 값을 봐야
+ * `og:image:width/height`가 실제 이미지와 어긋나지 않는다.
+ */
+export const OG_IMAGE_SIZE = { width: 1200, height: 630 } as const;
+
 export interface ResolvedPostImage {
   /** 사이트 루트 기준 경로이거나 외부 절대 URL */
   src: string;
@@ -97,6 +103,9 @@ export function resolveOgImage({ coverImage, contentImage, slug }: ResolvePostIm
 /**
  * 상대 경로를 절대 URL로 변환한다. 이미 절대 URL이면 그대로 둔다.
  * OG 메타데이터와 JSON-LD는 절대 URL을 요구한다.
+ *
+ * BASE_URL이 하위 경로를 포함하는 경우(예: `https://example.com/blog`)를 위해,
+ * 이미 그 경로로 시작하는 상대 경로에는 접두사를 다시 붙이지 않는다.
  */
 export function toAbsoluteUrl(url: string, baseUrl: string): string {
   if (/^https?:\/\//.test(url)) {
@@ -105,6 +114,20 @@ export function toAbsoluteUrl(url: string, baseUrl: string): string {
 
   const normalizedBase = baseUrl.replace(/\/+$/, "");
   const normalizedPath = url.startsWith("/") ? url : `/${url}`;
+  const basePath = getPathname(normalizedBase);
+
+  if (basePath && (normalizedPath === basePath || normalizedPath.startsWith(`${basePath}/`))) {
+    return `${normalizedBase}${normalizedPath.slice(basePath.length)}`;
+  }
 
   return `${normalizedBase}${normalizedPath}`;
+}
+
+/** 절대 URL의 경로 부분. 해석할 수 없으면 빈 문자열. */
+function getPathname(url: string): string {
+  try {
+    return new URL(url).pathname.replace(/\/+$/, "");
+  } catch {
+    return "";
+  }
 }
